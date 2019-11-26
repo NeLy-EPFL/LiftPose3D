@@ -22,10 +22,10 @@ if not isdir(top_dd):
 if not isdir(side_dd):
     mkdir(side_dd)
 
-border_width = 60
-threshold = 27
-bbox_width = 600
-horiz_crop = 400
+border_width = 79
+threshold = 45
+bbox_width = 550
+horiz_crop = 440
 
 def _remove_borders(img, bwidth):
     img = img[:, bwidth:-bwidth]
@@ -34,14 +34,14 @@ def _remove_borders(img, bwidth):
 
 def _separate_top_side_flies(img, th):
     fl_img = np.mean(img, axis=0)
-
-    #if DEBUG:
-    #    fig = plt.figure(figsize=(5,3))
-    #    plt.plot(fl_img)
-    #    plt.show(block=False)
-    #    plt.pause(2)
-    #    plt.close(fig)
-
+    '''
+    if DEBUG:
+        fig = plt.figure(figsize=(5,3))
+        plt.plot(fl_img)
+        plt.show(block=False)
+        plt.pause(2)
+        plt.close(fig)
+    '''
     fl_img_comp = fl_img > th
     #pick_idx = np.argmax(fl_img)
     left_vert_crop = np.argmax(fl_img_comp)
@@ -69,14 +69,16 @@ def _get_orientation(contour, img):
     return angle
 
 def _find_orientation(img):
-    _, img_th = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    #_, img_th = cv2.threshold(img, 250, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    img_th = img.copy()
+    img_th[img_th < 140] = 0
     # Find all the contours in the thresholded image
     contours, _ = cv2.findContours(img_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     for i, c in enumerate(contours):
         # Calculate the area of each contour
         area = cv2.contourArea(c)
         # Ignore contours that are too small or too large
-        if area > 40000:
+        if area > 10000:
             break
     contour = c
     # Find the orientation of each shape
@@ -84,6 +86,7 @@ def _find_orientation(img):
 
     if DEBUG:
         img_debug = img.copy()
+        cv2.drawContours(img_debug, contours, i, (255, 0, 0), 2)
         cv2.putText(img_debug, "%.2f degree"%angle, (10,horiz_crop-50), cv2.FONT_HERSHEY_SIMPLEX,
                     0.8, (255, 0, 0), 1, cv2.LINE_AA)
         cv2.imshow("top", img_debug)
@@ -114,27 +117,26 @@ if __name__ == '__main__':
         
         # Remove border with very bright light
         img = _remove_borders(img, border_width)
-        
         img_dist = img.copy()
-        img_dist[img_dist < 50] = 0
+        img_dist[img_dist < 60] = 0
+        #img_bin = (img > 60).astype(float)
+        
         if np.any(img_prev == None):
             img_prev = img_dist
             dist = 999
         else:
             dist = np.mean((img_dist - img_prev)**2)
-            if dist < 6.57:
+            if dist < 6.8:
                 n_skip += 1
-                if DEBUG : print("skipped", n_skip)
                 continue
             img_prev = img_dist
-
+        
         if DEBUG:
-            img_debug = img.copy()
-            cv2.putText(img_debug, "distance %.5f"%dist, (10,img_debug.shape[0]-50),
+            cv2.putText(img_dist, "distance %.5f"%dist, (10,img_dist.shape[0]-50),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 1, cv2.LINE_AA)
-            cv2.imshow("row", img_debug)
-            cv2.waitKey(1)
-
+            cv2.imshow("row", img_dist)
+            cv2.waitKey(2)
+        
         top_img, side_img = _separate_top_side_flies(img, threshold)
         if top_img.shape[1] != bbox_width or side_img.shape[1] != bbox_width:
             if DEBUG:
@@ -143,6 +145,9 @@ if __name__ == '__main__':
             continue 
         
         orientation = _find_orientation(top_img)
+        if DEBUG:
+            cv2.imshow("side", side_img)
+            cv2.waitKey(1)
         _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
-
+    print(f"\n[*] skipped {n_skip:n} frames because the fly was doing nothing")
     print("\n[+] done\n")

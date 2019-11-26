@@ -2,6 +2,7 @@ import cv2
 import sys
 from os import listdir
 from os.path import isfile, join
+from tqdm import tqdm
 
 if __name__ == '__main__':
     args = sys.argv
@@ -14,11 +15,12 @@ if __name__ == '__main__':
         if isfile(join(imgs_dir+"side_view/", f)) and f.endswith(".jpg")]
     img_names_top.sort()
     img_names_side.sort()
-    print("Will show", len(img_names_top), len(img_names_side), "frames")
+    print(f"[*] showing {min(len(img_names_top), len(img_names_side)):n} frames")
     cv2.namedWindow("top", flags=cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("side", flags=cv2.WINDOW_AUTOSIZE)
-    for idx, (img_nt, img_ns) in enumerate(zip(img_names_top, img_names_side)):
-        if idx % 100 == 0 : print(f"{idx:n} / {len(img_names_top):n}")
+    for idx in tqdm(range(min(len(img_names_top), len(img_names_side)))):
+        img_nt, img_ns = img_names_top[idx], img_names_side[idx]
+        
         img_t = cv2.imread(imgs_dir + "top_view/" + img_nt)
         img_s = cv2.imread(imgs_dir + "side_view/" + img_ns)
         cv2.imshow("top", img_t)
