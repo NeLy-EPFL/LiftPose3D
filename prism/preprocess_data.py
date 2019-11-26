@@ -2,13 +2,14 @@ from os import listdir
 from os.path import isfile, isdir, join
 from os import mkdir
 import sys
+from tqdm import tqdm
 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
 
-DEBUG = True
+DEBUG = False
 
 args = sys.argv
 data_dir = args[1]
@@ -96,13 +97,15 @@ def _save_top_side_images(top_img, side_img, orientation, dd, img_name):
     cv2.imwrite(side_dd + img_name + "_%.2f"%orientation + ".jpg", side_img)
 
 if __name__ == '__main__':
+    print(f"\n[*] reading images name from {data_dir:s}")
     img_names = [f for f in listdir(data_dir) if isfile(join(data_dir, f)) and f.endswith(".jpg")]
     img_names.sort()
-    #img_names = img_names[0::5]
+    imgs_len = len(img_names)
     img_prev = None
     n_skip = 0
-    for counter, img_name in enumerate(img_names):
-        if counter % 100 == 0 : print(f"{counter:n} / {len(img_names):n}")
+    print(f"[*] splitting the images into top and side views\n")
+    for counter in tqdm(range(imgs_len)):
+        img_name = img_names[counter]
 
         img = cv2.imread(data_dir + img_name)
         
@@ -141,3 +144,5 @@ if __name__ == '__main__':
         
         orientation = _find_orientation(top_img)
         _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
+
+    print("\n[+] done\n")
