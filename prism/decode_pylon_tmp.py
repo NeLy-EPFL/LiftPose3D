@@ -12,7 +12,7 @@ parser.add_argument('--recursive', default=False, type=lambda x: (str(x).lower()
 args = parser.parse_args()
 
 #image_shape = [480,960]
-image_shape = [900, 1792]
+image_shape = [700, 1792]
 image_size = image_shape[0]*image_shape[1]
 list(glob.iglob('{}**/*.tmp'.format(args.path), recursive=args.recursive))
 

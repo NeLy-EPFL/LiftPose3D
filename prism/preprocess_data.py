@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
 
-DEBUG = False
+DEBUG = True
 
 args = sys.argv
 data_dir = args[1]
