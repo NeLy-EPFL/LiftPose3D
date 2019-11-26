@@ -1,3 +1,9 @@
+'''
+Converts binary files into grayscale images produced by basler cameras.
+Uses memmory mapped files in case binary files cannot fit into the memory.
+
+https://www.baslerweb.com/en/
+'''
 import numpy as np
 import glob
 import os
@@ -6,7 +12,7 @@ import argparse
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', default='', type=str)
+parser.add_argument('--path', default='./', type=str)
 parser.add_argument('--recursive', default=False, type=lambda x: (str(x).lower() == 'true'))
 
 args = parser.parse_args()
@@ -14,7 +20,6 @@ args = parser.parse_args()
 #image_shape = [480,960]
 image_shape = [700, 1792]
 image_size = image_shape[0]*image_shape[1]
-list(glob.iglob('{}**/*.tmp'.format(args.path), recursive=args.recursive))
 
 if __name__=='__main__':
     filename_list = list(glob.iglob('{}**/*.tmp'.format(args.path), recursive=args.recursive))
@@ -25,7 +30,6 @@ if __name__=='__main__':
             path = os.path.dirname(filename)
 
             print("Reading file: ", filename)
-            #d = np.fromfile(filename, dtype=np.uint8, count=num_images_upper_bound)
             d = np.memmap(filename, dtype=np.uint8, mode='r')
             print("File shape", d.shape)
             cam_id = int(filename[-5])
@@ -38,5 +42,6 @@ if __name__=='__main__':
 
                 cv2.imwrite(image_path, img)
         except BaseException as e:
+            print("Cannot process {}".format(filename))
             print(e)
             continue
