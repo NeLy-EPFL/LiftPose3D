@@ -1,0 +1,17 @@
+__pycache__
+
+flydata*
+octopamineExperiments*
+experiments*
+prism/data
+hours
+*~
+*.pyc
+*.npy
+*.h5
+*.ipynb
+*.mpeg
+*.swp
+*.tar.gz
+*.tar.*
+*.mp4
