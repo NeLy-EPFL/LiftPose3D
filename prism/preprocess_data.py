@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
 
-DEBUG = False
+DEBUG = True
 IMG_PREV = None
 
 args = sys.argv
@@ -23,7 +23,7 @@ if not isdir(top_dd):
 if not isdir(side_dd):
     mkdir(side_dd)
 
-border_width = 95
+border_width = 105
 threshold = 45
 bbox_width = 550
 horiz_crop = 440
@@ -72,7 +72,7 @@ def _get_orientation(contour, img):
 def _find_orientation(img):
     #_, img_th = cv2.threshold(img, 250, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     img_th = img.copy()
-    img_th[img_th < 140] = 0
+    img_th[img_th < 130] = 0 # was 140
     # Find all the contours in the thresholded image
     contours, _ = cv2.findContours(img_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     for i, c in enumerate(contours):
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             dist = 999
         else:
             dist = np.mean((img_dist - IMG_PREV)**2)
-            if dist < 49:
+            if dist < 47:
                 n_skip_dist += 1
                 continue
             IMG_PREV = img_dist
