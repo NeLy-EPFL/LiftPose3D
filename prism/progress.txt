@@ -1,0 +1,22 @@
+preprocessing done for:
+
+/mnt/NAS/SG/prism_data/191125_PR/Fly1/001_prism/behData/images
+/mnt/NAS/SG/prism_data/191125_PR/Fly1/002_prism/behData/images
+
+
+preprocessing in progress for:
+
+/mnt/NAS/SG/prism_data/191125_PR/Fly1/003_prism/behData/images
+
+
+weird things happened for:
+
+/mnt/NAS/SG/prism_data/191125_PR/Fly1/004_prism/behData/images
+
+
+preprocessing pending for:
+
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/001_prism/behData/images
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/002_prism/behData/images
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/003_prism/behData/images
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/004_prism/behData/images

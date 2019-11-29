@@ -9,7 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
 
-DEBUG = True
+DEBUG = False
+IMG_PREV = None
 
 args = sys.argv
 data_dir = args[1]
@@ -22,7 +23,7 @@ if not isdir(top_dd):
 if not isdir(side_dd):
     mkdir(side_dd)
 
-border_width = 79
+border_width = 95
 threshold = 45
 bbox_width = 550
 horiz_crop = 440
@@ -105,7 +106,8 @@ if __name__ == '__main__':
     img_names.sort()
     imgs_len = len(img_names)
     img_prev = None
-    n_skip = 0
+    n_skip_dist = 0
+    n_skip_out = 0
     print(f"[*] splitting the images into top and side views\n")
     for counter in tqdm(range(imgs_len)):
         img_name = img_names[counter]
@@ -117,19 +119,19 @@ if __name__ == '__main__':
         
         # Remove border with very bright light
         img = _remove_borders(img, border_width)
-        img_dist = img.copy()
-        img_dist[img_dist < 60] = 0
+        img_dist = np.copy(img)
+        #img_dist[img_dist < 60] = 0
         #img_bin = (img > 60).astype(float)
         
-        if np.any(img_prev == None):
-            img_prev = img_dist
+        if np.any(IMG_PREV == None):
+            IMG_PREV = img_dist
             dist = 999
         else:
-            dist = np.mean((img_dist - img_prev)**2)
-            if dist < 6.8:
-                n_skip += 1
+            dist = np.mean((img_dist - IMG_PREV)**2)
+            if dist < 49:
+                n_skip_dist += 1
                 continue
-            img_prev = img_dist
+            IMG_PREV = img_dist
         
         if DEBUG:
             cv2.putText(img_dist, "distance %.5f"%dist, (10,img_dist.shape[0]-50),
@@ -142,6 +144,7 @@ if __name__ == '__main__':
             if DEBUG:
                 cv2.imshow("outlier", img)
                 cv2.waitKey(1)
+            n_skip_out += 1
             continue 
         
         orientation = _find_orientation(top_img)
@@ -149,5 +152,9 @@ if __name__ == '__main__':
             cv2.imshow("side", side_img)
             cv2.waitKey(1)
         _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
-    print(f"\n[*] skipped {n_skip:n} frames because the fly was doing nothing")
+    print(f"\n[*] skipped {n_skip_dist:n}, {n_skip_out:n} frames because the fly was doing nothing or because it was an outlier")
     print("\n[+] done\n")
+
+    with open(data_dir+"info.txt", 'w') as info:
+        info.write("n_skip_dist: %d"%n_skip_dist)
+        info.write("\nn_skip_out: %d"%n_skip_out)
