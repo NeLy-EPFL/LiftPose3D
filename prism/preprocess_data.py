@@ -75,6 +75,7 @@ def _find_orientation(img):
     img_th[img_th < 130] = 0 # was 140
     # Find all the contours in the thresholded image
     contours, _ = cv2.findContours(img_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    if len(contours) < 1 : return None
     for i, c in enumerate(contours):
         # Calculate the area of each contour
         area = cv2.contourArea(c)
@@ -148,6 +149,7 @@ if __name__ == '__main__':
             continue 
         
         orientation = _find_orientation(top_img)
+        if orientation == None : continue
         if DEBUG:
             cv2.imshow("side", side_img)
             cv2.waitKey(1)

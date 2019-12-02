@@ -4,11 +4,13 @@ preprocessing done for:
 /mnt/NAS/SG/prism_data/191125_PR/Fly1/002_prism/behData/images [4067 frames]
 /mnt/NAS/SG/prism_data/191125_PR/Fly1/003_prism/behData/images [9468 frames]
 /mnt/NAS/SG/prism_data/191125_PR/Fly1/004_prism/behData/images [7783 frames] 
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/001_prism/behData/images [23323 frames, grooming head!]
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/002_prism/behData/images
+/mnt/NAS/SG/prism_data/191125_PR/Fly2/003_prism/behData/images
 
 
 preprocessing in progress for:
 
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/001_prism/behData/images
 
 
 weird things happened for:
@@ -18,6 +20,4 @@ weird things happened for:
 
 preprocessing pending for:
 
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/002_prism/behData/images
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/003_prism/behData/images
 /mnt/NAS/SG/prism_data/191125_PR/Fly2/004_prism/behData/images
