@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
 
-DEBUG = True
+DEBUG = False
 IMG_PREV = None
 
 args = sys.argv
