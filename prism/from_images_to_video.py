@@ -13,8 +13,8 @@ if __name__ == '__main__':
     if not imgs_dir.endswith("/") : imgs_dir += "/"
 
     imgs_dir_spl = imgs_dir.split("/")
-    post_top = "_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6] +"_"+ imgs_dir_spl[7]
-    post_side = "_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6] +"_"+ imgs_dir_spl[7]
+    post_top = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
+    post_side = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
     top_dir = "top_view" + post_top +"/"
     side_dir = "side_view" + post_side +"/"
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
         img_s = cv2.imread(imgs_dir + side_dir + img_ns, cv2.IMREAD_GRAYSCALE)
         if DEBUG:
-            cv2.imshow("top", img_s)
+            cv2.imshow("side", img_s)
             cv2.waitKey(10)
         writer_side.writeFrame(img_s)
 

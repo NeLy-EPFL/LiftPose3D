@@ -1,0 +1,60 @@
+source activate tensorflow_env
+jupyter notebook
+open Demo_yourowndata notebook
+run the cells until(!!!) "Label the extracted frames" section
+load one of the "to be annotated" folder
+
+adjust the marker size to 3 (yeah the GUI works very badly)
+
+Subsequently, the user can use one of the radio buttons (top right) to select a body part to label.
+RIGHT click to add the label. Left click to drag the label, if needed.
+If you label a part accidentally, you can use the middle button on your mouse to delete!
+
+!!! If you cannot see a body part in the frame, skip over the label !!!
+
+!!! Not labeled images (not even one label) are classified as UNWANTED !!!
+just click "next" for the unwanted frames
+
+The user needs to save the labels by clicking the save button at the bottom right.
+! I suggest you to save after you finish each folder !
+
+Saving the labels will create a dataset for each video in a hierarchical data file format (HDF)
+in the subdirectory corresponding to the particular video in labeled-data.
+You can save at any intermediate step and you return to labeling a dataset by reloading it.
+
+
+[+] folder /home/morales/marcoabrate/LiftFly3D/prism/jointTracking-PrismData-2019-12-06/labeled-data
+
+[*] annotated:
+
+top_video_191125_PR_Fly1_001_prism
+top_video_191125_PR_Fly1_002_prism
+top_video_191125_PR_Fly1_003_prism
+
+
+[*] to be annotated:
+
+top_video_191125_PR_Fly1_004_prism
+top_video_191125_PR_Fly2_001_prism
+top_video_191125_PR_Fly2_002_prism
+top_video_191125_PR_Fly2_003_prism
+top_video_191125_PR_Fly2_004_prism
+
+
+############ SIDE VIEW ############
+
+[+] folder /home/morales/marcoabrate/LiftFly3D/prism/side_jointTracking-PrismData-2019-12-06/labeled-data
+
+[*] annotated:
+///
+
+[*] to be annotated:
+
+side_video_191125_PR_Fly1_001_prism
+side_video_191125_PR_Fly1_002_prism
+side_video_191125_PR_Fly1_003_prism
+side_video_191125_PR_Fly1_004_prism
+side_video_191125_PR_Fly2_001_prism
+side_video_191125_PR_Fly2_002_prism
+side_video_191125_PR_Fly2_003_prism
+side_video_191125_PR_Fly2_004_prism
