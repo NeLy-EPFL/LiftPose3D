@@ -1,15 +1,28 @@
+/ramdya-nas/
+/mnt/NAS/
+
 preprocessing done for:
 
-/mnt/NAS/SG/prism_data/191125_PR/Fly1/001_prism/behData/images [11561 frames]
-/mnt/NAS/SG/prism_data/191125_PR/Fly1/002_prism/behData/images [4067 frames]
-/mnt/NAS/SG/prism_data/191125_PR/Fly1/003_prism/behData/images [9468 frames]
-/mnt/NAS/SG/prism_data/191125_PR/Fly1/004_prism/behData/images [7783 frames] 
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/001_prism/behData/images [23323 frames, grooming head!]
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/002_prism/behData/images
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/003_prism/behData/images
+SG/prism_data/191125_PR/Fly1/001_prism/behData/images [11561 frames]
+SG/prism_data/191125_PR/Fly1/002_prism/behData/images [4067 frames]
+SG/prism_data/191125_PR/Fly1/003_prism/behData/images [9468 frames]
+SG/prism_data/191125_PR/Fly1/004_prism/behData/images [7783 frames] 
+SG/prism_data/191125_PR/Fly2/001_prism/behData/images [23323 frames, grooming head!]
+SG/prism_data/191125_PR/Fly2/002_prism/behData/images [5687 frames]
+SG/prism_data/191125_PR/Fly2/003_prism/behData/images [9419 frames]
+SG/prism_data/191125_PR/Fly2/004_prism/behData/images [6549 frames]
 
 
-preprocessing in progress for:
+videos done for (e.g. top_view_191125_PR_Fly1_001_prism/top_video_191125_PR_Fly1_001_prism.mp4):
+SG/prism_data/191125_PR/Fly1/001_prism/behData/images/top_view_191125_PR_Fly1_001_prism
+SG/prism_data/191125_PR/Fly1/001_prism/behData/images/side_view_191125_PR_Fly1_001_prism
+SG/prism_data/191125_PR/Fly1/002_prism/behData/images/top_view_191125_PR_Fly1_002_prism
+SG/prism_data/191125_PR/Fly1/002_prism/behData/images/side_view_191125_PR_Fly1_002_prism
+
+
+
+
+video in progress for:
 
 
 
@@ -18,6 +31,17 @@ weird things happened for:
 --
 
 
-preprocessing pending for:
+video pending for:
 
-/mnt/NAS/SG/prism_data/191125_PR/Fly2/004_prism/behData/images
+SG/prism_data/191125_PR/Fly1/003_prism/behData/images/top_view_191125_PR_Fly1_003_prism
+SG/prism_data/191125_PR/Fly1/003_prism/behData/images/side_view_191125_PR_Fly1_003_prism
+SG/prism_data/191125_PR/Fly1/004_prism/behData/images/top_view_191125_PR_Fly1_004_prism
+SG/prism_data/191125_PR/Fly1/004_prism/behData/images/side_view_191125_PR_Fly1_004_prism
+SG/prism_data/191125_PR/Fly2/001_prism/behData/images/top_view_191125_PR_Fly2_001_prism
+SG/prism_data/191125_PR/Fly2/001_prism/behData/images/side_view_191125_PR_Fly2_001_prism
+SG/prism_data/191125_PR/Fly2/002_prism/behData/images/top_view_191125_PR_Fly2_002_prism
+SG/prism_data/191125_PR/Fly2/002_prism/behData/images/side_view_191125_PR_Fly2_002_prism
+SG/prism_data/191125_PR/Fly2/003_prism/behData/images/top_view_191125_PR_Fly2_003_prism
+SG/prism_data/191125_PR/Fly2/003_prism/behData/images/side_view_191125_PR_Fly2_003_prism
+SG/prism_data/191125_PR/Fly2/004_prism/behData/images/top_view_191125_PR_Fly2_004_prism
+SG/prism_data/191125_PR/Fly2/004_prism/behData/images/side_view_191125_PR_Fly2_004_prism
