@@ -16,8 +16,14 @@ args = sys.argv
 data_dir = args[1]
 if not data_dir.endswith("/") : data_dir += "/"
 
-top_dd = data_dir + "top_view/"
-side_dd = data_dir + "side_view/"
+imgs_dir_spl = data_dir.split("/")
+post_top = "_"#+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
+post_side = "_"#+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
+
+top_dd = data_dir+"top_view"+ post_top +"/"
+side_dd = data_dir+"side_view"+ post_side +"/"
+fcrop_loc_name = "crop_location"+ post_top +".txt"
+
 if not isdir(top_dd):
     mkdir(top_dd)
 if not isdir(side_dd):
@@ -54,7 +60,8 @@ def _separate_top_side_flies(img, th):
     right_bbox_pad = int(np.ceil(mean_bbox_pad))
 
     return img[:horiz_crop, left_vert_crop-left_bbox_pad : right_vert_crop+right_bbox_pad ],\
-           img[horiz_crop:, left_vert_crop-left_bbox_pad : right_vert_crop+right_bbox_pad ]
+           img[horiz_crop:, left_vert_crop-left_bbox_pad : right_vert_crop+right_bbox_pad ],\
+           left_vert_crop
 
 def _get_orientation(contour, img):
     sz = len(contour)
@@ -110,6 +117,14 @@ if __name__ == '__main__':
     n_skip_dist = 0
     n_skip_out = 0
     print(f"[*] splitting the images into top and side views\n")
+    print(top_dd, side_dd)
+
+    fcrop_loc = open(data_dir+fcrop_loc_name, 'w')
+    print(fcrop_loc_name)
+    fcrop_loc.write("border_width = "+str(border_width)+"\n"+\
+                    "threshold = "+str(threshold)+"\n"+\
+                    "bbox_width = "+str(bbox_width)+"\n"+\
+                    "horiz_crop = "+str(horiz_crop)+"\n")
     for counter in tqdm(range(imgs_len)):
         img_name = img_names[counter]
 
@@ -140,7 +155,7 @@ if __name__ == '__main__':
             cv2.imshow("row", img_dist)
             cv2.waitKey(2)
         
-        top_img, side_img = _separate_top_side_flies(img, threshold)
+        top_img, side_img, left_vert_crop = _separate_top_side_flies(img, threshold)
         if top_img.shape[1] != bbox_width or side_img.shape[1] != bbox_width:
             if DEBUG:
                 cv2.imshow("outlier", img)
@@ -153,7 +168,9 @@ if __name__ == '__main__':
         if DEBUG:
             cv2.imshow("side", side_img)
             cv2.waitKey(1)
+        fcrop_loc.write(img_name+" "+str(left_vert_crop)+"\n")
         _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
+    fcrop_loc.close()
     print(f"\n[*] skipped {n_skip_dist:n}, {n_skip_out:n} frames because the fly was doing nothing or because it was an outlier")
     print("\n[+] done\n")
 
