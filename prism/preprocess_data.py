@@ -17,8 +17,8 @@ data_dir = args[1]
 if not data_dir.endswith("/") : data_dir += "/"
 
 imgs_dir_spl = data_dir.split("/")
-post_top = "_"#+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
-post_side = "_"#+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
+post_top = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
+post_side = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
 
 top_dd = data_dir+"top_view"+ post_top +"/"
 side_dd = data_dir+"side_view"+ post_side +"/"
@@ -144,7 +144,7 @@ if __name__ == '__main__':
             dist = 999
         else:
             dist = np.mean((img_dist - IMG_PREV)**2)
-            if dist < 47:
+            if dist < 45:
                 n_skip_dist += 1
                 continue
             IMG_PREV = img_dist
@@ -168,8 +168,10 @@ if __name__ == '__main__':
         if DEBUG:
             cv2.imshow("side", side_img)
             cv2.waitKey(1)
-        fcrop_loc.write(img_name+" "+str(left_vert_crop)+"\n")
-        _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
+
+        if not DEBUG:
+            fcrop_loc.write(img_name+" "+str(left_vert_crop)+"\n")
+            _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
     fcrop_loc.close()
     print(f"\n[*] skipped {n_skip_dist:n}, {n_skip_out:n} frames because the fly was doing nothing or because it was an outlier")
     print("\n[+] done\n")

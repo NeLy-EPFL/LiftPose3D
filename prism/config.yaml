@@ -1,10 +1,10 @@
 # Project definitions (do not edit)
 Task: jointTracking
 scorer: PrismData
-date: Dec6
+date: Dec9
 
 # Project path (change when moving around)
-project_path: /home/morales/marcoabrate/LiftFly3D/prism/jointTracking-PrismData-2019-12-06
+project_path: /home/morales/marcoabrate/LiftFly3D/prism/jointTracking-PrismData-2019-12-09
 
 # Annotation data set configuration (and individual video cropping parameters)
 video_sets:
@@ -16,40 +16,32 @@ video_sets:
   : crop: 0, 550, 0, 440
   ? /ramdya-nas/SG/prism_data/191125_PR/Fly1/004_prism/behData/images/top_view_191125_PR_Fly1_004_prism/top_video_191125_PR_Fly1_004_prism.mp4
   : crop: 0, 550, 0, 440
-  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/001_prism/behData/images/top_view_191125_PR_Fly2_001_prism/top_video_191125_PR_Fly2_001_prism.mp4
-  : crop: 0, 550, 0, 440
-  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/002_prism/behData/images/top_view_191125_PR_Fly2_002_prism/top_video_191125_PR_Fly2_002_prism.mp4
-  : crop: 0, 550, 0, 440
-  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/003_prism/behData/images/top_view_191125_PR_Fly2_003_prism/top_video_191125_PR_Fly2_003_prism.mp4
-  : crop: 0, 550, 0, 440
-  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/004_prism/behData/images/top_view_191125_PR_Fly2_004_prism/top_video_191125_PR_Fly2_004_prism.mp4
-  : crop: 0, 550, 0, 440
 bodyparts:
 - body-coxa front L
 - coxa-femur front L
 - femur-tibia front L
 - tibia-tarsus front L
 - tarsus tip front L
-- body-coxa front R
-- coxa-femur front R
-- femur-tibia front R
-- tibia-tarsus front R
-- tarsus tip front R
 - body-coxa mid L
 - coxa-femur mid L
 - femur-tibia mid L
 - tibia-tarsus mid L
 - tarsus tip mid L
-- body-coxa mid R
-- coxa-femur mid R
-- femur-tibia mid R
-- tibia-tarsus mid R
-- tarsus tip mid R
 - body-coxa back L
 - coxa-femur back L
 - femur-tibia back L
 - tibia-tarsus back L
 - tarsus tip back L
+- body-coxa front R
+- coxa-femur front R
+- femur-tibia front R
+- tibia-tarsus front R
+- tarsus tip front R
+- body-coxa mid R
+- coxa-femur mid R
+- femur-tibia mid R
+- tibia-tarsus mid R
+- tarsus tip mid R
 - body-coxa back R
 - coxa-femur back R
 - femur-tibia back R
@@ -57,7 +49,7 @@ bodyparts:
 - tarsus tip back R
 start: 0
 stop: 1
-numframes2pick: 70
+numframes2pick: 80
 
 # Plotting configuration
 pcutoff: 0.1
