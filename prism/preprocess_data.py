@@ -144,7 +144,7 @@ if __name__ == '__main__':
             dist = 999
         else:
             dist = np.mean((img_dist - IMG_PREV)**2)
-            if dist < 45:
+            if dist < 46:
                 n_skip_dist += 1
                 continue
             IMG_PREV = img_dist
