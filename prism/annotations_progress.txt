@@ -31,11 +31,11 @@ top_video_191125_PR_Fly1_001_prism
 top_video_191125_PR_Fly1_002_prism
 top_video_191125_PR_Fly1_003_prism
 top_video_191125_PR_Fly1_004_prism
+top_video_191125_PR_Fly2_001_prism
 
 
 [*] to be annotated:
 
-top_video_191125_PR_Fly2_001_prism
 top_video_191125_PR_Fly2_002_prism
 top_video_191125_PR_Fly2_003_prism
 top_video_191125_PR_Fly2_004_prism
