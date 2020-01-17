@@ -15,7 +15,13 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.decomposition import PCA
 
-INPUT_DIM = 128
+from tensorflow.python.client import device_lib
+print(device_lib.list_local_devices())
+from keras import backend as K
+K.tensorflow_backend._get_available_gpus()
+
+INPUT_DIM = 64
+KERNEL_SIZE = (3, 3)
 
 def create_baseline():
     # create model
@@ -28,11 +34,11 @@ def create_baseline():
 
 def create_cnn():
     model = Sequential()
-    model.add(Conv2D(INPUT_DIM, (5, 5), activation='relu', input_shape=(INPUT_DIM, INPUT_DIM, 1)))
+    model.add(Conv2D(INPUT_DIM, KERNEL_SIZE, activation='relu', input_shape=(INPUT_DIM, INPUT_DIM, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization())
 
-    model.add(Conv2D(64, (5, 5), activation='relu'))
+    model.add(Conv2D(64, KERNEL_SIZE, activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization())
 
@@ -104,15 +110,15 @@ if __name__ == '__main__':
     images = images.reshape(images.shape[0], INPUT_DIM, INPUT_DIM, 1)
 
     cnn = create_cnn() 
-    estimator = KerasClassifier(build_fn=create_cnn, epochs=15, batch_size=10, verbose=1)
+    estimator = KerasClassifier(build_fn=create_cnn, epochs=30, batch_size=10, verbose=1)
 
-    kfold = StratifiedKFold(n_splits=4, shuffle=True)
+    kfold = StratifiedKFold(n_splits=3, shuffle=True)
 
     results = cross_val_score(estimator, images, labels_class, cv=kfold)
 
     print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
 
-    cnn.fit(images, labels_class, batch_size=10, epochs=50, verbose=1)
+    #cnn.fit(images, labels_class, batch_size=10, epochs=50, verbose=1)
 
     #cnn.predict()
 
