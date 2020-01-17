@@ -4,6 +4,7 @@ flydata*
 octopamineExperiments*
 experiments*
 prism/data
+training-datasets
 hours
 *~
 *.pyc

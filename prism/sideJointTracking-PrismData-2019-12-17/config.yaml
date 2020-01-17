@@ -16,6 +16,14 @@ video_sets:
   : crop: 0, 550, 0, 260
   ? /ramdya-nas/SG/prism_data/191125_PR/Fly1/004_prism/behData/images/side_view_191125_PR_Fly1_004_prism/side_video_191125_PR_Fly1_004_prism.mp4
   : crop: 0, 550, 0, 260
+  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/001_prism/behData/images/side_view_191125_PR_Fly2_001_prism/side_video_191125_PR_Fly2_001_prism.mp4
+  : crop: 0, 550, 0, 260
+  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/002_prism/behData/images/side_view_191125_PR_Fly2_002_prism/side_video_191125_PR_Fly2_002_prism.mp4
+  : crop: 0, 550, 0, 260
+  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/003_prism/behData/images/side_view_191125_PR_Fly2_003_prism/side_video_191125_PR_Fly2_003_prism.mp4
+  : crop: 0, 550, 0, 260
+  ? /ramdya-nas/SG/prism_data/191125_PR/Fly2/004_prism/behData/images/side_view_191125_PR_Fly2_004_prism/side_video_191125_PR_Fly2_004_prism.mp4
+  : crop: 0, 550, 0, 260
 bodyparts:
 - body-coxa front L
 - coxa-femur front L
