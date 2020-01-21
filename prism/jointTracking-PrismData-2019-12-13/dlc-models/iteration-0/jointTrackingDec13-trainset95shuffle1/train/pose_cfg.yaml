@@ -64,6 +64,7 @@ bottomheight: 400
 crop: true
 cropratio: 0.4
 dataset: training-datasets/iteration-0/UnaugmentedDataSet_jointTrackingDec13/jointTracking_PrismData95shuffle1.mat
+dataset_type: imgaug
 display_iters: 1000
 global_scale: 0.8
 init_weights: /home/morales/.conda/envs/tensorflow_env/lib/python3.6/site-packages/deeplabcut-2.0.4.1-py3.6.egg/deeplabcut/pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt
@@ -92,7 +93,7 @@ num_joints: 30
 pos_dist_thresh: 17
 project_path: /home/morales/marcoabrate/LiftFly3D/prism/jointTracking-PrismData-2019-12-13
 rightwidth: 400
-save_iters: 50000
+save_iters: 20000
 scale_jitter_lo: 0.5
 scale_jitter_up: 1.25
 topheight: 400

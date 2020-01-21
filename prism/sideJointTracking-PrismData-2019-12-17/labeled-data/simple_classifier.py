@@ -6,7 +6,7 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization
+from keras.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold
@@ -15,7 +15,11 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.decomposition import PCA
 
+#from tensorflow.python.client import device_lib
+#print(device_lib.list_local_devices())
+
 INPUT_DIM = 64
+KERNEL_SIZE = (3, 3)
 
 def create_baseline():
     # create model
@@ -28,27 +32,35 @@ def create_baseline():
 
 def create_cnn():
     model = Sequential()
-    model.add(Conv2D(INPUT_DIM, (5, 5), activation='relu', input_shape=(INPUT_DIM, INPUT_DIM, 1)))
+    model.add(Conv2D(INPUT_DIM, kernel_size=KERNEL_SIZE, activation='relu',\
+              input_shape=(INPUT_DIM, INPUT_DIM, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization())
 
-    model.add(Conv2D(64, (5, 5), activation='relu'))
+    model.add(Conv2D(64, kernel_size=KERNEL_SIZE, activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization())
-    '''
-    model.add(Conv2D(64, kernel_size=(5,5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(BatchNormalization())
 
-    model.add(Conv2D(96, kernel_size=(5,5), activation='relu'))
+    model.add(Conv2D(64, kernel_size=KERNEL_SIZE, activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
     model.add(BatchNormalization())
     
+    model.add(Dropout(0.5))
+    # 50 EPOCHS
+    # 87.92% (0.30%)
+    '''
+    model.add(Conv2D(96, kernel_size=(5,5), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+
+    # 82.73 % (3.5%)
+    # after dropout 79% (5%) 
+    
+    model.add(Dropout(0.5))
+    # 50 epochs 
     model.add(Conv2D(32, kernel_size=(5,5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5))
-
     '''
     model.add(Flatten())
     model.add(Dense(128, activation='relu'))
@@ -77,7 +89,7 @@ if __name__ == '__main__':
         print(len(images))
         # first left, then right
         labels = []
-        with open(d+"/CollectedData_PrismData.csv", 'r') as csv_labels:
+        with open(d+"/CollectedData_PrismData_new.csv", 'r') as csv_labels:
             csv_reader = csv.reader(csv_labels, delimiter=',')
             i = 0
             for row in csv_reader:
@@ -99,10 +111,16 @@ if __name__ == '__main__':
     
     images = images.reshape(images.shape[0], INPUT_DIM, INPUT_DIM, 1)
 
-    estimator = KerasClassifier(build_fn=create_cnn, epochs=17, batch_size=10, verbose=1)
+    cnn = create_cnn() 
+    estimator = KerasClassifier(build_fn=create_cnn, epochs=50, batch_size=10, verbose=1)
 
-    kfold = StratifiedKFold(n_splits=4, shuffle=True)
+    kfold = StratifiedKFold(n_splits=3, shuffle=True)
 
     results = cross_val_score(estimator, images, labels_class, cv=kfold)
 
     print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+    #cnn.fit(images, labels_class, batch_size=10, epochs=50, verbose=1)
+
+    #cnn.predict()
+

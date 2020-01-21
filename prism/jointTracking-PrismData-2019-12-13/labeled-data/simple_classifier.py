@@ -6,7 +6,7 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization
+from keras.layers import Flatten, Conv2D, MaxPooling2D, BatchNormalization, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold
@@ -17,8 +17,6 @@ from sklearn.decomposition import PCA
 
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
-from keras import backend as K
-K.tensorflow_backend._get_available_gpus()
 
 INPUT_DIM = 64
 KERNEL_SIZE = (3, 3)
@@ -43,23 +41,20 @@ def create_cnn():
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(BatchNormalization())
 
-    # 84.58 %
-
+    # 80% (2.7%)
+    # after dropout 80% (1%)
+    
     model.add(Conv2D(64, kernel_size=KERNEL_SIZE, activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
     model.add(BatchNormalization())
     
-    '''
-    model.add(Conv2D(96, kernel_size=(5,5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(32, kernel_size=(5,5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(BatchNormalization())
     model.add(Dropout(0.5))
-    '''
+    # 82.30% (2%)
+    # after dropout 82.92% (2.25%)
 
+    # 50 EPOCHS
+    # 83.55% (3.46%)
+    
     model.add(Flatten())
     model.add(Dense(128, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
@@ -110,7 +105,7 @@ if __name__ == '__main__':
     images = images.reshape(images.shape[0], INPUT_DIM, INPUT_DIM, 1)
 
     cnn = create_cnn() 
-    estimator = KerasClassifier(build_fn=create_cnn, epochs=30, batch_size=10, verbose=1)
+    estimator = KerasClassifier(build_fn=create_cnn, epochs=50, batch_size=10, verbose=1)
 
     kfold = StratifiedKFold(n_splits=3, shuffle=True)
 
