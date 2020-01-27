@@ -47,7 +47,7 @@ def create_cnn():
     
     model.add(Dropout(0.5))
     # 50 EPOCHS
-    # 87.92% (0.30%)
+    # 88.75% (3.91%)
     '''
     model.add(Conv2D(96, kernel_size=(5,5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         print(len(images))
         # first left, then right
         labels = []
-        with open(d+"/CollectedData_PrismData_new.csv", 'r') as csv_labels:
+        with open(d+"/CollectedData_PrismData.csv", 'r') as csv_labels:
             csv_reader = csv.reader(csv_labels, delimiter=',')
             i = 0
             for row in csv_reader:
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     cnn = create_cnn() 
     estimator = KerasClassifier(build_fn=create_cnn, epochs=50, batch_size=10, verbose=1)
 
-    kfold = StratifiedKFold(n_splits=3, shuffle=True)
+    kfold = StratifiedKFold(n_splits=5, shuffle=True)
 
     results = cross_val_score(estimator, images, labels_class, cv=kfold)
 

@@ -61,7 +61,7 @@ numframes2pick: 80
 
 # Plotting configuration
 pcutoff: 0.1
-dotsize: 12
+dotsize: 3
 alphavalue: 0.7
 colormap: hsv
 

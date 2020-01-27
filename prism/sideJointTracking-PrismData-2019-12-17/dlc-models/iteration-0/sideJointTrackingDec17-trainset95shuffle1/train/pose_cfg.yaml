@@ -63,9 +63,8 @@ all_joints_names:
 bottomheight: 400
 crop: true
 cropratio: 0.4
-dataset: training-datasets/iteration-0/UnaugmentedDataSet_jointTrackingDec13/jointTracking_PrismData95shuffle1.mat
-dataset_type: default
-display_iters: 2000
+dataset: training-datasets/iteration-0/UnaugmentedDataSet_sideJointTrackingDec17/sideJointTracking_PrismData95shuffle1.mat
+display_iters: 1000
 global_scale: 0.8
 init_weights: /home/morales/.conda/envs/deeplabcut/lib/python3.6/site-packages/deeplabcut/pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt
 intermediate_supervision: false
@@ -76,7 +75,7 @@ locref_huber_loss: true
 locref_loss_weight: 0.05
 locref_stdev: 7.2801
 max_input_size: 1500
-metadataset: training-datasets/iteration-0/UnaugmentedDataSet_jointTrackingDec13/Documentation_data-jointTracking_95shuffle1.pickle
+metadataset: training-datasets/iteration-0/UnaugmentedDataSet_sideJointTrackingDec17/Documentation_data-sideJointTracking_95shuffle1.pickle
 min_input_size: 64
 minsize: 100
 mirror: false
@@ -92,7 +91,7 @@ multi_step:
 net_type: resnet_50
 num_joints: 30
 pos_dist_thresh: 17
-project_path: /home/morales/marcoabrate/LiftFly3D/prism/jointTracking-PrismData-2019-12-13
+project_path: /home/morales/marcoabrate/LiftFly3D/prism/sideJointTracking-PrismData-2019-12-17
 rightwidth: 400
 save_iters: 20000
 scale_jitter_lo: 0.5

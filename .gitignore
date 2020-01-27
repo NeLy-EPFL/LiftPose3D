@@ -6,6 +6,11 @@ experiments*
 prism/data
 training-datasets
 hours
+snapshot*
+checkpoint*
+log*
+DeepCut_resnet50_*
+DeepCut_resnet101*_
 *~
 *.pyc
 *.npy
