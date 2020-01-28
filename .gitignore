@@ -11,6 +11,7 @@ checkpoint*
 log*
 DeepCut_resnet50_*
 DeepCut_resnet101*_
+.ipynb_checkpoints
 *~
 *.pyc
 *.npy
