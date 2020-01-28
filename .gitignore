@@ -15,7 +15,6 @@ DeepCut_resnet101*_
 *.pyc
 *.npy
 *.h5
-*.ipynb
 *.mpeg
 *.swp
 *.tar.gz
