@@ -1,6 +1,8 @@
 /ramdya-nas/
 /mnt/NAS/
 
+IMAGES: (700, 1792(may vary), 3)
+
 preprocessing done for:
 
 SG/prism_data/191125_PR/Fly1/001_prism/behData/images [11561 frames]
@@ -12,6 +14,43 @@ SG/prism_data/191125_PR/Fly2/001_prism/behData/images [17357 frames]
 SG/prism_data/191125_PR/Fly2/002_prism/behData/images [7726 frames]
 SG/prism_data/191125_PR/Fly2/003_prism/behData/images [12328 frames]
 SG/prism_data/191125_PR/Fly2/004_prism/behData/images [10406 frames]
+
+
+cropped frames are in two subdirectories of each "images" directory:
+
+top_view_191125_PR_Fly1_001_prism
+side_view_191125_PR_Fly1_001_prism
+TOP: (440, bbox_width, 3)
+SIDE: (260, bbox_width, 3)
+
+
+information about the cropped frames only possible for Fly2:
+
+SG/prism_data/191125_PR/Fly2/001_prism/behData/images/crop_location_191125_PR_Fly2_001_prism.txt
+(information regarding the file are on top of the file)
+
+
+annotations are saved in the following file:
+top_view_191125_PR_Fly1_001_prismDeepCut_resnet50_jointTrackingDec13shuffle1_200000.csv
+side_view_191125_PR_Fly1_001_prismDeepCut_resnet50_sideJointTrackingJan28shuffle1_200000.csv
+structure:
+	1st line: scorer (DeepCut_resnet50_jointTrackingDec13shuffle1_200000)
+	2nd line: bodyparts, first left then right (body-coxa front L,coxa-femur front L,...)
+	3rd line: coords, (x,y,likelihood,x,y,likelihood,...)
+	from 4th line: img_name,x1,y1,score1,x2,y2,score2,...
+			30 joints x 2 coordinates + 30 scores (1 per joint) = 90 entries
+
+	         X
+	o------------------>
+	|
+	|
+	|
+      Y |
+	|
+	|
+	|
+	v
+
 
 
 videos done for (e.g. top_view_191125_PR_Fly1_001_prism/top_video_191125_PR_Fly1_001_prism.mp4):
@@ -34,10 +73,4 @@ SG/prism_data/191125_PR/Fly2/003_prism/behData/images/side_view_191125_PR_Fly2_0
 SG/prism_data/191125_PR/Fly2/004_prism/behData/images/top_view_191125_PR_Fly2_004_prism
 SG/prism_data/191125_PR/Fly2/004_prism/behData/images/side_view_191125_PR_Fly2_004_prism
 
-
-video pending for:
-
-
-
-preprocessing pending for:
 
