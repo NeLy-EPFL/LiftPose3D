@@ -17,10 +17,11 @@ SG/prism_data/191125_PR/Fly2/004_prism/behData/images [10406 frames]
 
 joints annotations:
 
-after evaluating the top and side in all subdirectories, one can run
+after evaluating the joints location for
+the top and side in all subdirectories, one can run
 make_labels_forall.py for each image directory.
 (e.g. for /ramdya-nas/SG/prism_data/191125_PR/Fly2/001_prism/behData/images)
-this will write a file named
+this will generate a file named
 joint_locations.csv
 with all the joints locations. The structure of the file is:
 	1st line: bodyparts, first top (first left then right) then side

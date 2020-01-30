@@ -1,0 +1,80 @@
+you get new frames saved in the folder
+
+/ramdya-nas/SG/prism_data/191125_PR/Fly3/001_prism/behData/images
+	let's call this DIR
+
+images are (700, 1792, 3)
+
+you crop the entire images to top and side view.
+you open preprocess_data.py, you set DEBUG to True and you adjust threshold and DIST_TH.
+threshold is for knowing where to start cropping the images, DIST_TH is for skipping frames
+when the fly is not doing much.
+python preprocess_data.py  DIR
+
+now you will have two subdirectories of DIR:
+top_view_191125_PR_Fly3_001_prism
+side_view_191125_PR_Fly3_001_prism
+TOP: (440, bbox_width, 3)
+SIDE: (260, bbox_width, 3)
+bboxwidth is decided in preprocess_data (550)
+
+moreover, you will have a file with information about the cropped frames in
+DIR/crop_location_191125_PR_Fly3_001_prism.txt
+the first few lines explain the content of this file
+
+now you create a video with the cropped images, one for top and one for side
+(this is because deeplabcut needs a video for labeling the training set)
+let's say you save them in
+DIR/top_view_191125_PR_Fly3_001_prism/top_view_191125_PR_Fly3_001_prism_vid.mp4
+DIR/side_view_191125_PR_Fly3_001_prism/side_view_191125_PR_Fly3_001_prism_vid.mp4
+
+then you activate deeplabcut environment in conda, you run jupyter notebook and open for the top view
+Demo_yourowndata.ipynb
+
+you uncomment the things and you change
+data_dirs variable with the directory of the video
+deeplabcut_dir with the name of the directory of your deeplabcut project folder (does not have to exist one)
+
+for the side view you open
+Demo_yourowndata-Side-flip.ipynb
+
+you uncomment the things and you change
+data_dirs variable with the directory of the video
+deeplabcut_dir with the name of the directory of your deeplabcut project folder (different from prev)
+
+then the notebook will extract frames with k-means from the video/s
+
+BEFORE LABELING:
+change config.yaml file for both top and side view projects
+you have to put joints manually (deeplabcut policy)
+so for the top view you have 30 joints
+and for the side view 15
+
+then you label all frames
+
+BEFORE CREATING DATASET AND TRAINING THE SIDE VIEW:
+you move flip_images.py in the project folder, you check that the bodyparts var
+coincide with the one in config.yaml and you run the code
+
+now you can return to the notebooks and run the cells from "create a training dataset"
+you evaluate the network and then you analyze new frames
+
+you need to change the img_dirs variable before analyzing new frames.
+
+after analyzing you will have two new files:
+DIR/top_view_191125_PR_Fly3_001_prism/DeepCut_resnet50_NAMEOFPROJECTshuffle1_200000.csv
+DIR/side_view_191125_PR_Fly3_001_prism/DeepCut_resnet50_NAMEOFPROJECTshuffle1_200000.csv
+
+these two files contain the joints location for top and side cropped images
+now you want to make the label general, for the initial frames. for doing so, you run
+python make_labels_forall.py DIR
+
+this will create a csv file:
+DIR/joint_locations.csv
+
+with joints location for the entire image.
+
+for visualizing the results, run:
+python show_animation_all.py DIR
+
+done.

@@ -20,17 +20,18 @@ imgs_dir_spl = data_dir.split("/")
 post_top = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
 post_side = "_"+ imgs_dir_spl[4] +"_"+ imgs_dir_spl[5] +"_"+ imgs_dir_spl[6]
 
-#top_dd = data_dir+"top_view"+ post_top +"/"
-#side_dd = data_dir+"side_view"+ post_side +"/"
-#fcrop_loc_name = "crop_location"+ post_top +".txt"
+top_dd = data_dir+"top_view"+ post_top +"/"
+side_dd = data_dir+"side_view"+ post_side +"/"
+fcrop_loc_name = "crop_location"+ post_top +".txt"
 
-#if not isdir(top_dd):
-#    mkdir(top_dd)
-#if not isdir(side_dd):
-#    mkdir(side_dd)
+if not isdir(top_dd):
+    mkdir(top_dd)
+if not isdir(side_dd):
+    mkdir(side_dd)
 
-border_width = 105
 threshold = 45
+DIST_TH = 50
+border_width = 105
 bbox_width = 550
 horiz_crop = 440
 
@@ -50,7 +51,6 @@ def _separate_top_side_flies(img, th):
         plt.close(fig)
     '''
     fl_img_comp = fl_img > th
-    #pick_idx = np.argmax(fl_img)
     left_vert_crop = np.argmax(fl_img_comp)
     right_vert_crop = len(fl_img) - np.argmax(fl_img_comp[::-1])
 
@@ -118,14 +118,14 @@ if __name__ == '__main__':
     n_skip_dist = 0
     n_skip_out = 0
     print(f"[*] splitting the images into top and side views\n")
-    #print(top_dd, side_dd)
+    print(top_dd, side_dd)
 
-    #fcrop_loc = open(data_dir+fcrop_loc_name, 'w')
-    #print(fcrop_loc_name)
-    #fcrop_loc.write("border_width = "+str(border_width)+"\n"+\
-    #                "threshold = "+str(threshold)+"\n"+\
-    #                "bbox_width = "+str(bbox_width)+"\n"+\
-    #                "horiz_crop = "+str(horiz_crop)+"\n")
+    fcrop_loc = open(data_dir+fcrop_loc_name, 'w')
+    print(fcrop_loc_name)
+    fcrop_loc.write("border_width = "+str(border_width)+"\n"+\
+                    "threshold = "+str(threshold)+"\n"+\
+                    "bbox_width = "+str(bbox_width)+"\n"+\
+                    "horiz_crop = "+str(horiz_crop)+"\n")
     for counter in tqdm(range(imgs_len)):
         img_name = img_names[counter]
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             dist = 999
         else:
             dist = np.mean((img_dist - IMG_PREV)**2)
-            if dist < 46:
+            if dist < DIST_TH:
                 n_skip_dist += 1
                 continue
             IMG_PREV = img_dist
@@ -164,19 +164,19 @@ if __name__ == '__main__':
             n_skip_out += 1
             continue 
         
-        #orientation = _find_orientation(top_img)
-        #if orientation == None : continue
+        orientation = _find_orientation(top_img)
+        if orientation == None : continue
         if DEBUG:
             cv2.imshow("side", side_img)
             cv2.waitKey(1)
 
-        #if not DEBUG:
-            #fcrop_loc.write(img_name+" "+str(left_vert_crop)+"\n")
-            #_save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
+        if not DEBUG:
+            fcrop_loc.write(img_name+" "+str(left_vert_crop)+"\n")
+            _save_top_side_images(top_img, side_img, orientation, data_dir, img_name)
     fcrop_loc.close()
     print(f"\n[*] skipped {n_skip_dist:n}, {n_skip_out:n} frames because the fly was doing nothing or because it was an outlier")
     print("\n[+] done\n")
 
-    #with open(data_dir+"info.txt", 'w') as info:
-    #    info.write("n_skip_dist: %d"%n_skip_dist)
-    #    info.write("\nn_skip_out: %d"%n_skip_out)
+    with open(data_dir+"info.txt", 'w') as info:
+        info.write("n_skip_dist: %d"%n_skip_dist)
+        info.write("\nn_skip_out: %d"%n_skip_out)
