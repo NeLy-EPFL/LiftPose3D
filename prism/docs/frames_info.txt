@@ -28,6 +28,7 @@ with all the joints locations. The structure of the file is:
 			45 joints x 2 coordinates + 45 scores (1 per joint) = 135 entries
 
 
+
 cropped frames are in two subdirectories of each "images" directory:
 
 top_view_191125_PR_Fly1_001_prism
@@ -65,24 +66,12 @@ structure:
 
 
 
-videos done for (e.g. top_view_191125_PR_Fly1_001_prism/top_video_191125_PR_Fly1_001_prism.mp4):
+videos are saved in e.g. top_view_191125_PR_Fly1_001_prism/top_video_191125_PR_Fly1_001_prism.mp4
 
-SG/prism_data/191125_PR/Fly1/001_prism/behData/images/top_view_191125_PR_Fly1_001_prism
-SG/prism_data/191125_PR/Fly1/001_prism/behData/images/side_view_191125_PR_Fly1_001_prism
-SG/prism_data/191125_PR/Fly1/002_prism/behData/images/top_view_191125_PR_Fly1_002_prism
-SG/prism_data/191125_PR/Fly1/002_prism/behData/images/side_view_191125_PR_Fly1_002_prism
-SG/prism_data/191125_PR/Fly1/003_prism/behData/images/top_view_191125_PR_Fly1_003_prism
-SG/prism_data/191125_PR/Fly1/003_prism/behData/images/side_view_191125_PR_Fly1_003_prism
-SG/prism_data/191125_PR/Fly1/004_prism/behData/images/top_view_191125_PR_Fly1_004_prism
-SG/prism_data/191125_PR/Fly1/004_prism/behData/images/side_view_191125_PR_Fly1_004_prism
 
-SG/prism_data/191125_PR/Fly2/001_prism/behData/images/top_view_191125_PR_Fly2_001_prism
-SG/prism_data/191125_PR/Fly2/001_prism/behData/images/side_view_191125_PR_Fly2_001_prism
-SG/prism_data/191125_PR/Fly2/002_prism/behData/images/top_view_191125_PR_Fly2_002_prism
-SG/prism_data/191125_PR/Fly2/002_prism/behData/images/side_view_191125_PR_Fly2_002_prism
-SG/prism_data/191125_PR/Fly2/003_prism/behData/images/top_view_191125_PR_Fly2_003_prism
-SG/prism_data/191125_PR/Fly2/003_prism/behData/images/side_view_191125_PR_Fly2_003_prism
-SG/prism_data/191125_PR/Fly2/004_prism/behData/images/top_view_191125_PR_Fly2_004_prism
-SG/prism_data/191125_PR/Fly2/004_prism/behData/images/side_view_191125_PR_Fly2_004_prism
+animations with joints location examples:
+python show_animations_side.py /ramdya-nas/SG/prism_data/191125_PR/Fly2/001_prism/behData/images
+python show_animations_top.py dir
+python show_animations_all.py dir
 
 

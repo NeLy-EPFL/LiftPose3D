@@ -7,9 +7,12 @@ from tqdm import tqdm
 import numpy as np
 
 def print_joints(img_t, joint_coord):
-    for idx in range(0, len(joint_coord), 3):
-        cv2.circle(img_t, (joint_coord[idx], joint_coord[idx+1]),
-                   radius=1+int(joint_coord[idx+2]*5), color=(255,0,0), thickness=-1)
+    for leg in range(6):
+        # leg number leg
+        for idx in range(5*leg*3, 5*(leg+1)*3-3, 3):
+            cv2.line(img_t, (joint_coord[idx], joint_coord[idx+1]),
+                     (joint_coord[idx+3], joint_coord[idx+3+1]),
+                     color=(255,0,0), thickness=3)
 
 if __name__ == '__main__':
     args = sys.argv
@@ -36,12 +39,12 @@ if __name__ == '__main__':
             joint_dic[row[0]] = np.array(row[1:], dtype=np.float).astype(int)
 
     print(f"[*] showing {len(img_names_top):n} frames")
-    cv2.namedWindow("side", flags=cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow("top", flags=cv2.WINDOW_AUTOSIZE)
     for idx in tqdm(range(len(img_names_top))):
         img_nt = img_names_top[idx]
         
         img_t = cv2.imread(top_dd + img_nt)
         print_joints(img_t, joint_dic[img_nt])
-        cv2.imshow("side", img_t)
+        cv2.imshow("top", img_t)
         cv2.waitKey(10)
-    cv2.destroyWindow("side")
+    cv2.destroyWindow("top")
