@@ -47,6 +47,8 @@ if __name__ == '__main__':
 
     top_joint_dic = {}
     side_joint_dic = {}
+    top_info = None
+    side_info = None
     with open(top_joint_file, 'r') as top_fp,\
         open(side_joint_file, 'r') as side_fp:
         top_joint_reader = csv.reader(top_fp, delimiter=',')
@@ -54,6 +56,7 @@ if __name__ == '__main__':
         idx = 0
         for row in top_joint_reader:
             idx += 1
+            if idx == 2 : top_info = row[idx]
             if idx < 4: continue
             im_name = row[0].split(".")[0]
             im_name = "_".join(im_name.split("_")[:-1])
@@ -61,6 +64,7 @@ if __name__ == '__main__':
         idx = 0
         for row in side_joint_reader:
             idx += 1
+            if idx == 2 : side_info = row[idx].split("bodyparts,")[1]
             if idx < 4: continue
             side_joint_dic[im_name] = np.array(row[1:], dtype=np.float).astype(int)
 
@@ -70,6 +74,11 @@ if __name__ == '__main__':
         horiz_crop = int(croploc_lines[4].split(":")[1])
         bbox_width = int(croploc_lines[5].split(":")[1])
         print(horiz_crop, bbox_width)
+
+        top_info = ','.join([s + " top" for s in top_info.split(',')])
+        side_info = ','.join([s + " side" for s in side_info.split(',')])
+        info = top_info + ',' + side_info
+        print(info)
 
         skip_lines = 8
         for croploc in croploc_lines[skip_lines:]:

@@ -1,7 +1,6 @@
 /ramdya-nas/
-/mnt/NAS/
 
-IMAGES: (700, 1792(may vary), 3)
+IMAGES: (700, 1792, 3)
 
 preprocessing done for:
 
@@ -14,6 +13,19 @@ SG/prism_data/191125_PR/Fly2/001_prism/behData/images [17357 frames]
 SG/prism_data/191125_PR/Fly2/002_prism/behData/images [7726 frames]
 SG/prism_data/191125_PR/Fly2/003_prism/behData/images [12328 frames]
 SG/prism_data/191125_PR/Fly2/004_prism/behData/images [10406 frames]
+
+
+joints annotations:
+
+after evaluating the top and side in all subdirectories, one can run
+make_labels_forall.py for each image directory.
+(e.g. for /ramdya-nas/SG/prism_data/191125_PR/Fly2/001_prism/behData/images)
+this will write a file named
+joint_locations.csv
+with all the joints locations. The structure of the file is:
+	1st line: bodyparts, first top (first left then right) then side
+	from 2nd line: img_name,x1,y2,score1,x2,y2,score2,...
+			45 joints x 2 coordinates + 45 scores (1 per joint) = 135 entries
 
 
 cropped frames are in two subdirectories of each "images" directory:
