@@ -29,12 +29,11 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
 
+        #make prediction with model
         outputs = model(inputs)
 
         # calculate loss
-        outputs_coord = outputs
-        loss = criterion(outputs_coord, targets)
-
+        loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
 
         tars = targets
@@ -43,11 +42,8 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
         targets_unnorm = unNormalizeData(tars.data.cpu().numpy(), stat_3d['mean'], stat_3d['std'], stat_3d['dim_use'])
         outputs_unnorm = unNormalizeData(outputs.data.cpu().numpy(), stat_3d['mean'], stat_3d['std'], stat_3d['dim_use'])
 
-        # remove dim ignored
-        dim_use = np.hstack((np.arange(3), stat_3d['dim_use']))
-
-        outputs_use = outputs_unnorm[:, dim_use]
-        targets_use = targets_unnorm[:, dim_use]
+        outputs_use = outputs_unnorm[:, stat_3d['dim_use']]
+        targets_use = targets_unnorm[:, stat_3d['dim_use']]
 
         if procrustes:
             for ba in range(inps.size(0)):
@@ -59,10 +55,11 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
 
         sqerr = (outputs_use - targets_use) ** 2
 
-        distance = np.zeros((sqerr.shape[0], 17))
-        for k in np.arange(0, 17):
+        n_pts = int(len(stat_3d['dim_use'])/3)
+        distance = np.zeros((sqerr.shape[0], n_pts))
+        for k in np.arange(0, n_pts):
             distance[:, k] = np.sqrt(np.sum(sqerr[:, 3*k:3*k + 3], axis=1))
-
+        
         all_dist.append(distance)
 
         # update summary
@@ -81,9 +78,9 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
 
     all_dist = np.vstack(all_dist)
     all_dist[all_dist == 0] = np.nan
-    
     joint_err = np.nanmean(all_dist, axis=0)
     ttl_err = np.nanmean(all_dist)
+
     bar.finish()
     print (">>> error: {} <<<".format(ttl_err))
-    return losses.avg, ttl_err
+    return losses.avg, ttl_err, joint_err, outputs_use, targets_use

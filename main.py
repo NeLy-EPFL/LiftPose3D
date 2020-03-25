@@ -72,6 +72,7 @@ def main(opt):
     if opt.test:
         for action in actions:
             print (">>> TEST on _{}_".format(action))
+
             test_loader = DataLoader(
                 dataset=data_loader(actions=action, data_path=opt.data_dir, use_hg=opt.use_hg, is_train=False),
                 batch_size=opt.test_batch,
@@ -79,7 +80,11 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-            _, err_test = test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+            loss_test, err_test, joint_err, outputs_use, targets_use = \
+            test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+            
+            torch.save([loss_test, err_test, joint_err, outputs_use, targets_use], 
+                        open(os.path.join(opt.ckpt,action + "_test.pth.tar"), "wb"))
             
             print ("{:.4f}".format(err_test), end='\t')
         sys.exit()
@@ -112,11 +117,11 @@ def main(opt):
             max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test = test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+        loss_test, err_test, _, _, _ = test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
 
         # update log file
         logger.append([epoch + 1, lr_now, loss_train, loss_test, err_test],
-                      ['int', 'float', 'float', 'flaot', 'float'])
+                      ['int', 'float', 'float', 'float', 'float'])
 
         # save ckpt
         err_best = min(err_test, err_best)
