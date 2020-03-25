@@ -12,7 +12,7 @@ import time
 from src import Bar
 from torch.autograd import Variable
 from src.procrustes import get_transformation
-from src.data_utils_fly import unNormalizeData
+from data_utils_fly import unNormalizeData
 
 
 def test(test_loader, model, criterion, stat_3d, procrustes=False):

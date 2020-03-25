@@ -15,7 +15,7 @@ from test import test
 from train import train
 
 from opt import Options
-from src.data_utils_fly import define_actions
+from data_utils_fly import define_actions
 import src.log as log
 
 from model import LinearModel, weight_init

@@ -54,7 +54,7 @@ SH_NAMES[14] = 'TARSUS_TIP'
 
 data_dir = '/data/DF3D/'
 actions = ['MDN_CsCh']
-rcams = pickle.load(open('src/cameras.pkl', "rb"))
+rcams = pickle.load(open('cameras.pkl', "rb"))
 camera_frame = True #boolean. Whether to convert the data to camera coordinates
 
 
