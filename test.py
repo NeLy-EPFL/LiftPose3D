@@ -12,7 +12,7 @@ import time
 from src import Bar
 from torch.autograd import Variable
 from src.procrustes import get_transformation
-from data_utils_fly import unNormalizeData
+from src.normalize import unNormalizeData
 
 
 def test(test_loader, model, criterion, stat_3d, procrustes=False):
@@ -39,7 +39,7 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
 
         tars = targets
 
-        # calculate erruracy
+        # calculate arruracy
         targets_unnorm = unNormalizeData(tars.data.cpu().numpy(), stat_3d['mean'], stat_3d['std'], stat_3d['dim_use'])
         outputs_unnorm = unNormalizeData(outputs.data.cpu().numpy(), stat_3d['mean'], stat_3d['std'], stat_3d['dim_use'])
 
@@ -60,10 +60,9 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
         sqerr = (outputs_use - targets_use) ** 2
 
         distance = np.zeros((sqerr.shape[0], 17))
-        dist_idx = 0
-        for k in np.arange(0, 17 * 3, 3):
-            distance[:, dist_idx] = np.sqrt(np.sum(sqerr[:, k:k + 3], axis=1))
-            dist_idx += 1
+        for k in np.arange(0, 17):
+            distance[:, k] = np.sqrt(np.sum(sqerr[:, 3*k:3*k + 3], axis=1))
+
         all_dist.append(distance)
 
         # update summary
@@ -81,8 +80,10 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
         bar.next()
 
     all_dist = np.vstack(all_dist)
-    joint_err = np.mean(all_dist, axis=0)
-    ttl_err = np.mean(all_dist)
+    all_dist[all_dist == 0] = np.nan
+    
+    joint_err = np.nanmean(all_dist, axis=0)
+    ttl_err = np.nanmean(all_dist)
     bar.finish()
     print (">>> error: {} <<<".format(ttl_err))
     return losses.avg, ttl_err
