@@ -80,10 +80,14 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-            loss_test, err_test, joint_err, outputs_use, targets_use = \
+            loss_test, err_test, joint_err, outputs, targets = \
             test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
             
-            torch.save([loss_test, err_test, joint_err, outputs_use, targets_use], 
+            torch.save({'loss': loss_test, 
+                        'test_err': err_test, 
+                        'joint_err': joint_err, 
+                        'output': outputs, 
+                        'target': targets}, 
                         open(os.path.join(opt.ckpt,action + "_test.pth.tar"), "wb"))
             
             print ("{:.4f}".format(err_test), end='\t')

@@ -180,7 +180,7 @@ def anchor(poses_set,
            target_sets = [[1, 2, 3, 4], [6, 7, 8, 9], [11, 12, 13, 14]], 
            dim=3):
   """
-  Center 3d points around root
+  Center 3d points around root(s)
 
   Args
     poses_set: dictionary with 3d data
@@ -190,12 +190,9 @@ def anchor(poses_set,
   """
   
   for k in poses_set.keys():
-           
-    # Keep track of the global position
-    for i, anch in enumerate(anchors):
-       for j in target_sets[i]:  
-          
-          poses_set[k][:, j:j+dim] -= poses_set[k][:, anch:anch+dim]
+      for i, anch in enumerate(anchors):
+          for j in target_sets[i]:          
+              poses_set[k][:, dim*j:dim*j+dim] -= poses_set[k][:, dim*anch:dim*anch+dim]
 
   return poses_set
 
