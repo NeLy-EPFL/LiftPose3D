@@ -34,12 +34,12 @@ class data_loader(Dataset):
             test_2d_file = 'test_2d.pth.tar'
 
         if self.is_train:
-            data_3d = torch.load(os.path.join(data_path, 'train_3d.pth.tar'))
+            data_3d = torch.load(os.path.join(data_path, 'train_z.pth.tar'))
             data_2d = torch.load(os.path.join(data_path, train_2d_file))
             self.train_3d = data_3d
             self.train_2d = data_2d           
         else:
-            data_3d = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
+            data_3d = torch.load(os.path.join(data_path, 'test_z.pth.tar'))
             data_2d = torch.load(os.path.join(data_path, test_2d_file))
             self.test_3d = data_3d
             self.test_2d = data_2d
@@ -59,8 +59,7 @@ class data_loader(Dataset):
                 else:
                     self.test_inp.append(data_2d[k2d][i])
                     self.test_out.append(data_3d[k3d][i])
-
-
+        
     def __getitem__(self, index):
         if self.is_train:
             inputs = torch.from_numpy(self.train_inp[index]).float()

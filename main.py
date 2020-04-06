@@ -31,8 +31,8 @@ def main(opt):
     # save options
     log.save_options(opt, opt.ckpt)
 
-    # create model
-    model = LinearModel()
+    # create and initialise model
+    model = LinearModel(input_size=48, output_size=24)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -64,9 +64,7 @@ def main(opt):
 
     # data loading
     print("\n>>> loading data")
-    
-    # load statistics data
-    stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
+    stat_z = torch.load(os.path.join(opt.data_dir, 'stat_z.pth.tar'))
     
     # test
     if opt.test:
@@ -80,14 +78,15 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-            loss_test, err_test, joint_err, outputs, targets = \
-            test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+            loss_test, err_test, joint_err, outputs, targets, inputs = \
+            test(test_loader, model, criterion, stat_z, procrustes=opt.procrustes)
             
             torch.save({'loss': loss_test, 
                         'test_err': err_test, 
                         'joint_err': joint_err, 
                         'output': outputs, 
-                        'target': targets}, 
+                        'target': targets,
+                        'input': inputs}, 
                         open(os.path.join(opt.ckpt,action + "_test.pth.tar"), "wb"))
             
             print ("{:.4f}".format(err_test), end='\t')
@@ -95,14 +94,19 @@ def main(opt):
 
     # load datasets for training
     test_loader = DataLoader(
-        dataset=data_loader(actions=actions, data_path=opt.data_dir, use_hg=opt.use_hg, is_train=False),
+        dataset=data_loader(actions=actions, 
+                            data_path=opt.data_dir, 
+                            use_hg=opt.use_hg, 
+                            is_train=False),
         batch_size=opt.test_batch,
         shuffle=False,
         num_workers=opt.job,
         pin_memory=True)
     
     train_loader = DataLoader(
-        dataset=data_loader(actions=actions, data_path=opt.data_dir, use_hg=opt.use_hg),
+        dataset=data_loader(actions=actions, 
+                            data_path=opt.data_dir, 
+                            use_hg=opt.use_hg),
         batch_size=opt.train_batch,
         shuffle=True,
         num_workers=opt.job,
@@ -116,12 +120,24 @@ def main(opt):
 
         # train
         glob_step, lr_now, loss_train = train(
-            train_loader, model, criterion, optimizer,
-            lr_init=opt.lr, lr_now=lr_now, glob_step=glob_step, lr_decay=opt.lr_decay, gamma=opt.lr_gamma,
-            max_norm=opt.max_norm)
+                train_loader, 
+                model, 
+                criterion, 
+                optimizer,
+                lr_init=opt.lr, 
+                lr_now=lr_now, 
+                glob_step=glob_step, 
+                lr_decay=opt.lr_decay, 
+                gamma=opt.lr_gamma,
+                max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test, _, _, _ = test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+        loss_test, err_test, _, _, _, _ = test(
+                test_loader, 
+                model, 
+                criterion, 
+                stat_z, 
+                procrustes=opt.procrustes)
 
         # update log file
         logger.append([epoch + 1, lr_now, loss_train, loss_test, err_test],

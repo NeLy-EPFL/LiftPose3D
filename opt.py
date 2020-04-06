@@ -17,7 +17,7 @@ class Options:
         #                     General options
         # ===============================================================
         self.parser.add_argument('--data_dir',       type=str, default='/data/DF3D/', help='path to dataset')
-        self.parser.add_argument('--exp',            type=str, default='test', help='ID of experiment')
+        self.parser.add_argument('--exp',            type=str, default='LiftFly3D', help='ID of experiment')
         self.parser.add_argument('--ckpt',           type=str, default='checkpoint/', help='path to save checkpoint')
         self.parser.add_argument('--load',           type=str, default='', help='path to load a pretrained checkpoint')
 
@@ -40,7 +40,7 @@ class Options:
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=100000, help='# steps of lr decay')
         self.parser.add_argument('--lr_gamma',       type=float,  default=0.96)
-        self.parser.add_argument('--epochs',         type=int,    default=200)
+        self.parser.add_argument('--epochs',         type=int,    default=100)
         self.parser.add_argument('--dropout',        type=float,  default=0.5, help='dropout probability, 1.0 to make no dropout')
         self.parser.add_argument('--train_batch',    type=int,    default=64)
         self.parser.add_argument('--test_batch',     type=int,    default=64)
