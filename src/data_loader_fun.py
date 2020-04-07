@@ -28,37 +28,39 @@ class data_loader(Dataset):
         if self.use_hg:
             train_2d_file = 'train_2d_ft.pth.tar'
             test_2d_file = 'test_2d_ft.pth.tar'
-            
         else:
             train_2d_file = 'train_2d.pth.tar'
             test_2d_file = 'test_2d.pth.tar'
 
         if self.is_train:
-            data_3d = torch.load(os.path.join(data_path, 'train_z.pth.tar'))
-            data_2d = torch.load(os.path.join(data_path, train_2d_file))
-            self.train_3d = data_3d
-            self.train_2d = data_2d           
+            # load train data
+            self.train_3d = torch.load(os.path.join(data_path, 'train_3d.pth.tar'))
+            self.train_2d = torch.load(os.path.join(data_path, train_2d_file))
+            for k2d in self.train_2d.keys():
+                (sub, act, fname) = k2d
+                k3d = k2d
+                k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
+                num_f, _ = self.train_2d[k2d].shape
+                assert self.train_3d[k3d].shape[0] == self.train_2d[k2d].shape[0], '(training) 3d & 2d shape not matched'
+                for i in range(num_f):
+                    self.train_inp.append(self.train_2d[k2d][i])
+                    self.train_out.append(self.train_3d[k3d][i])
+
         else:
-            data_3d = torch.load(os.path.join(data_path, 'test_z.pth.tar'))
-            data_2d = torch.load(os.path.join(data_path, test_2d_file))
-            self.test_3d = data_3d
-            self.test_2d = data_2d
-            
-        for k2d in data_2d.keys():
-            (sub, act, fname) = k2d
-            k3d = k2d
-            k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
-            num_f, _ = data_2d[k2d].shape
-            assert data_3d[k3d].shape[0] == data_2d[k2d].shape[0], '3d & 2d shape not matched'
-            
-            for i in range(num_f):
-                if self.is_train:
-                    self.train_inp.append(data_2d[k2d][i])
-                    self.train_out.append(data_3d[k3d][i])
-                    
-                else:
-                    self.test_inp.append(data_2d[k2d][i])
-                    self.test_out.append(data_3d[k3d][i])
+            # load test data
+            self.test_3d = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
+            self.test_2d = torch.load(os.path.join(data_path, test_2d_file))
+            for k2d in self.test_2d.keys():
+                (sub, act, fname) = k2d
+                if act not in self.actions:
+                    continue
+                k3d = k2d
+                k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
+                num_f, _ = self.test_2d[k2d].shape
+                assert self.test_2d[k2d].shape[0] == self.test_3d[k3d].shape[0], '(test) 3d & 2d shape not matched'
+                for i in range(num_f):
+                    self.test_inp.append(self.test_2d[k2d][i])
+                    self.test_out.append(self.test_3d[k3d][i])
         
     def __getitem__(self, index):
         if self.is_train:
@@ -75,4 +77,4 @@ class data_loader(Dataset):
         if self.is_train:
             return len(self.train_inp)
         else:
-            return len(self.test_inp)
+            return len(self.test_inp)       

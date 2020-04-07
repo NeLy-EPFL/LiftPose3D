@@ -32,7 +32,7 @@ def main(opt):
     log.save_options(opt, opt.ckpt)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=24)
+    model = LinearModel(input_size=48, output_size=72)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -64,7 +64,7 @@ def main(opt):
 
     # data loading
     print("\n>>> loading data")
-    stat_z = torch.load(os.path.join(opt.data_dir, 'stat_z.pth.tar'))
+    stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
     
     # test
     if opt.test:
@@ -79,7 +79,7 @@ def main(opt):
                 pin_memory=True)
             
             loss_test, err_test, joint_err, outputs, targets, inputs = \
-            test(test_loader, model, criterion, stat_z, procrustes=opt.procrustes)
+            test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
             
             torch.save({'loss': loss_test, 
                         'test_err': err_test, 
@@ -136,7 +136,7 @@ def main(opt):
                 test_loader, 
                 model, 
                 criterion, 
-                stat_z, 
+                stat_3d, 
                 procrustes=opt.procrustes)
 
         # update log file

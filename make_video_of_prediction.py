@@ -79,25 +79,25 @@ G.add_nodes_from(nodes)
 
 #load data statistics
 data_dir = '/data/DF3D/'
-xy_mean = torch.load(data_dir +'stat_2d.pth.tar')['mean']
-z_mean = torch.load(data_dir +'stat_z.pth.tar')['mean']
-xy_std = torch.load(data_dir +'stat_2d.pth.tar')['std']
-z_std = torch.load(data_dir +'stat_z.pth.tar')['std']
-targets = torch.load(data_dir +'stat_z.pth.tar')['target_sets']
-anchors = torch.load(data_dir +'stat_z.pth.tar')['anchors']
+inp_mean = torch.load(data_dir +'stat_2d.pth.tar')['mean']
+tar_mean = torch.load(data_dir +'stat_3d.pth.tar')['mean']
+inp_std = torch.load(data_dir +'stat_2d.pth.tar')['std']
+tar_std = torch.load(data_dir +'stat_3d.pth.tar')['std']
+targets = torch.load(data_dir +'stat_3d.pth.tar')['target_sets']
+anchors = torch.load(data_dir +'stat_3d.pth.tar')['anchors']
 
 #load predictions
 data = torch.load('checkpoint/LiftFly3D/MDN_CsCh_test.pth.tar')
-z_out = data['output']
-z_tar = data['target']
-xy = data['input']
+out = data['output']
+tar = data['target']
+inp = data['input']
 
-targets_xy = get_coords_in_dim(targets, 2)
-targets_z = get_coords_in_dim(targets, 1)
+targets_2d = get_coords_in_dim(targets, 2)
+targets_3d = get_coords_in_dim(targets, 3)
 
-xy = unNormalizeData(xy, xy_mean, xy_std, targets_xy)
-z_out = unNormalizeData(z_out, z_mean, z_std, targets_z)
-z_tar = unNormalizeData(z_tar, z_mean, z_std, targets_z)
+xy = unNormalizeData(inp, inp_mean, inp_std, targets_2d)
+out = unNormalizeData(out, tar_mean, tar_std, targets_3d)
+tar = unNormalizeData(tar, tar_mean, tar_std, targets_3d)
 
 #put back the anchor points
 #output_full = np.zeros((output.shape[0], 15))
@@ -123,9 +123,9 @@ with writer.saving(fig, "LiftFly3d_prediction.mp4", 100):
         
         ax.cla()
         
-        for j in range(int(z_out.shape[1])):
-            pos_pred.append((xy[t, 2*j], xy[t, 2*j+1], z_out[t, j]))
-            pos_tar.append((xy[t, 2*j], xy[t, 2*j+1], z_tar[t, j]))
+        for j in range(int(out.shape[1]/3)):
+            pos_pred.append((tar[t, 3*j], tar[t, 3*j+1], tar[t, 3*j+2]))
+            pos_tar.append((out[t, 3*j], out[t, 3*j+1], out[t, 3*j+2]))
             
         ax = plot_3d_graph(pos_pred, ax, color = 'r')
         ax = plot_3d_graph(pos_tar, ax, color = 'b')

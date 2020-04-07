@@ -6,7 +6,7 @@ from src.procrustes import get_transformation
 from src.normalize import unNormalizeData, get_coords_in_dim
 
 
-def test(test_loader, model, criterion, stat_z, procrustes=False):
+def test(test_loader, model, criterion, stat, procrustes=False):
     losses = utils.AverageMeter()
 
     model.eval()
@@ -25,12 +25,12 @@ def test(test_loader, model, criterion, stat_z, procrustes=False):
         losses.update(loss.item(), inputs.size(0))
 
         # calculate accuracy
-        targets_z = get_coords_in_dim(stat_z['target_sets'], 1)
-        targets = unNormalizeData(targets.data.cpu().numpy(), stat_z['mean'], stat_z['std'], targets_z)
-        outputs = unNormalizeData(outputs.data.cpu().numpy(), stat_z['mean'], stat_z['std'], targets_z)
+        dimensions = get_coords_in_dim(stat['target_sets'], 3)
+        targets = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
+        outputs = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         
-        targets = targets[:,targets_z]
-        outputs = outputs[:,targets_z]
+        targets = targets[:, dimensions]
+        outputs = outputs[:, dimensions]
         
 #        if procrustes:
 #            for ba in range(inps.size(0)):
@@ -41,12 +41,12 @@ def test(test_loader, model, criterion, stat_z, procrustes=False):
 #                outputs[ba, :] = out.reshape(1, 51)
 
         sqerr = (outputs - targets) ** 2
-        distance = np.sqrt(sqerr)
+#        distance = np.sqrt(sqerr)
         
-#        n_pts = int(len(stat_3d['dim_use']))
-#        distance = np.zeros((sqerr.shape[0], n_pts)/3)
-#        for k in np.arange(0, n_pts):
-#            distance[:, k] = np.sqrt(np.sum(sqerr[:, 3*k:3*k + 3], axis=1))
+        n_pts = int(len(dimensions)/3)
+        distance = np.zeros_like(sqerr)
+        for k in range(n_pts):
+            distance[:, k] = np.sqrt(np.sum(sqerr[:, 3*k:3*k + 3], axis=1))
 
         #group and stack
         all_dist.append(distance)
@@ -58,8 +58,8 @@ def test(test_loader, model, criterion, stat_z, procrustes=False):
     np.vstack(all_dist), np.vstack(all_output), np.vstack(all_target), np.vstack(all_input)
     
     #mean errors
-    joint_err = np.mean(all_dist, axis=0)
-    ttl_err = np.mean(all_dist)
+    joint_err = np.mean(all_dist[all_dist>0], axis=0)
+    ttl_err = np.mean(joint_err)
 
     print (">>> error: {} <<<".format(ttl_err))
     return losses.avg, ttl_err, joint_err, all_output, all_target, all_input
