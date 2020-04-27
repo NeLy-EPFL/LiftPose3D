@@ -24,8 +24,6 @@ class Options:
         self.parser.add_argument('--test',           dest='test', action='store_true', help='test')
         self.parser.add_argument('--resume',         dest='resume', action='store_true', help='resume to train')
 
-        self.parser.add_argument('--action',         type=str, default='All', help='All for all actions')
-
         # ===============================================================
         #                     Model options
         # ===============================================================

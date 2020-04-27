@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division
 
 import os
 import sys
-from pprint import pprint
 
 import torch
 import torch.nn as nn
@@ -15,7 +14,6 @@ from test import test
 from train import train
 
 from opt import Options
-from data_utils_fly import define_actions
 import src.log as log
 
 from model import LinearModel, weight_init
@@ -32,7 +30,7 @@ def main(opt):
     log.save_options(opt, opt.ckpt)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=72)
+    model = LinearModel(input_size=24, output_size=36)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -58,59 +56,50 @@ def main(opt):
         logger = log.Logger(os.path.join(opt.ckpt, 'log.txt'))
         logger.set_names(['epoch', 'lr', 'loss_train', 'loss_test', 'err_test'])
 
-    # list of action(s)
-    actions = define_actions(opt.action)
-    pprint(actions, indent=4)
-
     # data loading
     print("\n>>> loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
     
     # test
     if opt.test:
-        for action in actions:
-            print (">>> TEST on _{}_".format(action))
-
-            test_loader = DataLoader(
-                dataset=data_loader(actions=action, data_path=opt.data_dir, use_hg=opt.use_hg, is_train=False),
+        test_loader = DataLoader(
+                dataset=data_loader(data_path=opt.data_dir, use_hg=opt.use_hg, is_train=False),
                 batch_size=opt.test_batch,
                 shuffle=False,
                 num_workers=opt.job,
                 pin_memory=True)
             
-            loss_test, err_test, joint_err, outputs, targets, inputs = \
-            test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+        loss_test, err_test, joint_err, outputs, targets, inputs = \
+        test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
             
-            torch.save({'loss': loss_test, 
+        torch.save({'loss': loss_test, 
                         'test_err': err_test, 
                         'joint_err': joint_err, 
                         'output': outputs, 
                         'target': targets,
                         'input': inputs}, 
-                        open(os.path.join(opt.ckpt,action + "_test.pth.tar"), "wb"))
+                        open(os.path.join(opt.ckpt,"test_results.pth.tar"), "wb"))
             
-            print ("{:.4f}".format(err_test), end='\t')
+        print ("{:.4f}".format(err_test), end='\t')
         sys.exit()
 
     # load datasets for training
     test_loader = DataLoader(
-        dataset=data_loader(actions=actions, 
-                            data_path=opt.data_dir, 
+        dataset=data_loader(data_path=opt.data_dir, 
                             use_hg=opt.use_hg, 
                             is_train=False),
-        batch_size=opt.test_batch,
-        shuffle=False,
-        num_workers=opt.job,
-        pin_memory=True)
+                            batch_size=opt.test_batch,
+                            shuffle=False,
+                            num_workers=opt.job,
+                            pin_memory=True)
     
     train_loader = DataLoader(
-        dataset=data_loader(actions=actions, 
-                            data_path=opt.data_dir, 
+        dataset=data_loader(data_path=opt.data_dir, 
                             use_hg=opt.use_hg),
-        batch_size=opt.train_batch,
-        shuffle=True,
-        num_workers=opt.job,
-        pin_memory=True)
+                            batch_size=opt.train_batch,
+                            shuffle=True,
+                            num_workers=opt.job,
+                            pin_memory=True)
     
     # loop through epochs
     cudnn.benchmark = True

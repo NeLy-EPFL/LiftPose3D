@@ -7,15 +7,12 @@ import torch
 from torch.utils.data import Dataset
 
 class data_loader(Dataset):
-    def __init__(self, actions, data_path, use_hg=True, is_train=True):
+    def __init__(self, data_path, use_hg=True, is_train=True):
         """
-        actions: list of actions to use
         data_path: path to dataset
         use_hg: use stacked hourglass detections
         is_train: load train/test dataset
         """
-
-        self.actions = actions
         self.data_path = data_path
 
         self.is_train = is_train
@@ -52,8 +49,6 @@ class data_loader(Dataset):
             self.test_2d = torch.load(os.path.join(data_path, test_2d_file))
             for k2d in self.test_2d.keys():
                 (sub, act, fname) = k2d
-                if act not in self.actions:
-                    continue
                 k3d = k2d
                 k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
                 num_f, _ = self.test_2d[k2d].shape

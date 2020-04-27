@@ -3,6 +3,14 @@ import numpy as np
 def normalize_data(data, data_mean, data_std, targets, dim ):
   """
   Normalizes a dictionary of poses
+
+  Args
+    data: dictionary where values are
+    data_mean: np vector with the mean of the data
+    data_std: np vector with the standard deviation of the data
+    dim_to_use: list of dimensions to keep in the data
+  Returns
+    data_out: dictionary with same keys as data, but values have been normalized
   """
 
   dim_to_use = get_coords_in_dim(targets, dim)
@@ -20,6 +28,14 @@ def unNormalizeData(data, data_mean, data_std, dim_to_use):
   """
   Un-normalizes a matrix whose mean has been substracted and that has been divided by
   standard deviation. Some dimensions might also be missing
+
+  Args
+    normalized_data: nxd matrix to unnormalize
+    data_mean: np vector with the mean of the data
+    data_std: np vector with the standard deviation of the data
+    dimensions_to_ignore: list of dimensions that were removed from the original data
+  Returns
+    orig_data: the input normalized_data, but unnormalized
   """
 
   data *= data_std[dim_to_use]

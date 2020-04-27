@@ -14,9 +14,12 @@ import pickle
 TRAIN_SUBJECTS = [0,1,2,3,4,5,6,7]
 TEST_SUBJECTS  = [8,9]
 
-anchors = [0, 5, 10, 19, 24, 29]
-target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14],
-               [20, 21, 22, 23], [25, 26, 27, 28], [30, 31, 32, 33]]
+anchors = [0, 5, 10]
+target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14]]
+
+#anchors = [0, 5, 10, 19, 24, 29]
+#target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14],
+#               [20, 21, 22, 23], [25, 26, 27, 28], [30, 31, 32, 33]]
 
 MARKER_NAMES = ['']*38
 MARKER_NAMES[0] = 'BODY_COXA'
@@ -35,184 +38,75 @@ MARKER_NAMES[12] = 'FEMUR_TIBIA'
 MARKER_NAMES[13] = 'TIBIA_TARSUS'
 MARKER_NAMES[14] = 'TARSUS_TIP'
 
-MARKER_NAMES[19] = 'BODY_COXA'
-MARKER_NAMES[20] = 'COXA_FEMUR'
-MARKER_NAMES[21] = 'FEMUR_TIBIA'
-MARKER_NAMES[22] = 'TIBIA_TARSUS'
-MARKER_NAMES[23] = 'TARSUS_TIP'
-MARKER_NAMES[24] = 'BODY_COXA'
-MARKER_NAMES[25] = 'COXA_FEMUR'
-MARKER_NAMES[26] = 'FEMUR_TIBIA'
-MARKER_NAMES[27] = 'TIBIA_TARSUS'
-MARKER_NAMES[28] = 'TARSUS_TIP'
-MARKER_NAMES[29] = 'BODY_COXA'
-MARKER_NAMES[30] = 'COXA_FEMUR'
-MARKER_NAMES[31] = 'FEMUR_TIBIA'
-MARKER_NAMES[32] = 'TIBIA_TARSUS'
-MARKER_NAMES[33] = 'TARSUS_TIP'
-
-# Stacked Hourglass produces 16 joints. These are the names.
-SH_NAMES = ['']*38
-SH_NAMES[0] = 'BODY_COXA'
-SH_NAMES[1] = 'COXA_FEMUR'
-SH_NAMES[2] = 'FEMUR_TIBIA'
-SH_NAMES[3] = 'TIBIA_TARSUS'
-SH_NAMES[4] = 'TARSUS_TIP'
-SH_NAMES[5] = 'BODY_COXA'
-SH_NAMES[6] = 'COXA_FEMUR'
-SH_NAMES[7] = 'FEMUR_TIBIA'
-SH_NAMES[8] = 'TIBIA_TARSUS'
-SH_NAMES[9] = 'TARSUS_TIP'
-SH_NAMES[10] = 'BODY_COXA'
-SH_NAMES[11] = 'COXA_FEMUR'
-SH_NAMES[12] = 'FEMUR_TIBIA'
-SH_NAMES[13] = 'TIBIA_TARSUS'
-SH_NAMES[14] = 'TARSUS_TIP'
+#MARKER_NAMES[19] = 'BODY_COXA'
+#MARKER_NAMES[20] = 'COXA_FEMUR'
+#MARKER_NAMES[21] = 'FEMUR_TIBIA'
+#MARKER_NAMES[22] = 'TIBIA_TARSUS'
+#MARKER_NAMES[23] = 'TARSUS_TIP'
+#MARKER_NAMES[24] = 'BODY_COXA'
+#MARKER_NAMES[25] = 'COXA_FEMUR'
+#MARKER_NAMES[26] = 'FEMUR_TIBIA'
+#MARKER_NAMES[27] = 'TIBIA_TARSUS'
+#MARKER_NAMES[28] = 'TARSUS_TIP'
+#MARKER_NAMES[29] = 'BODY_COXA'
+#MARKER_NAMES[30] = 'COXA_FEMUR'
+#MARKER_NAMES[31] = 'FEMUR_TIBIA'
+#MARKER_NAMES[32] = 'TIBIA_TARSUS'
+#MARKER_NAMES[33] = 'TARSUS_TIP'
 
 data_dir = '/data/DF3D/'#'/Users/adamgosztolai/Dropbox/'#
 actions = ['MDN_CsCh']
 rcams = pickle.load(open('cameras.pkl', "rb"))
-camera_frame = True #boolean. Whether to convert the data to camera coordinates
 
 
-def main():
- 
-# =============================================================================
-# This part is for predicting z-coordinate of groundtruth from xy coords of groungtruth    
-# =============================================================================
-    
-    #xy data
-    train_set, test_set, data_mean, data_std = \
-    create_xy_data( actions, data_dir, target_sets, anchors )
-        
-    torch.save(train_set, data_dir + 'train_2d.pth.tar')
-    torch.save(test_set, data_dir + 'test_2d.pth.tar')
-    torch.save({'mean': data_mean, 'std': data_std, 
-                'target_sets': target_sets, 'anchors': anchors},
-                data_dir + 'stat_2d.pth.tar')
-    
-    #z data
-#    train_set, test_set, data_mean, data_std = \
-#    create_z_data( actions, data_dir, rcams, target_sets, anchors )
-#        
-#    torch.save(train_set, data_dir + 'train_z.pth.tar')
-#    torch.save(test_set, data_dir + 'test_z.pth.tar')   
-#    torch.save({'mean': data_mean, 'std': data_std, 
-#                'target_sets': target_sets, 'anchors': anchors},
-#                data_dir + 'stat_z.pth.tar')    
-    train_set, test_set, data_mean, data_std = \
-    read_3d_data( actions, data_dir, target_sets, anchors)
-    
-    torch.save(train_set, data_dir +'train_3d.pth.tar')
-    torch.save(test_set, data_dir + 'test_3d.pth.tar')
-    torch.save({'mean': data_mean, 'std': data_std, 
-                'target_sets': target_sets, 'anchors': anchors},
-                data_dir + 'stat_3d.pth.tar')
+def main():   
     
 # =============================================================================
 # This part is for predicting xyz of groundtruth from SH predictions
 # =============================================================================
     
     # HG prediction (i.e. deeplabcut or similar) 
-#    train_set, test_set, data_mean, data_std = \
-#    read_2d_predictions( actions, data_dir, rcams, target_sets, anchors )
-#    
-#    torch.save(train_set, '/data/DF3D/train_2d_ft.pth.tar')
-#    torch.save(test_set, '/data/DF3D/test_2d_ft.pth.tar')
+    train_set, test_set, data_mean, data_std = \
+        read_2d_predictions( actions, data_dir, rcams, target_sets, anchors )
+    
+    torch.save(train_set, '/data/DF3D/train_2d_ft.pth.tar')
+    torch.save(test_set, '/data/DF3D/test_2d_ft.pth.tar')
+    torch.save({'mean': data_mean, 'std': data_std, 
+                'target_sets': target_sets, 'anchors': anchors},
+                data_dir + 'stat_2d.pth.tar')
     
     #3D ground truth
-#    train_set, test_set, data_mean, data_std = \
-#    read_3d_data( actions, data_dir, target_sets, anchors, camera_frame, rcams)
-#    
-#    torch.save(train_set, data_dir +'train_3d.pth.tar')
-#    torch.save(test_set, data_dir + 'test_3d.pth.tar')
-#    torch.save({'mean': data_mean, 'std': data_std, 
-#                'target_sets': target_sets, 'anchors': anchors},
-#                data_dir + 'stat_3d.pth.tar')
+    train_set, test_set, data_mean, data_std = \
+        read_3d_data( actions, data_dir, target_sets, anchors, rcams)
+    
+    torch.save(train_set, data_dir + 'train_3d.pth.tar')
+    torch.save(test_set, data_dir + 'test_3d.pth.tar')
+    torch.save({'mean': data_mean, 'std': data_std, 
+                'target_sets': target_sets, 'anchors': anchors},
+                data_dir + 'stat_3d.pth.tar')
+
+
+# =============================================================================
+# Define actions
+# =============================================================================
+
+def define_actions( action ):
+  """
+  List of actions.
+  """
+  actions = ["MDN_CsCh"]
+
+  if action == "All" or action == "all":
+    return actions
+
+  return [action]
 
 
 # =============================================================================
 # Preprocess pipelines
 # =============================================================================
-
-def read_2d_predictions( actions, data_dir, rcams, target_sets, anchors ):
-  """
-  Loads 2d data from precomputed Stacked Hourglass detections
-  """
-
-  train_set = load_stacked_hourglass( data_dir, TRAIN_SUBJECTS, actions)
-  test_set  = load_stacked_hourglass( data_dir, TEST_SUBJECTS,  actions)
-  
-  #rotate to align with 2D
-  train_set = project_to_cameras( train_set, rcams, cam_ids=[1] )
-  test_set  = project_to_cameras( test_set, rcams, cam_ids=[1] )
-
-  # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim=2)
-  test_set = anchor( test_set, anchors, target_sets, dim=2)
-  
-  data_mean, data_std = normalization_stats( train_set, anchors, dim=2 )
-
-  # Divide every dimension independently
-  train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=2 )
-  test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=2 )
-  
-  return train_set, test_set, data_mean, data_std
-
-
-def create_xy_data( actions, data_dir, target_sets, anchors ):
-  """
-  Creates 2d poses by projecting 3d poses with the corresponding camera
-  parameters.
-  """
-
-  # Load 3d data
-  train_set = load_data( data_dir, TRAIN_SUBJECTS, actions )
-  test_set  = load_data( data_dir, TEST_SUBJECTS,  actions )
-  
-  #rotate to align with 2D
-  train_set = XY_coord( train_set )
-  test_set  = XY_coord( test_set )
-  
-  # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim=2)
-  test_set = anchor( test_set, anchors, target_sets, dim=2)
-
-  # Compute normalization statistics.
-  data_mean, data_std = normalization_stats( train_set, anchors, dim=2 )
-  
-  # Divide every dimension independently
-  train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=2 )
-  test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=2 )
-
-  return train_set, test_set, data_mean, data_std
-
-
-def create_z_data( actions, data_dir, rcams, target_sets, anchors ):
-
-  # Load 3d data
-  train_set = load_data( data_dir, TRAIN_SUBJECTS, actions )
-  test_set  = load_data( data_dir, TEST_SUBJECTS,  actions )
-  
-  #rotate to align with 2D
-  train_set = Z_coord( train_set)
-  test_set  = Z_coord( test_set )
-  
-  # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim = 1)
-  test_set = anchor( test_set, anchors, target_sets, dim = 1)
-
-  # Compute normalization statistics.
-  data_mean, data_std = normalization_stats( train_set, anchors, dim=1 )
-
-  # Divide every dimension independently
-  train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=1 )
-  test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=1 )
-
-  return train_set, test_set, data_mean, data_std
-
-
-def read_3d_data( actions, data_dir, target_sets, anchors, camera_frame=None, rcams=None):
+    
+def read_3d_data( actions, data_dir, target_sets, anchors, rcams=None):
   """
   Loads 3d poses, zero-centres and normalizes them
   """
@@ -220,13 +114,13 @@ def read_3d_data( actions, data_dir, target_sets, anchors, camera_frame=None, rc
   train_set = load_data( data_dir, TRAIN_SUBJECTS, actions )
   test_set  = load_data( data_dir, TEST_SUBJECTS,  actions )
 
-#  if camera_frame:
-#  train_set = transform_world_to_camera( train_set, rcams )
-#  test_set  = transform_world_to_camera( test_set, rcams )
+  if rcams is not None:
+      train_set = transform_world_to_camera( train_set, rcams, cam_ids=[1] )
+      test_set  = transform_world_to_camera( test_set, rcams, cam_ids=[1] )
 
   # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim = 3)
-  test_set = anchor( test_set, anchors, target_sets, dim = 3)
+  train_set = anchor( train_set, anchors, target_sets, dim=3)
+  test_set = anchor( test_set, anchors, target_sets, dim=3)
 
   # Compute normalization statistics
   data_mean, data_std = normalization_stats( train_set, anchors, dim=3 )
@@ -235,6 +129,28 @@ def read_3d_data( actions, data_dir, target_sets, anchors, camera_frame=None, rc
   train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=3 )
   test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=3 )
 
+  return train_set, test_set, data_mean, data_std
+
+
+def read_2d_predictions( actions, data_dir, rcams, target_sets, anchors ):
+  """
+  Loads 2d data from precomputed Stacked Hourglass detections
+  """
+
+  train_set = load_stacked_hourglass( data_dir, TRAIN_SUBJECTS, actions, cam_ids = [1])
+  test_set  = load_stacked_hourglass( data_dir, TEST_SUBJECTS,  actions, cam_ids = [1])
+
+  # anchor points
+  train_set = anchor( train_set, anchors, target_sets, dim=2)
+  test_set = anchor( test_set, anchors, target_sets, dim=2)
+  
+  # Compute normalization statistics
+  data_mean, data_std = normalization_stats( train_set, anchors, dim=2 )
+
+  # Divide every dimension independently
+  train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=2 )
+  test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=2 )
+  
   return train_set, test_set, data_mean, data_std
 
 
@@ -271,7 +187,7 @@ def load_data( path, flies, actions ):
         poses = poses['points3d']
         poses = np.reshape(poses, 
                           (poses.shape[0], poses.shape[1]*poses.shape[2]))
-        data[ (fly, action, seqname[:-4]) ] = poses
+        data[ (fly, action, seqname[:-4]) ] = poses #[:-4] is to get rid of .pkl extension
 
   return data
 
@@ -305,32 +221,98 @@ def load_stacked_hourglass(data_dir, flies, actions, cam_ids = [1]):
         poses = poses['points2d']
         
         for cam in cam_ids:
-            seqname_cam = seqname[:-4] + '.cam_' + str(cam) + '-sh'
-        
+
             poses_cam = poses[cam,:,:,:]
             poses_cam = np.reshape(poses_cam, 
                          (poses.shape[1], poses.shape[2]*poses.shape[3]))    
         
-            data[ (fly, action, seqname_cam) ] = poses_cam
+            data[ (fly, action, seqname[:-4] + '.cam_' + str(cam) + '-sh') ] = poses_cam
 
   return data
-
+    
 
 # =============================================================================
-# Define actions
+# Projection functions
 # =============================================================================
 
-def define_actions( action ):
+def transform_world_to_camera( poses_set, cams, cam_ids=[1], project=False ):
   """
-  List of actions.
+  Project 3d poses using camera parameters
+
+  Args
+    poses_set: dictionary with 3d poses
+    cams: dictionary with camera parameters
+    cam_ids: camera_ids to consider
+  Returns
+    transf: dictionary with 3d poses or 2d poses if projection is True
   """
-  actions = ["MDN_CsCh"]
+  Ptransf = {}
 
-  if action == "All" or action == "all":
-    return actions
+  for subj, a, seqname in sorted( poses_set.keys() ):
 
-  return [action]
+    P = poses_set[ (subj, a, seqname) ]
 
+    for c in cam_ids:
+      R, T, intr, distort = cams[c]
+      P = transform( P, R, T)
+      
+      if project:
+         P = project(P, intr)
+      
+      Ptransf[ (subj, a, seqname + ".cam_" + str(c)) ] = P
+
+  return Ptransf
+
+
+def transform( P, R, T):
+  """
+  Transform 3d poses to camera viewpoint
+
+  Args
+    P: Nx3 points in world coordinates
+    R: 3x3 Camera rotation matrix
+    T: 3x1 Camera translation parameters
+  Returns
+    transf: Nx2 points on camera
+  """
+
+  P = np.reshape(P, [-1, 3])
+  
+  assert len(P.shape) == 2
+  assert P.shape[1] == 3
+  
+  points3d_new_cs =  np.squeeze(np.matmul(R, P[:,:,np.newaxis])) + T
+  
+  return np.reshape( points3d_new_cs, [-1, len(MARKER_NAMES)*3] )
+
+
+def project(P, intr):
+    
+  P = np.reshape(P, [-1, 3])  
+  proj = np.squeeze(np.matmul(intr, P[:,:,np.newaxis]))
+  proj = proj / proj[:, [2]]
+  proj = proj[:, :2]
+  
+  return np.reshape( proj, [-1, len(MARKER_NAMES)*2] )
+
+
+#def camera_to_world_frame(P, R, T):
+#  """Inverse of world_to_camera_frame
+#
+#  Args
+#    P: Nx3 points in camera coordinates
+#    R: 3x3 Camera rotation matrix
+#    T: 3x1 Camera translation parameters
+#  Returns
+#    X_cam: Nx3 points in world coordinates
+#  """
+#
+#  assert len(P.shape) == 2
+#  assert P.shape[1] == 3
+#
+#  X_cam = R.T.dot( P.T ) + T # rotate and translate
+#
+#  return X_cam.T
 
 # =============================================================================
 # Anchor data and normalise
@@ -353,169 +335,6 @@ def normalization_stats(train_set, anchors, dim ):
   data_std  =  np.std(complete_data, axis=0)
 
   return data_mean, data_std
-
-# =============================================================================
-# Projection functions
-# =============================================================================
-#def transform_world_to_camera(poses_set, cams, cam_ids=[1] ):
-#    """
-#    Project 3d poses from world coordinate to camera coordinate system
-#    Args
-#      poses_set: dictionary with 3d poses
-#      cams: dictionary with cameras
-#      cam_ids: camera ids to consider
-#    Return:
-#      t3d_camera: dictionary with 3d poses in camera coordinate
-#    """
-#    t3d_camera = {}
-#    for t3dk in sorted( poses_set.keys() ):
-#
-#      subj, action, seqname = t3dk
-#      t3d_world = poses_set[ t3dk ]
-#
-#      for c in cam_ids:
-#        R, T, intr, distort = cams[c]
-#        camera_coord = np.reshape(t3d_world, [-1, 3]) #expand
-#        camera_coord = world_to_camera_frame(camera_coord, R, T[:,None]) #transform
-#        camera_coord = np.reshape( camera_coord, [-1, t3d_world.shape[1]] ) #compress again
-#
-#        sname = seqname[:-4] + ".cam_" + str(c)
-#        t3d_camera[ (subj, action, sname) ] = camera_coord
-#
-#    return t3d_camera
-
-
-def project_to_cameras( poses_set, cams, cam_ids=[1] ):
-  """
-  Project 3d poses using camera parameters
-
-  Args
-    poses_set: dictionary with 3d poses
-    cams: dictionary with camera parameters
-    cam_ids: camera_ids to consider
-  Returns
-    t2d: dictionary with 2d poses
-  """
-  t2d = {}
-
-  for t3dk in sorted( poses_set.keys() ):
-    subj, a, seqname = t3dk
-    t3d = poses_set[ t3dk ]
-
-    for c in cam_ids:
-      R, T, intr, distort = cams[c]
-      pts2d = np.reshape(t3d, [-1, 3])
-      pts2d, _ = transform_and_project( pts2d, R, T, intr)
-      pts2d = np.reshape( pts2d, [-1, len(MARKER_NAMES)*2] )
-      
-      sname = seqname[:-4] + ".cam_" + str(c)
-      t2d[ (subj, a, sname) ] = pts2d
-
-  return t2d
-
-
-def XY_coord( poses_set):
-  """
-  Project 3d poses to XY coord
-  """
-  t1d = {}
-
-  for t3dk in sorted( poses_set.keys() ):
-    subj, a, seqname = t3dk
-    t3d = poses_set[ t3dk ]
-
-    Z = np.reshape(t3d, [-1, 3])
-    Z = Z[:,:2]
-    Z = np.reshape( Z, [-1, len(MARKER_NAMES)*2] )
-      
-    sname = seqname
-    t1d[ (subj, a, sname) ] = Z
-
-  return t1d
-
-
-def Z_coord( poses_set):
-  """
-  Project 3d poses to Z coord
-  """
-  t1d = {}
-
-  for t3dk in sorted( poses_set.keys() ):
-    subj, a, seqname = t3dk
-    t3d = poses_set[ t3dk ]
-
-    Z = np.reshape(t3d, [-1, 3])
-    Z = Z[:,2]
-    Z = np.reshape( Z, [-1, len(MARKER_NAMES)] )
-      
-    sname = seqname
-    t1d[ (subj, a, sname) ] = Z
-
-  return t1d
-
-
-def transform_and_project( P, R, T, intr):
-  """
-  Project points from 3d to 2d using camera parameters
-  including radial and tangential distortion
-
-  Args
-    P: Nx3 points in world coordinates
-    R: 3x3 Camera rotation matrix
-    T: 3x1 Camera translation parameters
-    intr: 
-  Returns
-    Proj: Nx2 points in pixel space
-  """
-
-  # P is a matrix of 3-dimensional points
-  assert len(P.shape) == 2
-  assert P.shape[1] == 3
-
-  p_r = np.dot(R,P) + T
-  proj = np.dot(intr, p_r)
-  proj = proj / proj[-1]
-
-  return proj[:2]
-
-
-#def world_to_camera_frame(P, R, T):
-#  """
-#  Convert points from world to camera coordinates
-#
-#  Args
-#    P: Nx3 3d points in world coordinates
-#    R: 3x3 Camera rotation matrix
-#    T: 3x1 Camera translation parameters
-#  Returns
-#    X_cam: Nx3 3d points in camera coordinates
-#  """
-#
-#  assert len(P.shape) == 2
-#  assert P.shape[1] == 3
-#
-#  X_cam = R.dot( P.T - T ) # rotate and translate
-#
-#  return X_cam.T
-
-
-#def camera_to_world_frame(P, R, T):
-#  """Inverse of world_to_camera_frame
-#
-#  Args
-#    P: Nx3 points in camera coordinates
-#    R: 3x3 Camera rotation matrix
-#    T: 3x1 Camera translation parameters
-#  Returns
-#    X_cam: Nx3 points in world coordinates
-#  """
-#
-#  assert len(P.shape) == 2
-#  assert P.shape[1] == 3
-#
-#  X_cam = R.T.dot( P.T ) + T # rotate and translate
-#
-#  return X_cam.T
 
 
 if __name__ == "__main__":
