@@ -1,25 +1,31 @@
-"""Utility functions for dealing with human3.6m data."""
+"""Utility functions for dealing with DeepFly3D data."""
 
 from __future__ import division
 
 import os
 import numpy as np
 import glob
-import copy
 import torch
-from src.normalize import normalize_data, anchor
+from src.normalize import normalize_data, anchor, normalization_stats
 import pickle
 
 
 TRAIN_SUBJECTS = [0,1,2,3,4,5,6,7]
 TEST_SUBJECTS  = [8,9]
 
-anchors = [0, 5, 10]
-target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14]]
+data_dir = '/data/LiftFly3D/DF3D/'
+actions = ['MDN_CsCh']
+rcams = pickle.load(open('cameras.pkl', "rb"))
 
-#anchors = [0, 5, 10, 19, 24, 29]
-#target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14],
-#               [20, 21, 22, 23], [25, 26, 27, 28], [30, 31, 32, 33]]
+#select cameras and joints visible from cameras
+cam_ids = [1]
+target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14]]
+ref_points = [ 0,  5, 10]
+
+#target sets to be normalised to translated to origin by the anchor point
+#cam_ids = [5]
+#target_sets = [[20, 21, 22, 23], [25, 26, 27, 28], [30, 31, 32, 33]]
+#ref_points = [19, 24, 29]
 
 MARKER_NAMES = ['']*38
 MARKER_NAMES[0] = 'BODY_COXA'
@@ -38,25 +44,21 @@ MARKER_NAMES[12] = 'FEMUR_TIBIA'
 MARKER_NAMES[13] = 'TIBIA_TARSUS'
 MARKER_NAMES[14] = 'TARSUS_TIP'
 
-#MARKER_NAMES[19] = 'BODY_COXA'
-#MARKER_NAMES[20] = 'COXA_FEMUR'
-#MARKER_NAMES[21] = 'FEMUR_TIBIA'
-#MARKER_NAMES[22] = 'TIBIA_TARSUS'
-#MARKER_NAMES[23] = 'TARSUS_TIP'
-#MARKER_NAMES[24] = 'BODY_COXA'
-#MARKER_NAMES[25] = 'COXA_FEMUR'
-#MARKER_NAMES[26] = 'FEMUR_TIBIA'
-#MARKER_NAMES[27] = 'TIBIA_TARSUS'
-#MARKER_NAMES[28] = 'TARSUS_TIP'
-#MARKER_NAMES[29] = 'BODY_COXA'
-#MARKER_NAMES[30] = 'COXA_FEMUR'
-#MARKER_NAMES[31] = 'FEMUR_TIBIA'
-#MARKER_NAMES[32] = 'TIBIA_TARSUS'
-#MARKER_NAMES[33] = 'TARSUS_TIP'
-
-data_dir = '/data/DF3D/'#'/Users/adamgosztolai/Dropbox/'#
-actions = ['MDN_CsCh']
-rcams = pickle.load(open('cameras.pkl', "rb"))
+MARKER_NAMES[19] = 'BODY_COXA'
+MARKER_NAMES[20] = 'COXA_FEMUR'
+MARKER_NAMES[21] = 'FEMUR_TIBIA'
+MARKER_NAMES[22] = 'TIBIA_TARSUS'
+MARKER_NAMES[23] = 'TARSUS_TIP'
+MARKER_NAMES[24] = 'BODY_COXA'
+MARKER_NAMES[25] = 'COXA_FEMUR'
+MARKER_NAMES[26] = 'FEMUR_TIBIA'
+MARKER_NAMES[27] = 'TIBIA_TARSUS'
+MARKER_NAMES[28] = 'TARSUS_TIP'
+MARKER_NAMES[29] = 'BODY_COXA'
+MARKER_NAMES[30] = 'COXA_FEMUR'
+MARKER_NAMES[31] = 'FEMUR_TIBIA'
+MARKER_NAMES[32] = 'TIBIA_TARSUS'
+MARKER_NAMES[33] = 'TARSUS_TIP'
 
 
 def main():   
@@ -65,48 +67,32 @@ def main():
 # This part is for predicting xyz of groundtruth from SH predictions
 # =============================================================================
     
+    print('processing for camera' + str(cam_ids[0]))
     # HG prediction (i.e. deeplabcut or similar) 
-    train_set, test_set, data_mean, data_std = \
-        read_2d_predictions( actions, data_dir, rcams, target_sets, anchors )
+    train_set, test_set, data_mean, data_std, offset = \
+        read_2d_predictions( actions, data_dir, rcams, target_sets, ref_points )
     
-    torch.save(train_set, '/data/DF3D/train_2d_ft.pth.tar')
-    torch.save(test_set, '/data/DF3D/test_2d_ft.pth.tar')
+    torch.save(train_set, data_dir + 'train_2d_ft.pth.tar')
+    torch.save(test_set, data_dir + 'test_2d_ft.pth.tar')
     torch.save({'mean': data_mean, 'std': data_std, 
-                'target_sets': target_sets, 'anchors': anchors},
+                'target_sets': target_sets, 'offset': offset},
                 data_dir + 'stat_2d.pth.tar')
     
     #3D ground truth
-    train_set, test_set, data_mean, data_std = \
-        read_3d_data( actions, data_dir, target_sets, anchors, rcams)
+    train_set, test_set, data_mean, data_std, offset = \
+        read_3d_data( actions, data_dir, target_sets, ref_points, rcams)
     
     torch.save(train_set, data_dir + 'train_3d.pth.tar')
     torch.save(test_set, data_dir + 'test_3d.pth.tar')
     torch.save({'mean': data_mean, 'std': data_std, 
-                'target_sets': target_sets, 'anchors': anchors},
+                'target_sets': target_sets, 'offset': offset},
                 data_dir + 'stat_3d.pth.tar')
-
-
-# =============================================================================
-# Define actions
-# =============================================================================
-
-def define_actions( action ):
-  """
-  List of actions.
-  """
-  actions = ["MDN_CsCh"]
-
-  if action == "All" or action == "all":
-    return actions
-
-  return [action]
-
 
 # =============================================================================
 # Preprocess pipelines
 # =============================================================================
     
-def read_3d_data( actions, data_dir, target_sets, anchors, rcams=None):
+def read_3d_data( actions, data_dir, target_sets, ref_points, rcams=None):
   """
   Loads 3d poses, zero-centres and normalizes them
   """
@@ -115,43 +101,43 @@ def read_3d_data( actions, data_dir, target_sets, anchors, rcams=None):
   test_set  = load_data( data_dir, TEST_SUBJECTS,  actions )
 
   if rcams is not None:
-      train_set = transform_world_to_camera( train_set, rcams, cam_ids=[1] )
-      test_set  = transform_world_to_camera( test_set, rcams, cam_ids=[1] )
+      train_set = transform_world_to_camera( train_set, rcams, cam_ids )
+      test_set  = transform_world_to_camera( test_set, rcams, cam_ids )
 
   # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim=3)
-  test_set = anchor( test_set, anchors, target_sets, dim=3)
+  train_set, offset = anchor( train_set, ref_points, target_sets, dim=3)
+  test_set, offset = anchor( test_set, ref_points, target_sets, dim=3)
 
   # Compute normalization statistics
-  data_mean, data_std = normalization_stats( train_set, anchors, dim=3 )
+  data_mean, data_std = normalization_stats( train_set, ref_points, dim=3 )
 
   # Divide every dimension independently
   train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=3 )
   test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=3 )
 
-  return train_set, test_set, data_mean, data_std
+  return train_set, test_set, data_mean, data_std, offset
 
 
-def read_2d_predictions( actions, data_dir, rcams, target_sets, anchors ):
+def read_2d_predictions( actions, data_dir, rcams, target_sets, ref_points ):
   """
   Loads 2d data from precomputed Stacked Hourglass detections
   """
 
-  train_set = load_stacked_hourglass( data_dir, TRAIN_SUBJECTS, actions, cam_ids = [1])
-  test_set  = load_stacked_hourglass( data_dir, TEST_SUBJECTS,  actions, cam_ids = [1])
+  train_set = load_stacked_hourglass( data_dir, TRAIN_SUBJECTS, actions, cam_ids)
+  test_set  = load_stacked_hourglass( data_dir, TEST_SUBJECTS,  actions, cam_ids)
 
   # anchor points
-  train_set = anchor( train_set, anchors, target_sets, dim=2)
-  test_set = anchor( test_set, anchors, target_sets, dim=2)
+  train_set, offset = anchor( train_set, ref_points, target_sets, dim=2)
+  test_set, offset = anchor( test_set, ref_points, target_sets, dim=2)
   
   # Compute normalization statistics
-  data_mean, data_std = normalization_stats( train_set, anchors, dim=2 )
-
+  data_mean, data_std = normalization_stats( train_set, ref_points, dim=2 )
+  
   # Divide every dimension independently
   train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=2 )
   test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=2 )
   
-  return train_set, test_set, data_mean, data_std
+  return train_set, test_set, data_mean, data_std, offset
 
 
 # =============================================================================
@@ -266,7 +252,7 @@ def transform_world_to_camera( poses_set, cams, cam_ids=[1], project=False ):
 
 def transform( P, R, T):
   """
-  Transform 3d poses to camera viewpoint
+  Rotate/translate 3d poses to camera viewpoint
 
   Args
     P: Nx3 points in world coordinates
@@ -294,47 +280,6 @@ def project(P, intr):
   proj = proj[:, :2]
   
   return np.reshape( proj, [-1, len(MARKER_NAMES)*2] )
-
-
-#def camera_to_world_frame(P, R, T):
-#  """Inverse of world_to_camera_frame
-#
-#  Args
-#    P: Nx3 points in camera coordinates
-#    R: 3x3 Camera rotation matrix
-#    T: 3x1 Camera translation parameters
-#  Returns
-#    X_cam: Nx3 points in world coordinates
-#  """
-#
-#  assert len(P.shape) == 2
-#  assert P.shape[1] == 3
-#
-#  X_cam = R.T.dot( P.T ) + T # rotate and translate
-#
-#  return X_cam.T
-
-# =============================================================================
-# Anchor data and normalise
-# =============================================================================
-
-def normalization_stats(train_set, anchors, dim ):
-  """
-  Computes normalization statistics: mean and stdev, dimensions used and ignored
-
-  Args
-    complete_data: nxd np array with poses
-    dim. integer={1,2,3} dimensionality of the data
-  Returns
-    data_mean: np vector with the mean of the data
-    data_std: np vector with the standard deviation of the data
-  """
-
-  complete_data = copy.deepcopy( np.vstack( train_set.values() ))
-  data_mean = np.mean(complete_data, axis=0)
-  data_std  =  np.std(complete_data, axis=0)
-
-  return data_mean, data_std
 
 
 if __name__ == "__main__":

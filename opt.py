@@ -16,7 +16,7 @@ class Options:
         # ===============================================================
         #                     General options
         # ===============================================================
-        self.parser.add_argument('--data_dir',       type=str, default='/data/DF3D/', help='path to dataset')
+        self.parser.add_argument('--data_dir',       type=str, default='/data/LiftFly3D/DF3D/', help='path to dataset')
         self.parser.add_argument('--exp',            type=str, default='LiftFly3D', help='ID of experiment')
         self.parser.add_argument('--ckpt',           type=str, default='checkpoint/', help='path to save checkpoint')
         self.parser.add_argument('--load',           type=str, default='', help='path to load a pretrained checkpoint')

@@ -46,7 +46,7 @@ MARKER_NAMES[31] = 'FEMUR_TIBIA'
 MARKER_NAMES[32] = 'TIBIA_TARSUS'
 MARKER_NAMES[33] = 'TARSUS_TIP'
 
-data_dir = '/Users/adamgosztolai/Documents/Research/data/Semih_data/'#'/data/DF3D/'
+data_dir = '/data/LiftFly3D/DF3D/'
 actions = ['MDN_CsCh']
 rcams = pickle.load(open('cameras.pkl', "rb"))
 

@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 def normalize_data(data, data_mean, data_std, targets, dim ):
   """
@@ -7,7 +8,6 @@ def normalize_data(data, data_mean, data_std, targets, dim ):
 
   dim_to_use = get_coords_in_dim(targets, dim)
  
-  print(data_std)
   for key in data.keys():
     data[ key ] -= data_mean
     data[ key ] /= data_std
@@ -31,6 +31,25 @@ def unNormalizeData(data, data_mean, data_std, dim_to_use):
   orig_data[:, dim_to_use] = data
   
   return orig_data
+
+
+def normalization_stats(train_set, anchors, dim ):
+  """
+  Computes normalization statistics: mean and stdev, dimensions used and ignored
+
+  Args
+    complete_data: nxd np array with poses
+    dim. integer={1,2,3} dimensionality of the data
+  Returns
+    data_mean: np vector with the mean of the data
+    data_std: np vector with the standard deviation of the data
+  """
+
+  complete_data = copy.deepcopy( np.vstack( train_set.values() ))
+  data_mean = np.mean(complete_data, axis=0)
+  data_std  =  np.std(complete_data, axis=0)
+  
+  return data_mean, data_std
 
 
 def get_coords_in_dim(targets, dim):
@@ -62,12 +81,17 @@ def anchor(poses,
   Center points in targset sets around anchors
   """
   
+  offset = {}
   for k in poses.keys():
+      offset[k] = np.zeros_like(poses[k])
       for i, anch in enumerate(anchors):
-          for j in target_sets[i]:
-              poses[k][:, dim*j:dim*j+dim] -= poses[k][:, dim*anch:dim*anch+dim]
+          for j in [anch]+target_sets[i]:
+              offset[k][:, dim*j:dim*j+dim] += poses[k][:, dim*anch:dim*anch+dim]
 
-  return poses
+  for k in poses.keys():
+      poses[k] -= offset[k]
+      
+  return poses, offset
 
 
 def de_anchor(old_poses, new_poses, 

@@ -12,6 +12,8 @@ import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from matplotlib.animation import FFMpegWriter
+import matplotlib
+matplotlib.use('Agg')
 from src.normalize import unNormalizeData, get_coords_in_dim
 
 def plot_3d_graph(pos, ax, color = 'k'):
@@ -31,7 +33,6 @@ def plot_3d_graph(pos, ax, color = 'k'):
     ax.set_axis_off()
     
     return ax
-    
 
 '''
 Joints
@@ -77,27 +78,46 @@ G=nx.Graph()
 G.add_edges_from(edges)
 G.add_nodes_from(nodes)
 
-#load data statistics
-data_dir = '/data/DF3D/'
-inp_mean = torch.load(data_dir +'stat_2d.pth.tar')['mean']
-tar_mean = torch.load(data_dir +'stat_3d.pth.tar')['mean']
-inp_std = torch.load(data_dir +'stat_2d.pth.tar')['std']
-tar_std = torch.load(data_dir +'stat_3d.pth.tar')['std']
-targets = torch.load(data_dir +'stat_3d.pth.tar')['target_sets']
-anchors = torch.load(data_dir +'stat_3d.pth.tar')['anchors']
+cameras = [1,5]
 
-#load predictions
-data = torch.load('checkpoint/LiftFly3D/MDN_CsCh_test.pth.tar')
-out = data['output']
-tar = data['target']
-inp = data['input']
+#load data / statistics for cameras
+out, tar = [], []
+for cam in cameras:
+    ind = 'cam_' + str(cam)
+    data_dir = '/data/LiftFly3D/DF3D/cam_' + str(cam)
+    tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
+    tar_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
+    targets = torch.load(data_dir + '/stat_3d.pth.tar')['target_sets']
+    offset = torch.load(data_dir + '/stat_3d.pth.tar')['offset']
+    offset = np.vstack( offset.values() )
 
-targets_2d = get_coords_in_dim(targets, 2)
-targets_3d = get_coords_in_dim(targets, 3)
-
-xy = unNormalizeData(inp, inp_mean, inp_std, targets_2d)
-out = unNormalizeData(out, tar_mean, tar_std, targets_3d)
-tar = unNormalizeData(tar, tar_mean, tar_std, targets_3d)
+    #load predictions
+    data = torch.load(data_dir + '/test_results.pth.tar')
+ 
+#    inp_mean[ind] = torch.load(data_dir + 'stat_2d.pth.tar')['mean']
+#    inp_std[ind] = torch.load(data_dir + 'stat_2d.pth.tar')['std']
+#    targets_2d = get_coords_in_dim(targets, 2)
+#    xy = unNormalizeData(data['input'], inp_mean, inp_std, targets_2d)
+    
+    targets_3d = get_coords_in_dim(targets, 3)
+    out_ = unNormalizeData(data['output'], tar_mean, tar_std, targets_3d)
+    tar_ = unNormalizeData(data['target'], tar_mean, tar_std, targets_3d)
+        
+    #remove offset
+    out_ += offset
+    tar_ += offset
+    
+    out.append(out_)
+    tar.append(tar_)   
+    
+#average over cameras
+out = np.stack( out, axis=2 ) 
+tar = np.stack( tar, axis=2 )
+print(tar.shape)
+out[out == 0] = np.nan
+tar[tar == 0] = np.nan
+out = np.nanmean(out, axis=2)
+tar = np.nanmean(tar, axis=2)
 
 #put back the anchor points
 #output_full = np.zeros((output.shape[0], 15))

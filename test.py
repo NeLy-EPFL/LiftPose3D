@@ -24,7 +24,7 @@ def test(test_loader, model, criterion, stat, procrustes=False):
         loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
 
-        # calculate accuracy
+        # undo normalisation to alculate accuracy in real units
         dimensions = get_coords_in_dim(stat['target_sets'], 3)
         targets = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         outputs = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
