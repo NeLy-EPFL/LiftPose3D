@@ -27,10 +27,10 @@ def main(opt):
     lr_now = opt.lr
 
     # save options
-    log.save_options(opt, opt.ckpt)
+    log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=24, output_size=36)
+    model = LinearModel(input_size=48, output_size=24)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -51,9 +51,9 @@ def main(opt):
         print(">>> ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
         
     if opt.resume:
-        logger = log.Logger(os.path.join(opt.ckpt, 'log.txt'), resume=True)
+        logger = log.Logger(os.path.join(opt.out_dir, 'log.txt'), resume=True)
     else:
-        logger = log.Logger(os.path.join(opt.ckpt, 'log.txt'))
+        logger = log.Logger(os.path.join(opt.out_dir, 'log.txt'))
         logger.set_names(['epoch', 'lr', 'loss_train', 'loss_test', 'err_test'])
 
     # data loading
@@ -73,12 +73,12 @@ def main(opt):
         test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
             
         torch.save({'loss': loss_test, 
-                        'test_err': err_test, 
-                        'joint_err': joint_err, 
-                        'output': outputs, 
-                        'target': targets,
-                        'input': inputs}, 
-                        open(os.path.join(opt.ckpt,"test_results.pth.tar"), "wb"))
+                    'test_err': err_test, 
+                    'joint_err': joint_err, 
+                    'output': outputs, 
+                    'target': targets,
+                    'input': inputs}, 
+                    open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
             
         print ("{:.4f}".format(err_test), end='\t')
         sys.exit()
@@ -140,7 +140,7 @@ def main(opt):
                        'err': err_best,
                        'state_dict': model.state_dict(),
                        'optimizer': optimizer.state_dict()},
-                        ckpt_path=opt.ckpt,
+                        ckpt_path=opt.out_dir,
                         is_best = err_test < err_best)
 
     logger.close()

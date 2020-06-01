@@ -13,19 +13,26 @@ import pickle
 TRAIN_SUBJECTS = [0,1,2,3,4,5,6,7]
 TEST_SUBJECTS  = [8,9]
 
-data_dir = '/data/LiftFly3D/DF3D/'
+data_dir = '/data/LiftFly3D/DF3D/'#'/Users/adamgosztolai/Documents/Research/data/Semih_data/'#
 actions = ['MDN_CsCh']
 rcams = pickle.load(open('cameras.pkl', "rb"))
 
 #select cameras and joints visible from cameras
-cam_ids = [1]
-target_sets = [[ 1,  2,  3,  4], [ 6,  7,  8,  9], [11, 12, 13, 14]]
-ref_points = [ 0,  5, 10]
 
-#target sets to be normalised to translated to origin by the anchor point
+#cam_ids = [0]
+cam_ids = [1]
+#cam_ids = [2]
+
+target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14]]
+ref_points = [0, 5, 10]
+
+#cam_ids = [4]
 #cam_ids = [5]
+#cam_ids = [6]
+
 #target_sets = [[20, 21, 22, 23], [25, 26, 27, 28], [30, 31, 32, 33]]
 #ref_points = [19, 24, 29]
+
 
 MARKER_NAMES = ['']*38
 MARKER_NAMES[0] = 'BODY_COXA'
@@ -178,7 +185,7 @@ def load_data( path, flies, actions ):
   return data
 
 
-def load_stacked_hourglass(data_dir, flies, actions, cam_ids = [1]):
+def load_stacked_hourglass(data_dir, flies, actions, cam_ids):
   """
   Load 2d detections from disk, and put it in an easy-to-acess dictionary.
 
@@ -221,7 +228,7 @@ def load_stacked_hourglass(data_dir, flies, actions, cam_ids = [1]):
 # Projection functions
 # =============================================================================
 
-def transform_world_to_camera( poses_set, cams, cam_ids=[1], project=False ):
+def transform_world_to_camera( poses_set, cams, cam_ids, project=False ):
   """
   Project 3d poses using camera parameters
 
@@ -240,7 +247,7 @@ def transform_world_to_camera( poses_set, cams, cam_ids=[1], project=False ):
 
     for c in cam_ids:
       R, T, intr, distort = cams[c]
-      P = transform( P, R, T)
+      P = transform(P, R, T)
       
       if project:
          P = project(P, intr)
@@ -250,7 +257,30 @@ def transform_world_to_camera( poses_set, cams, cam_ids=[1], project=False ):
   return Ptransf
 
 
-def transform( P, R, T):
+def transform_camera_to_world( data, cams, cam_ids ):
+  """
+  Project 3d poses using camera parameters
+
+  Args
+    poses_set: dictionary with 3d poses
+    cams: dictionary with camera parameters
+    cam_ids: camera_ids to consider
+  Returns
+    transf: dictionary with 3d poses or 2d poses if projection is True
+  """
+
+  for c in cam_ids:
+    R, T, _, _ = cams[c]
+    
+    P = np.reshape(data, [-1, 3])
+    P -= T
+    P = np.squeeze(np.inv(R)**P[:,:,np.newaxis])
+  
+  return np.reshape( P, [-1, len(MARKER_NAMES)*3] )
+
+
+
+def transform(P, R, T):
   """
   Rotate/translate 3d poses to camera viewpoint
 
@@ -267,7 +297,7 @@ def transform( P, R, T):
   assert len(P.shape) == 2
   assert P.shape[1] == 3
   
-  points3d_new_cs =  np.squeeze(np.matmul(R, P[:,:,np.newaxis])) + T
+  points3d_new_cs =  np.matmul(R, P.T).T + T
   
   return np.reshape( points3d_new_cs, [-1, len(MARKER_NAMES)*3] )
 

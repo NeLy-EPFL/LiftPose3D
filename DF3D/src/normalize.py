@@ -11,7 +11,7 @@ def normalize_data(data, data_mean, data_std, targets, dim ):
   for key in data.keys():
     data[ key ] -= data_mean
     data[ key ] /= data_std
-    data[ key ] = data[ key ][ :, dim_to_use ]
+    data[ key ] = data[ key ][ :, dim_to_use ]  
 
   return data
 
@@ -73,10 +73,7 @@ def get_coords_in_dim(targets, dim):
     return dim_to_use
 
 
-def anchor(poses, 
-           anchors = [0, 5, 10], 
-           target_sets = [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14]], 
-           dim=3):
+def anchor(poses, anchors, target_sets, dim=3):
   """
   Center points in targset sets around anchors
   """
@@ -86,25 +83,9 @@ def anchor(poses,
       offset[k] = np.zeros_like(poses[k])
       for i, anch in enumerate(anchors):
           for j in [anch]+target_sets[i]:
-              offset[k][:, dim*j:dim*j+dim] += poses[k][:, dim*anch:dim*anch+dim]
+              offset[k][:, dim*j:dim*(j+1)] += poses[k][:, dim*anch:dim*(anch+1)]
 
   for k in poses.keys():
       poses[k] -= offset[k]
       
   return poses, offset
-
-
-def de_anchor(old_poses, new_poses, 
-           anchors = [0, 5, 10], 
-           target_sets = [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14]], 
-           dim=3):
-  """
-  Center 3d points around root(s)
-  """
-  
-  for k in old_poses.keys():
-      for i, anch in enumerate(anchors):
-          for j in target_sets[i]:
-              new_poses[k][:, dim*j:dim*j+dim] += old_poses[k][:, dim*anch:dim*anch+dim]
-
-  return new_poses

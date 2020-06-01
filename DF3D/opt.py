@@ -17,8 +17,8 @@ class Options:
         #                     General options
         # ===============================================================
         self.parser.add_argument('--data_dir',       type=str, default='/data/LiftFly3D/DF3D/', help='path to dataset')
-        self.parser.add_argument('--exp',            type=str, default='LiftFly3D', help='ID of experiment')
-        self.parser.add_argument('--ckpt',           type=str, default='checkpoint/', help='path to save checkpoint')
+        self.parser.add_argument('--exp',            type=str, default='', help='ID of experiment')
+        self.parser.add_argument('--out',            type=str, default='/data/LiftFly3D/DF3D/', help='path to save checkpoint')
         self.parser.add_argument('--load',           type=str, default='', help='path to load a pretrained checkpoint')
 
         self.parser.add_argument('--test',           dest='test', action='store_true', help='test')
@@ -57,14 +57,14 @@ class Options:
         self._initial()
         self.opt = self.parser.parse_args()
         # do some pre-check
-        ckpt = os.path.join(self.opt.ckpt, self.opt.exp)
-        if not os.path.isdir(ckpt):
-            os.makedirs(ckpt)
+        out_dir = os.path.join(self.opt.out, self.opt.exp)
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
         if self.opt.load:
             if not os.path.isfile(self.opt.load):
                 print ("{} is not found".format(self.opt.load))
         self.opt.is_train = False if self.opt.test else True
-        self.opt.ckpt = ckpt
+        self.opt.out_dir = out_dir
         self._print()
         
         return self.opt

@@ -2,7 +2,7 @@ import numpy as np
 import src.utils as utils
 from tqdm import tqdm
 from torch.autograd import Variable
-from src.procrustes import get_transformation
+#from src.procrustes import get_transformation
 from src.normalize import unNormalizeData, get_coords_in_dim
 
 
@@ -24,8 +24,9 @@ def test(test_loader, model, criterion, stat, procrustes=False):
         loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
 
-        # undo normalisation to alculate accuracy in real units
-        dimensions = get_coords_in_dim(stat['target_sets'], 3)
+        dim = 3
+        # undo normalisation to calculate accuracy in real units
+        dimensions = get_coords_in_dim(stat['target_sets'], dim)
         targets = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         outputs = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         
@@ -42,11 +43,11 @@ def test(test_loader, model, criterion, stat, procrustes=False):
 
         sqerr = (outputs - targets) ** 2
 #        distance = np.sqrt(sqerr)
-        
-        n_pts = int(len(dimensions)/3)
+
+        n_pts = int(len(dimensions)/dim)
         distance = np.zeros_like(sqerr)
         for k in range(n_pts):
-            distance[:, k] = np.sqrt(np.sum(sqerr[:, 3*k:3*k + 3], axis=1))
+            distance[:, k] = np.sqrt(np.sum(sqerr[:, dim*k:dim*(k + 1)], axis=1))
 
         #group and stack
         all_dist.append(distance)
