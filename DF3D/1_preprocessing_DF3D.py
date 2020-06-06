@@ -13,7 +13,7 @@ import pickle
 TRAIN_SUBJECTS = [0,1,2,3,4,5,6,7]
 TEST_SUBJECTS  = [8,9]
 
-data_dir = '/data/LiftFly3D/DF3D/'#'/Users/adamgosztolai/Documents/Research/data/Semih_data/'#
+data_dir = '/data/LiftFly3D/DF3D/data_DF3D/'
 actions = ['MDN_CsCh']
 rcams = pickle.load(open('cameras.pkl', "rb"))
 
@@ -74,6 +74,7 @@ def main():
 # This part is for predicting xyz of groundtruth from SH predictions
 # =============================================================================
     
+    print('behaviors' + str(actions))
     print('processing for camera' + str(cam_ids[0]))
     # HG prediction (i.e. deeplabcut or similar) 
     train_set, test_set, data_mean, data_std, offset = \
@@ -255,29 +256,6 @@ def transform_world_to_camera( poses_set, cams, cam_ids, project=False ):
       Ptransf[ (subj, a, seqname + ".cam_" + str(c)) ] = P
 
   return Ptransf
-
-
-def transform_camera_to_world( data, cams, cam_ids ):
-  """
-  Project 3d poses using camera parameters
-
-  Args
-    poses_set: dictionary with 3d poses
-    cams: dictionary with camera parameters
-    cam_ids: camera_ids to consider
-  Returns
-    transf: dictionary with 3d poses or 2d poses if projection is True
-  """
-
-  for c in cam_ids:
-    R, T, _, _ = cams[c]
-    
-    P = np.reshape(data, [-1, 3])
-    P -= T
-    P = np.squeeze(np.inv(R)**P[:,:,np.newaxis])
-  
-  return np.reshape( P, [-1, len(MARKER_NAMES)*3] )
-
 
 
 def transform(P, R, T):

@@ -42,7 +42,6 @@ def test(test_loader, model, criterion, stat, procrustes=False):
 #                outputs[ba, :] = out.reshape(1, 51)
 
         sqerr = (outputs - targets) ** 2
-#        distance = np.sqrt(sqerr)
 
         n_pts = int(len(dimensions)/dim)
         distance = np.zeros_like(sqerr)
@@ -59,8 +58,9 @@ def test(test_loader, model, criterion, stat, procrustes=False):
     np.vstack(all_dist), np.vstack(all_output), np.vstack(all_target), np.vstack(all_input)
     
     #mean errors
-    joint_err = np.mean(all_dist[all_dist>0], axis=0)
-    ttl_err = np.mean(joint_err)
+    all_dist[all_dist == 0] = np.nan
+    joint_err = np.nanmean(all_dist, axis=0)
+    ttl_err = np.nanmean(joint_err)
 
     print (">>> error: {} <<<".format(ttl_err))
     return losses.avg, ttl_err, joint_err, all_output, all_target, all_input

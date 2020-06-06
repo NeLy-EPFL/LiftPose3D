@@ -73,7 +73,7 @@ def get_coords_in_dim(targets, dim):
     return dim_to_use
 
 
-def anchor(poses, anchors, target_sets, dim):
+def anchor(poses, anchors, target_sets, dim=3):
   """
   Center points in targset sets around anchors
   """

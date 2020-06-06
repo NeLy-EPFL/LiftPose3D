@@ -10,13 +10,11 @@ import torch.nn as nn
 import torch.optim
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from test import test
-from train import train
-
-from opt import Options
+from src.test import test
+from src.train import train
+from src.opt import Options
 import src.log as log
-
-from model import LinearModel, weight_init
+from src.model import LinearModel, weight_init
 from src.data_loader_fun import data_loader
 
 
@@ -30,7 +28,7 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=24, output_size=36)
+    model = LinearModel(input_size=48, output_size=24)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -50,10 +48,14 @@ def main(opt):
         optimizer.load_state_dict(ckpt['optimizer'])
         print(">>> ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
         
-    if opt.resume:
-        logger = log.Logger(os.path.join(opt.out_dir, 'log.txt'), resume=True)
+    if opt.test:
+        log_file = 'log_test.txt'
     else:
-        logger = log.Logger(os.path.join(opt.out_dir, 'log.txt'))
+        log_file = 'log_train.txt'
+    if opt.resume:
+        logger = log.Logger(os.path.join(opt.out_dir, log_file), resume=True)
+    else:
+        logger = log.Logger(os.path.join(opt.out_dir, log_file))
         logger.set_names(['epoch', 'lr', 'loss_train', 'loss_test', 'err_test'])
 
     # data loading
@@ -69,15 +71,17 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-        loss_test, err_test, joint_err, outputs, targets, inputs = \
-        test(test_loader, model, criterion, stat_3d, procrustes=opt.procrustes)
+        loss_test, err_test, joint_err, outputs, targets, inputs, bool_LR, keys = \
+        test(test_loader, model, criterion, stat_3d)
             
         torch.save({'loss': loss_test, 
                     'test_err': err_test, 
                     'joint_err': joint_err, 
                     'output': outputs, 
                     'target': targets,
-                    'input': inputs}, 
+                    'input': inputs,
+                    'keys': keys, 
+                    'bool_LR': bool_LR}, 
                     open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
             
         print ("{:.4f}".format(err_test), end='\t')
@@ -121,19 +125,19 @@ def main(opt):
                 max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test, _, _, _, _ = test(
+        loss_test, err_test, _, _, _, _, _, _ = test(
                 test_loader, 
                 model, 
                 criterion, 
-                stat_3d, 
-                procrustes=opt.procrustes)
+                stat_3d)
 
         # update log file
         logger.append([epoch + 1, lr_now, loss_train, loss_test, err_test],
                       ['int', 'float', 'float', 'float', 'float'])
 
         # save ckpt
-        err_best = min(err_test, err_best)
+        is_best = err_test < err_best
+        err_best = min(err_test, err_best)      
         log.save_ckpt({'epoch': epoch + 1,
                        'lr': lr_now,
                        'step': glob_step,
@@ -141,7 +145,7 @@ def main(opt):
                        'state_dict': model.state_dict(),
                        'optimizer': optimizer.state_dict()},
                         ckpt_path=opt.out_dir,
-                        is_best = err_test < err_best)
+                        is_best = is_best)
 
     logger.close()
     

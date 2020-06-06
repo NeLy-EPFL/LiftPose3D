@@ -10,13 +10,12 @@ import torch.nn as nn
 import torch.optim
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from test import test
-from train import train
 
-from opt import Options
+from src.test import test
+from src.train import train
+from src.opt import Options
 import src.log as log
-
-from model import LinearModel, weight_init
+from src.model import LinearModel, weight_init
 from src.data_loader_fun import data_loader
 
 
@@ -30,7 +29,7 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=24)
+    model = LinearModel(input_size=24, output_size=36)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()

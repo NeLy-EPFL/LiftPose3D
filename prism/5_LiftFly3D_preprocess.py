@@ -8,19 +8,12 @@ import pickle
 TRAIN_SUBJECTS = [1,2,3]
 TEST_SUBJECTS  = [4]
 
-data_dir = '/data/LiftFly3D/prism/'
+data_dir = '/data/LiftFly3D/prism/data_oriented/'
 actions = ['PR']
 rcams = []
 
 #select cameras and joints visible from cameras
-cam_ids = [0] #L side
-#target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14]]
-#ref_points = [0, 5, 10]
-
-#cam_ids = [1] #R side
-#target_sets = [[16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
-#ref_points = [15, 20, 25]
-
+cam_ids = [0]
 target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
                [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
 ref_points = [0, 5, 10,15, 20, 25]
@@ -70,22 +63,22 @@ def main():
     train_set, test_set, data_mean, data_std, offset = \
     create_xy_data( actions, data_dir, target_sets, ref_points )
 
-    torch.save(train_set, data_dir + 'cam_' + str(cam_ids[0]) + '/train_2d.pth.tar')
-    torch.save(test_set, data_dir + 'cam_' + str(cam_ids[0]) + '/test_2d.pth.tar')
+    torch.save(train_set, data_dir + '/train_2d.pth.tar')
+    torch.save(test_set, data_dir + '/test_2d.pth.tar')
     torch.save({'mean': data_mean, 'std': data_std, 
                 'target_sets': target_sets, 'ref_points': ref_points, 'offset': offset},
-                data_dir + 'cam_' + str(cam_ids[0]) + '/stat_2d.pth.tar')
+                data_dir + '/stat_2d.pth.tar')
     
     #z data
     train_set, test_set, data_mean, data_std, offset, LR_train, LR_test = \
     create_z_data( actions, data_dir, rcams, target_sets, ref_points )
         
-    torch.save([train_set, LR_train], data_dir + 'cam_' + str(cam_ids[0]) + '/train_3d.pth.tar')
-    torch.save([test_set, LR_test], data_dir + 'cam_' + str(cam_ids[0]) + '/test_3d.pth.tar')   
+    torch.save([train_set, LR_train], data_dir + '/train_3d.pth.tar')
+    torch.save([test_set, LR_test], data_dir + '/test_3d.pth.tar')   
     torch.save({'mean': data_mean, 'std': data_std, 
                 'target_sets': target_sets, 'ref_points': ref_points, 'offset': offset,
                 'LR_train': LR_train, 'LR_test': LR_test},
-                data_dir + 'cam_' + str(cam_ids[0]) + '/stat_3d.pth.tar')
+                data_dir + '/stat_3d.pth.tar')
     
     
 # =============================================================================
@@ -106,9 +99,6 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
   #rotate to align with 2D
   train_set = XY_coord( train_set )
   test_set  = XY_coord( test_set )
-  
-#  if cam_ids[0]==1:
-#      test_set = reflect(test_set)
   
   # anchor points
   train_set, _ = anchor( train_set, ref_points, target_sets, dim=2)
@@ -224,34 +214,6 @@ def Z_coord( poses_set):
     t1d[ (subj, a, seqname) ] = np.reshape( Z, [-1, len(MARKER_NAMES)] )
 
   return t1d
-
-
-#def reflect(poses):
-#    
-##    import matplotlib.pyplot as plt
-##    import sys
-#    
-#    for k in poses.keys():
-#        tmp = poses[k]
-#        tmp = np.reshape(tmp, [-1, 2])
-#        
-##        plt.plot(tmp[:,0], tmp[:,1])
-#        
-#        tmp[:,1] = -1*tmp[:,1]
-#        
-#        
-##        plt.plot(tmp[:,0], tmp[:,1])
-#        
-##        plt.savefig('test.png')
-##        sys.exit()
-#        
-#    
-#        tmp = np.reshape( tmp, [-1, 60] )
-#        poses[k] = tmp
-#        
-#        
-#    
-#    return poses
 
 
 # =============================================================================

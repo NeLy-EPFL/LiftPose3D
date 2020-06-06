@@ -22,7 +22,6 @@ class data_loader(Dataset):
         self.train_inp, self.train_out, self.test_inp, self.test_out = [], [], [], []
         self.train_LR, self.test_LR = [], []
         self.train_meta, self.test_meta = [], []
-        self.test_keys, self.train_keys = [], []
 
         # loading data
         if self.use_hg:
@@ -45,7 +44,6 @@ class data_loader(Dataset):
                 for i in range(num_f):
                     self.train_inp.append(self.train_2d[k2d][i])
                     self.train_out.append(self.train_3d[k3d][i])
-                    self.train_keys.append(k3d)
                     mask = np.ones(num_d, dtype=bool)
                     if self.train_bool_LR[k3d][i]:
                         mask[int(num_d/2):] = 0
@@ -69,7 +67,6 @@ class data_loader(Dataset):
                     
                     self.test_inp.append(self.test_2d[k2d][i])
                     self.test_out.append(self.test_3d[k3d][i])
-                    self.test_keys.append(k3d)
                     mask = np.ones(num_d, dtype=bool)
                     if self.test_bool_LR[k3d][i]:
                         mask[int(num_d/2):] = 0
@@ -84,15 +81,13 @@ class data_loader(Dataset):
             inputs = torch.from_numpy(self.train_inp[index]).float()
             outputs = torch.from_numpy(self.train_out[index]).float()
             bool_LR = torch.from_numpy(self.train_LR[index])
-            keys = self.train_keys[index]
             
         else:
             inputs = torch.from_numpy(self.test_inp[index]).float()
             outputs = torch.from_numpy(self.test_out[index]).float()
             bool_LR = torch.from_numpy(self.test_LR[index])
-            keys = self.test_keys[index]
 
-        return inputs, outputs, bool_LR, keys
+        return inputs, outputs, bool_LR
 
 
     def __len__(self):
