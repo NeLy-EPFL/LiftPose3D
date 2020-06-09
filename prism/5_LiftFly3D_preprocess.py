@@ -6,9 +6,11 @@ import torch
 import pickle
 
 TRAIN_SUBJECTS = [1,2,3]
+#TRAIN_SUBJECTS = [1,2,3,4] #for optobot
 TEST_SUBJECTS  = [4]
 
-data_dir = '/data/LiftFly3D/prism/data_oriented/'
+#data_dir = '/data/LiftFly3D/prism/data_oriented/'
+data_dir = '/data/LiftFly3D/optobot/network/'
 actions = ['PR']
 rcams = []
 
@@ -16,6 +18,8 @@ rcams = []
 cam_ids = [0]
 target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
                [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
+#target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
+#               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
 ref_points = [0, 5, 10,15, 20, 25]
 
 
@@ -84,8 +88,6 @@ def main():
 # =============================================================================
 # Define actions
 # =============================================================================    
-
-
 def create_xy_data( actions, data_dir, target_sets, ref_points ):
   """
   Creates 2d poses by projecting 3d poses with the corresponding camera
@@ -134,14 +136,13 @@ def create_z_data( actions, data_dir, rcams, target_sets, ref_points ):
   # Divide every dimension independently
   train_set = normalize_data( train_set, data_mean, data_std, target_sets, dim=1 )
   test_set  = normalize_data( test_set,  data_mean, data_std, target_sets, dim=1 )
-
+  
   return train_set, test_set, data_mean, data_std, offset, LR_train, LR_test
 
 
 # =============================================================================
 # Load functions
 # =============================================================================
-
 def load_data( path, flies, actions ):
   """
   Loads 3d ground truth, and puts it in an easy-to-acess dictionary
@@ -172,6 +173,7 @@ def load_data( path, flies, actions ):
         poses3d = poses['points3d']
         poses3d = np.reshape(poses3d, 
                           (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
+        
         data[ (fly, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
         LR[ (fly, action, seqname[:-4]) ] = poses['flip_idx']
 
@@ -181,7 +183,6 @@ def load_data( path, flies, actions ):
 # =============================================================================
 # Projection functions
 # =============================================================================
-
 def XY_coord( poses_set):
   """
   Project 3d poses to XY coord
@@ -219,7 +220,6 @@ def Z_coord( poses_set):
 # =============================================================================
 # Collect statistics for later use
 # =============================================================================
-
 def normalization_stats(train_set, ref_points, dim ):
   """
   Computes normalization statistics: mean and stdev, dimensions used and ignored
@@ -268,10 +268,6 @@ def get_coords_in_dim(targets, dim):
       dim_to_use = np.sort( np.hstack( (dim_to_use*2, 
                                         dim_to_use*2+1)))
   
-    elif dim == 3:
-      dim_to_use = np.sort( np.hstack( (dim_to_use*3,
-                                        dim_to_use*3+1,
-                                        dim_to_use*3+2)))
     return dim_to_use
 
 

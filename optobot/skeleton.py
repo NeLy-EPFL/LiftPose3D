@@ -10,43 +10,40 @@ import networkx as nx
 '''
 Joints
 ------
-0:  BODY_COXA,    :15
-1:  COXA_FEMUR,   :16 
-2:  FEMUR_TIBIA,  :17
-3:  TIBIA_TARSUS, :18
-4:  TARSUS_TIP,   :19
+0:  BODY_COXA,    :12
+1:  FEMUR_TIBIA,  :13
+2:  TIBIA_TARSUS, :14
+3:  TARSUS_TIP,   :15
 
-5:  BODY_COXA,    :20
-6:  COXA_FEMUR,   :21
-7:  FEMUR_TIBIA,  :22
-8:  TIBIA_TARSUS, :23
-9:  TARSUS_TIP,   :24
+4:  BODY_COXA,    :16
+5:  FEMUR_TIBIA,  :17
+6:  TIBIA_TARSUS, :18
+7:  TARSUS_TIP,   :19
     
-10: BODY_COXA,    :25
-11: COXA_FEMUR,   :26
-12: FEMUR_TIBIA,  :27
-13: TIBIA_TARSUS, :28
-14: TARSUS_TIP,   :29
+8:  BODY_COXA,    :20
+9:  FEMUR_TIBIA,  :21
+10: TIBIA_TARSUS, :22
+11: TARSUS_TIP,   :23
 '''
 
 def skeleton():
-    edges = [(0,1),(1,2),(2,3),(3,4),
-             (5,6),(6,7),(7,8),(8,9),
-             (10,11),(11,12),(12,13),(13,14),
-             (15,16),(16,17),(17,18),(18,19),
-             (20,21),(21,22),(22,23),(23,24),
-             (25,26),(26,27),(27,28),(28,29)]
+    edges = [(0,1),(1,2),(2,3),
+             (4,5),(5,6),(6,7),
+             (8,9),(9,10),(10,11),
+             (12,13),(13,14),(14,15),
+             (16,17),(17,18),(18,19),
+             (20,21),(21,22),(22,23)]
 
     #0: LF, 1: LM, 2: LH, 3: RF, 4: RM, 5: RH, 
     limb_id = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
     
-    nodes = [i for i in range(30)]
+    nodes = [i for i in range(24)]
     
     colors = [[186,30,49], [201,86,79], [213,133,121], #RF, RM, RH
-              [15,115, 153], [26,141, 175], [117,190,203] #LF, LM, LH
-              ]
+              [15,115,153], [26,141,175], [117,190,203] #LF, LM, LH
+              ] 
     
-    edge_colors = [[x / 255.0 for x in colors[i]]  for i in limb_id]
+    edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
     
     #build graph
     G=nx.Graph()

@@ -29,6 +29,7 @@ def main(opt):
 
     # create and initialise model
     model = LinearModel(input_size=48, output_size=24)
+#    model = LinearModel(input_size=36, output_size=18) #for optobot
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
