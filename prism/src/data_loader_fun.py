@@ -15,27 +15,18 @@ class data_loader(Dataset):
         is_train: load train/test dataset
         """
         self.data_path = data_path
-
         self.is_train = is_train
-        self.use_hg = use_hg
 
         self.train_inp, self.train_out, self.test_inp, self.test_out = [], [], [], []
         self.train_LR, self.test_LR = [], []
-        self.train_meta, self.test_meta = [], []
+#        self.train_meta, self.test_meta = [], []
         self.test_keys, self.train_keys = [], []
 
         # loading data
-        if self.use_hg:
-            train_2d_file = 'train_2d_ft.pth.tar'
-            test_2d_file = 'test_2d_ft.pth.tar'
-        else:
-            train_2d_file = 'train_2d.pth.tar'
-            test_2d_file = 'test_2d.pth.tar'
-
         if self.is_train:
             # load train data
             self.train_3d, self.train_bool_LR = torch.load(os.path.join(data_path, 'train_3d.pth.tar'))
-            self.train_2d = torch.load(os.path.join(data_path, train_2d_file))
+            self.train_2d = torch.load(os.path.join(data_path, 'train_2d.pth.tar'))
             for k2d in self.train_2d.keys():
                 (sub, act, fname) = k2d
                 k3d = k2d
@@ -52,12 +43,11 @@ class data_loader(Dataset):
                     else:
                         mask[:int(num_d/2)] = 0
                         
-                    self.train_LR.append(mask)
-                    
+                    self.train_LR.append(mask)          
         else:
             # load test data
             self.test_3d, self.test_bool_LR = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
-            self.test_2d = torch.load(os.path.join(data_path, test_2d_file))
+            self.test_2d = torch.load(os.path.join(data_path, 'test_2d.pth.tar'))
             for k2d in self.test_2d.keys():
                 (sub, act, fname) = k2d
                 print(fname)
@@ -66,7 +56,6 @@ class data_loader(Dataset):
                 num_f, num_d = self.test_3d[k3d].shape
                 assert self.test_2d[k2d].shape[0] == self.test_3d[k3d].shape[0], '(test) 3d & 2d shape not matched'
                 for i in range(num_f):
-                    
                     self.test_inp.append(self.test_2d[k2d][i])
                     self.test_out.append(self.test_3d[k3d][i])
                     self.test_keys.append(k3d)

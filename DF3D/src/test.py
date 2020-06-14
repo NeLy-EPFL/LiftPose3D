@@ -3,10 +3,10 @@ import src.utils as utils
 from tqdm import tqdm
 from torch.autograd import Variable
 #from src.procrustes import get_transformation
-from src.normalize import unNormalizeData, get_coords_in_dim
+from src.normalize import unNormalizeData
 
 
-def test(test_loader, model, criterion, stat, procrustes=False):
+def test(test_loader, model, criterion, stat):
     losses = utils.AverageMeter()
 
     model.eval()
@@ -24,34 +24,26 @@ def test(test_loader, model, criterion, stat, procrustes=False):
         loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
 
-        dim = 3
         # undo normalisation to calculate accuracy in real units
-        dimensions = get_coords_in_dim(stat['target_sets'], dim)
-        targets = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
-        outputs = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
+        dim=3
+        dimensions = stat['targets_3d']
+        tar = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
+        out = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         
-        targets = targets[:, dimensions]
-        outputs = outputs[:, dimensions]
+#        targets = targets[:, dimensions]
+#        outputs = outputs[:, dimensions]
         
-#        if procrustes:
-#            for ba in range(inps.size(0)):
-#                gt = targets[ba].reshape(-1, 3)
-#                out = outputs[ba].reshape(-1, 3)
-#                _, Z, T, b, c = get_transformation(gt, out, True)
-#                out = (b * out.dot(T)) + c
-#                outputs[ba, :] = out.reshape(1, 51)
+        abserr = (out - tar) ** 2
 
-        sqerr = (outputs - targets) ** 2
-
-        n_pts = int(len(dimensions)/dim)
-        distance = np.zeros_like(sqerr)
+        n_pts = tar.shape[1]//dim
+        distance = np.zeros_like(abserr)
         for k in range(n_pts):
-            distance[:, k] = np.sqrt(np.sum(sqerr[:, dim*k:dim*(k + 1)], axis=1))
+            distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
 
         #group and stack
         all_dist.append(distance)
-        all_output.append(outputs)
-        all_target.append(targets)
+        all_output.append(outputs.data.cpu().numpy())
+        all_target.append(targets.data.cpu().numpy())
         all_input.append(inputs.data.cpu().numpy())
     
     all_dist, all_output, all_target, all_input = \

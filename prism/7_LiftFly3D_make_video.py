@@ -119,7 +119,6 @@ out = unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
 out = expand(out,targets_1d,len(tar_mean))
 out += tar_offset[0,:] 
 
-
 bool_LR = data['bool_LR']
 
 #inputs
@@ -133,7 +132,7 @@ inp = unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 inp = expand(inp,targets_2d,len(inp_mean))
 inp += inp_offset[0,:] 
 
-# Set up a figure twice as tall as it is wide
+# Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
 fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 ax = fig.add_subplot(111, projection='3d')

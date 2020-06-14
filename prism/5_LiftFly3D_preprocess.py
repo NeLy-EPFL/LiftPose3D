@@ -75,7 +75,7 @@ def main():
     
     #z data
     train_set, test_set, data_mean, data_std, offset, LR_train, LR_test = \
-    create_z_data( actions, data_dir, rcams, target_sets, ref_points )
+        create_z_data( actions, data_dir, target_sets, ref_points, rcams )
         
     torch.save([train_set, LR_train], data_dir + '/train_3d.pth.tar')
     torch.save([test_set, LR_test], data_dir + '/test_3d.pth.tar')   
@@ -116,7 +116,7 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
   return train_set, test_set, data_mean, data_std, offset
 
 
-def create_z_data( actions, data_dir, rcams, target_sets, ref_points ):
+def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
 
   # Load 3d data
   train_set, LR_train = load_data( data_dir, TRAIN_SUBJECTS, actions )
