@@ -1,17 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function, absolute_import
-
 import os
 import torch
 from torch.utils.data import Dataset
 import numpy as np
 
 class data_loader(Dataset):
-    def __init__(self, data_path, use_hg=True, is_train=True):
+    def __init__(self, data_path, is_train=True):
         """
         data_path: path to dataset
-        use_hg: use stacked hourglass detections
         is_train: load train/test dataset
         """
         self.data_path = data_path
@@ -19,48 +14,38 @@ class data_loader(Dataset):
 
         self.train_inp, self.train_out, self.test_inp, self.test_out = [], [], [], []
         self.train_LR, self.test_LR = [], []
-#        self.train_meta, self.test_meta = [], []
         self.test_keys, self.train_keys = [], []
 
-        # loading data
-        if self.is_train:
-            # load train data
+        if self.is_train: # load training data
             self.train_3d, self.train_bool_LR = torch.load(os.path.join(data_path, 'train_3d.pth.tar'))
             self.train_2d = torch.load(os.path.join(data_path, 'train_2d.pth.tar'))
-            for k2d in self.train_2d.keys():
-                (sub, act, fname) = k2d
-                k3d = k2d
-                k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
-                num_f, num_d = self.train_3d[k3d].shape
-                assert self.train_3d[k3d].shape[0] == self.train_2d[k2d].shape[0], '(training) 3d & 2d shape not matched'
+            for key in self.train_2d.keys():
+                num_f, num_d = self.train_3d[key].shape
+                assert self.train_3d[key].shape[0] == self.train_2d[key].shape[0], '(training) 3d & 2d shape not matched'
                 for i in range(num_f):
-                    self.train_inp.append(self.train_2d[k2d][i])
-                    self.train_out.append(self.train_3d[k3d][i])
-                    self.train_keys.append(k3d)
+                    self.train_inp.append(self.train_2d[key][i])
+                    self.train_out.append(self.train_3d[key][i])
+                    self.train_keys.append(key)
                     mask = np.ones(num_d, dtype=bool)
-                    if self.train_bool_LR[k3d][i]:
+                    if self.train_bool_LR[key][i]:
                         mask[int(num_d/2):] = 0
                     else:
                         mask[:int(num_d/2)] = 0
                         
-                    self.train_LR.append(mask)          
-        else:
-            # load test data
+                    self.train_LR.append(mask)  
+                    
+        else:# load test data
             self.test_3d, self.test_bool_LR = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
             self.test_2d = torch.load(os.path.join(data_path, 'test_2d.pth.tar'))
-            for k2d in self.test_2d.keys():
-                (sub, act, fname) = k2d
-                print(fname)
-                k3d = k2d
-                k3d = (sub, act, fname[:-3]) if fname.endswith('-sh') else k3d
-                num_f, num_d = self.test_3d[k3d].shape
-                assert self.test_2d[k2d].shape[0] == self.test_3d[k3d].shape[0], '(test) 3d & 2d shape not matched'
+            for key in self.test_2d.keys():
+                num_f, num_d = self.test_3d[key].shape
+                assert self.test_2d[key].shape[0] == self.test_3d[key].shape[0], '(test) 3d & 2d shape not matched'
                 for i in range(num_f):
-                    self.test_inp.append(self.test_2d[k2d][i])
-                    self.test_out.append(self.test_3d[k3d][i])
-                    self.test_keys.append(k3d)
+                    self.test_inp.append(self.test_2d[key][i])
+                    self.test_out.append(self.test_3d[key][i])
+                    self.test_keys.append(key)
                     mask = np.ones(num_d, dtype=bool)
-                    if self.test_bool_LR[k3d][i]:
+                    if self.test_bool_LR[key][i]:
                         mask[int(num_d/2):] = 0
                     else:
                         mask[:int(num_d/2)] = 0

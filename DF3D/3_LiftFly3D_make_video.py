@@ -14,7 +14,7 @@ import matplotlib
 from matplotlib.legend_handler import HandlerLine2D, HandlerTuple
 from matplotlib.animation import FFMpegWriter
 matplotlib.use('Agg')
-import src.normalize as norm
+import src.utils as utils
 from skeleton import skeleton
 import pickle
 
@@ -46,8 +46,8 @@ def average_cameras(tar):
 #cameras = [0,4]
 cameras = [1,5]
 #cameras = [2,6] #keep order, they come in L-R pairs!
-root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam15/cam'
-#root_dir = '/Users/adamgosztolai/Documents/Research/data/Semih_data/cam'
+
+root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam'
 
 #import
 G, color_edge = skeleton() #skeleton
@@ -74,12 +74,12 @@ for cam in cameras:
     out_ = data['output']
     
     #transform back to world
-    tar_ = norm.camera_to_world(tar_,cam_par,cam)
-    out_ = norm.camera_to_world(out_,cam_par,cam)
+    tar_ = utils.camera_to_world(tar_,cam_par,cam)
+    out_ = utils.camera_to_world(out_,cam_par,cam)
     
     #unnormalise
-    tar_ = norm.unNormalizeData(tar_, tar_mean, tar_std, targets_3d) 
-    out_ = norm.unNormalizeData(out_, tar_mean, tar_std, targets_3d) 
+    tar_ = utils.unNormalizeData(tar_, tar_mean, tar_std, targets_3d) 
+    out_ = utils.unNormalizeData(out_, tar_mean, tar_std, targets_3d) 
 
     out.append(out_)
     tar.append(tar_)
@@ -106,7 +106,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         
         ax.cla()
         
-        for j in range(int(tar.shape[1]/3)):
+        for j in range(tar.shape[1]//3):
             pos_tar.append((tar[t, 3*j], tar[t, 3*j+1], tar[t, 3*j+2]))
             pos_pred.append((out[t, 3*j], out[t, 3*j+1], out[t, 3*j+2]))
             

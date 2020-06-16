@@ -14,6 +14,8 @@ from matplotlib.animation import FFMpegWriter
 import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
+from matplotlib.legend_handler import HandlerTuple
+import pickle
 
 
 def plot_3d_graph(pos, ax, color_edge = 'k', style = '-'):
@@ -78,13 +80,29 @@ data_dir = '/data/LiftFly3D/optobot' #data directory
         
 #predictions
 data = torch.load(data_dir + '/test_results.pth.tar')
+inp_offset, out_offset = pickle.load(open('joint_locations.pkl','rb'))
+#dimensions = [1, 2, 3, 4, 
+#              6, 7, 8, 9, 
+#              10, 12, 13, 14, 
+#              15, 17, 18, 19, 
+#              20, 22, 23, 24, 
+#              25, 27, 28, 29]
+#
+#dims_2d = np.array([ 0,  1,  4,  5,  6,  7,  8,  9, 10, 11, 14, 15, 16, 17, 18, 19, 20,
+#       21, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41,
+#       44, 45, 46, 47, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59])
+#
+
+#inp_offset = inp_offset.reshape(-1,2)
+#inp_offset = inp_offset[dimensions,:].reshape(-1,48)
+#out_offset = out_offset[dimensions]
+#inp_offset = inp_offset[dims_2d]
+
 
 #output
 coords_1 = torch.load(data_dir + '/stat_3d.pth.tar')['target_sets']    
 out_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
 out_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
-out_offset = torch.load(data_dir + '/stat_3d.pth.tar')['offset']
-out_offset = np.vstack( out_offset.values() ) 
 out_coords = get_coords_in_dim(coords_1, 1)
 out = unNormalizeData(data['output'], out_mean[out_coords], out_std[out_coords])
 
@@ -92,8 +110,6 @@ out = unNormalizeData(data['output'], out_mean[out_coords], out_std[out_coords])
 coords_2 = torch.load(data_dir + '/stat_2d.pth.tar')['target_sets']    
 inp_mean = torch.load(data_dir + '/stat_2d.pth.tar')['mean']
 inp_std = torch.load(data_dir + '/stat_2d.pth.tar')['std']
-inp_offset = torch.load(data_dir + '/stat_2d.pth.tar')['offset']
-inp_offset = np.vstack( inp_offset.values() )
 inp_coords = get_coords_in_dim(coords_2, 2)
 inp = unNormalizeData(data['input'], inp_mean[inp_coords], inp_std[inp_coords])
 
@@ -102,8 +118,9 @@ inp_coords = get_coords_in_dim(coords_2, 2)
 
 out = expand(out,out_coords,int(len(inp_mean)/2))
 inp = expand(inp,inp_coords,len(inp_mean))
-#out += out_offset[0,:]
-#inp += inp_offset[0,:] 
+#out -= out_offset/6
+#inp -= inp_offset/6
+
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -130,7 +147,20 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
             zlim = ax.get_zlim()
+            
         
+        #### this bit is just to make special legend 
+        pts = np.array([1,1])
+        p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
+        p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
+        ax.legend([(p3, p4)], 
+            ['LiftFly3D prediction'], 
+            numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
+            loc=(0.1,0.8))    
+        p3.remove()
+        p4.remove()
+        ####
+            
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.set_zlim(zlim)

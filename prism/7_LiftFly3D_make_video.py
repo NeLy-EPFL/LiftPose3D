@@ -51,23 +51,6 @@ def plot_3d_graph(pos, ax, color_edge = 'k', style = '-', LR=None):
     return ax
 
 
-def get_coords_in_dim(targets, dim):
-    
-    if len(targets)>1:
-      dim_to_use = []
-      for i in targets:
-          dim_to_use += i
-    else:
-      dim_to_use = targets
-  
-    dim_to_use = np.array(dim_to_use)
-    if dim == 2:    
-      dim_to_use = np.sort( np.hstack( (dim_to_use*2, 
-                                        dim_to_use*2+1)))
-  
-    return dim_to_use
-
-
 def unNormalizeData(data, data_mean, data_std):
   """
   Un-normalizes a matrix whose mean has been substracted and that has been divided by
@@ -96,41 +79,30 @@ G, color_edge = skeleton()
 
 print('making video using cameras' + str(cameras))
 
-#load stats
+#load 
 data_dir = '/data/LiftFly3D/prism/data_oriented'
-        
-#load predictions
 data = torch.load(data_dir + '/test_results.pth.tar')
 
-#target
-target_sets = torch.load(data_dir + '/stat_3d.pth.tar')['target_sets']    
 tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
 tar_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
-tar_offset = torch.load(data_dir + '/stat_3d.pth.tar')['offset']
-tar_offset = np.vstack( tar_offset.values() ) 
-targets_1d = get_coords_in_dim(target_sets, 1)
+targets_1d = torch.load(data_dir + '/stat_3d.pth.tar')['targets_1d']
+tar_offset = np.vstack(torch.load(data_dir + '/stat_3d.pth.tar')['offset'].values())[0,:]
 
-tar = unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
-tar = expand(tar,targets_1d,len(tar_mean))
-tar += tar_offset[0,:]
-
-#output
-out = unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
-out = expand(out,targets_1d,len(tar_mean))
-out += tar_offset[0,:] 
-
-bool_LR = data['bool_LR']
-
-#inputs
 inp_mean = torch.load(data_dir + '/stat_2d.pth.tar')['mean']
 inp_std = torch.load(data_dir + '/stat_2d.pth.tar')['std']
-inp_offset = torch.load(data_dir + '/stat_2d.pth.tar')['offset']
+targets_2d = torch.load(data_dir + '/stat_2d.pth.tar')['targets_2d']
+inp_offset = np.vstack(torch.load(data_dir + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
-inp_offset = np.vstack( inp_offset.values() )
-targets_2d = get_coords_in_dim(target_sets, 2)
+#unnormalize
+tar = unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
+tar = expand(tar,targets_1d,len(tar_mean))
+tar += tar_offset
+out = unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
+out = expand(out,targets_1d,len(tar_mean))
+out += tar_offset
 inp = unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 inp = expand(inp,targets_2d,len(inp_mean))
-inp += inp_offset[0,:] 
+inp += inp_offset
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -148,11 +120,11 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         
         ax.cla()
         
-        for j in range(int(out.shape[1])):
+        for j in range(out.shape[1]):
             pos_pred.append((inp[t, 2*j], inp[t, 2*j+1], out[t, j]))
             pos_tar.append((inp[t, 2*j], inp[t, 2*j+1], tar[t, j])) 
            
-        ax = plot_3d_graph(pos_tar, ax, color_edge = color_edge, LR=bool_LR[t,:])
+        ax = plot_3d_graph(pos_tar, ax, color_edge = color_edge, LR=data['bool_LR'][t,:])
         ax = plot_3d_graph(pos_pred, ax, color_edge = color_edge, style='--')       
         
         if xlim is None:

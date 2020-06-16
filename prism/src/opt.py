@@ -16,9 +16,9 @@ class Options:
         # ===============================================================
         #                     General options
         # ===============================================================
-        self.parser.add_argument('--data_dir',       type=str, default='/data/LiftFly3D/prism/data_oriented/', help='path to dataset')
+        self.parser.add_argument('--data_dir',       type=str, default='/data/LiftFly3D/prism/data_oriented_plus_noise/', help='path to dataset')
         self.parser.add_argument('--exp',            type=str, default='', help='ID of experiment')
-        self.parser.add_argument('--out',            type=str, default='/data/LiftFly3D/prism/data_oriented/', help='path to save checkpoint')
+        self.parser.add_argument('--out',            type=str, default='/data/LiftFly3D/prism/data_oriented_plus_noise/', help='path to save checkpoint')
         self.parser.add_argument('--load',           type=str, default='', help='path to load a pretrained checkpoint')
         self.parser.add_argument('--test',           dest='test', action='store_true', help='test')
         self.parser.add_argument('--resume',         dest='resume', action='store_true', help='resume to train')
@@ -33,13 +33,12 @@ class Options:
         # ===============================================================
         #                     Running options
         # ===============================================================
-        self.parser.add_argument('--use_hg',         dest='use_hg', action='store_true', help='whether use 2d pose from hourglass')
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=100000, help='# steps of lr decay')
         self.parser.add_argument('--lr_gamma',       type=float,  default=0.96)
         self.parser.add_argument('--epochs',         type=int,    default=100)
         self.parser.add_argument('--dropout',        type=float,  default=0.5, help='dropout probability, 1.0 to make no dropout')
-        self.parser.add_argument('--batch_size',    type=int,    default=64)
+        self.parser.add_argument('--batch_size',     type=int,    default=64)
         self.parser.add_argument('--job',            type=int,    default=8, help='# subprocesses to use for data loading')
         self.parser.add_argument('--no_max',         dest='max_norm', action='store_false', help='if use max_norm clip on grad')
         self.parser.add_argument('--max',            dest='max_norm', action='store_true', help='if use max_norm clip on grad')

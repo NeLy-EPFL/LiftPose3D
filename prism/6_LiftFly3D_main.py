@@ -28,8 +28,8 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=24)
-#    model = LinearModel(input_size=36, output_size=18) #for optobot
+#    model = LinearModel(input_size=48, output_size=24)
+    model = LinearModel(input_size=36, output_size=18) #for optobot
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -66,7 +66,7 @@ def main(opt):
     # test
     if opt.test:
         test_loader = DataLoader(
-                dataset=data_loader(data_path=opt.data_dir, use_hg=opt.use_hg, is_train=False),
+                dataset=data_loader(data_path=opt.data_dir, is_train=False),
                 batch_size=opt.batch_size,
                 shuffle=False,
                 num_workers=opt.job,
@@ -91,7 +91,6 @@ def main(opt):
     # load datasets for training
     test_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
-                            use_hg=opt.use_hg, 
                             is_train=False),
                             batch_size=opt.batch_size,
                             shuffle=False,
@@ -100,7 +99,7 @@ def main(opt):
     
     train_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
-                            use_hg=opt.use_hg),
+                            is_train=True),
                             batch_size=opt.batch_size,
                             shuffle=True,
                             num_workers=opt.job,

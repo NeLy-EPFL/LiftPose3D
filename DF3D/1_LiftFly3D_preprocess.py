@@ -2,19 +2,19 @@ import os
 import numpy as np
 import glob
 import torch
-import src.normalize as norm
+import src.utils as utils
 import pickle
-import scipy.signal as scs
 
 
 TRAIN_SUBJECTS = [0,1,2,3,4,5]
 TEST_SUBJECTS  = [6,7]
 
-cam_id = 5
+cam_id = 1
 
 data_dir = '/data/LiftFly3D/DF3D/data_DF3D/'
-out_dir = '/data/LiftFly3D/DF3D/cam_angles/cam15/cam' + str(cam_id)
-actions = ['MDN_CsCh', 'aDN_CsCh', 'PR']
+out_dir = '/data/LiftFly3D/DF3D/cam_angles/cam' + str(cam_id)
+#out_dir = '/data/LiftFly3D/DF3D/behaviors/train_PR'
+actions = ['PR']#'MDN_CsCh', 'aDN_CsCh']
 rcams = pickle.load(open('cameras.pkl', "rb"))
 
 interval = None #all data
@@ -59,19 +59,19 @@ def read_3d_data( actions, data_dir, target_sets, ref_points, rcams=None):
     test_set  = load_data( data_dir, TEST_SUBJECTS,  actions )
   
     #filter data
-#  train_set = filter_data(train_set)
-    test_set = filter_data(test_set)
+#  train_set = utils.filter_data(train_set)
+#    test_set = utils.filter_data(test_set, window=5, order=2)
   
     # anchor points to body-coxa (to predict legjoints wrt body-boxas)
-    train_set, _ = norm.anchor( train_set, ref_points, target_sets, dim)
-    test_set, _ = norm.anchor( test_set, ref_points, target_sets, dim)
+    train_set, _ = utils.anchor( train_set, ref_points, target_sets, dim)
+    test_set, _ = utils.anchor( test_set, ref_points, target_sets, dim)
 
     # Compute mean, std
-    data_mean, data_std = norm.normalization_stats( train_set )
+    data_mean, data_std = utils.normalization_stats( train_set )
 
     # Standardize each dimension independently
-    train_set = norm.normalize_data( train_set, data_mean, data_std )
-    test_set  = norm.normalize_data( test_set,  data_mean, data_std )
+    train_set = utils.normalize_data( train_set, data_mean, data_std )
+    test_set  = utils.normalize_data( test_set,  data_mean, data_std )
   
     #transform to camera coordinates
     if rcams is not None:
@@ -79,8 +79,8 @@ def read_3d_data( actions, data_dir, target_sets, ref_points, rcams=None):
         test_set, vis  = transform_frame( test_set, rcams, cam_id )
       
     #select coordinates to be predicted and return them as 'targets_3d'
-    train_set, _ = norm.collapse(train_set, vis, target_sets, dim)
-    test_set, targets_3d = norm.collapse(test_set, vis, target_sets, dim)
+    train_set, _ = utils.collapse(train_set, vis, target_sets, dim)
+    test_set, targets_3d = utils.collapse(test_set, vis, target_sets, dim)
 
     return train_set, test_set, data_mean, data_std, targets_3d, vis
 
@@ -96,23 +96,23 @@ def read_2d_predictions( actions, data_dir, rcams, target_sets, ref_points, vis)
     test_set  = load_stacked_hourglass( data_dir, TEST_SUBJECTS,  actions, cam_id)
   
     #filter data
-#  train_set = filter_data(train_set)
-    test_set = filter_data(test_set)
+#  train_set = utils.filter_data(train_set)
+#    test_set = utils.filter_data(test_set, window=5, order=2)
 
     # anchor points to body-coxa (to predict legjoints wrt body-boxas)
-    train_set, _ = norm.anchor( train_set, ref_points, target_sets, dim)
-    test_set, offset = norm.anchor( test_set, ref_points, target_sets, dim)
+    train_set, _ = utils.anchor( train_set, ref_points, target_sets, dim)
+    test_set, offset = utils.anchor( test_set, ref_points, target_sets, dim)
   
     # Compute mean, std
-    data_mean, data_std = norm.normalization_stats( train_set )
+    data_mean, data_std = utils.normalization_stats( train_set )
   
     # Standardize each dimension independently
-    train_set = norm.normalize_data( train_set, data_mean, data_std)
-    test_set  = norm.normalize_data( test_set,  data_mean, data_std)
+    train_set = utils.normalize_data( train_set, data_mean, data_std)
+    test_set  = utils.normalize_data( test_set,  data_mean, data_std)
   
     #select coordinates to be predicted and return them as 'targets_2d'
-    train_set, _ = norm.collapse(train_set, vis, target_sets, dim)
-    test_set, targets_2d = norm.collapse(test_set, vis, target_sets, dim)
+    train_set, _ = utils.collapse(train_set, vis, target_sets, dim)
+    test_set, targets_2d = utils.collapse(test_set, vis, target_sets, dim)
   
     return train_set, test_set, data_mean, data_std, targets_2d
 
@@ -126,10 +126,10 @@ def load_data( path, flies, actions ):
         flies: List of integers. Flies whose data will be loaded
         actions: List of strings. The actions to load
     Returns:
-        data: Dictionary with keys k=(fly, action, filename)
+        data: Dictionary with keys (fly, action, filename)
     """
 
-    path = os.path.join(path, '*')
+    path = os.path.join(path, 'pose_result*')
     fnames = glob.glob( path )
     data = {}
     for fly in flies:
@@ -166,7 +166,7 @@ def load_stacked_hourglass(path, flies, actions, cam_id):
         data: dictionary with keys k=(fly, action, filename)
     """
 
-    path = os.path.join(path, '*')
+    path = os.path.join(path, 'pose_result*')
     fnames = glob.glob( path )
 
     data = {}
@@ -213,10 +213,10 @@ def transform_frame( poses, cams, cam_id, project=False ):
         Pworld = poses[ (fly, a, seqname) ]
 
         R, T, intr, distort, vis_pts = cams[cam_id]
-        Pcam = norm.world_to_camera(Pworld, R, T)
+        Pcam = utils.world_to_camera(Pworld, R, T)
       
         if project:
-            Pcam = norm.project_to_camera(Pcam, intr)
+            Pcam = utils.project_to_camera(Pcam, intr)
       
         Ptransf[ (fly, a, seqname + ".cam_" + str(cam_id)) ] = Pcam
       
@@ -224,26 +224,7 @@ def transform_frame( poses, cams, cam_id, project=False ):
         vis = np.array(vis_pts, dtype=bool)
 
     return Ptransf, vis
-
-
-def filter_data(poses, window=19, order=4):
-    '''
-    Filter time series using Savitzky-Golay filter
-    
-    Args
-        poses: dictionary with 3d poses
-        window: int window of filter function (odd)
-        order: int order of filter
-    '''
-        
-    for k in poses.keys():
-        poses_smooth = np.zeros_like(poses[k])
-        for j in range(poses_smooth.shape[1]):
-                poses_smooth[:,j] = scs.savgol_filter(poses[k][:,j], window, order)
-                
-        poses[k] = poses_smooth
-        
-    return poses    
+   
             
 if __name__ == "__main__":
     main()

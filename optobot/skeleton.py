@@ -39,8 +39,8 @@ def skeleton():
     
     nodes = [i for i in range(24)]
     
-    colors = [[186,30,49], [201,86,79], [213,133,121], #RF, RM, RH
-              [15,115,153], [26,141,175], [117,190,203] #LF, LM, LH
+    colors = [[15,115,153], [26,141,175], [117,190,203], #LF, LM, LH
+              [186,30,49], [201,86,79], [213,133,121] #RF, RM, RH
               ] 
     
     edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]

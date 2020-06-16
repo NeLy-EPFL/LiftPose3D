@@ -2,8 +2,6 @@ import numpy as np
 import src.utils as utils
 from tqdm import tqdm
 from torch.autograd import Variable
-#from src.procrustes import get_transformation
-from src.normalize import unNormalizeData
 
 
 def test(test_loader, model, criterion, stat):
@@ -27,15 +25,12 @@ def test(test_loader, model, criterion, stat):
         # undo normalisation to calculate accuracy in real units
         dim=3
         dimensions = stat['targets_3d']
-        tar = unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
-        out = unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
+        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
+        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], dimensions)
         
-#        targets = targets[:, dimensions]
-#        outputs = outputs[:, dimensions]
-        
-        abserr = (out - tar) ** 2
+        abserr = (out[:, dimensions] - tar[:, dimensions]) ** 2
 
-        n_pts = tar.shape[1]//dim
+        n_pts = len(dimensions)//dim
         distance = np.zeros_like(abserr)
         for k in range(n_pts):
             distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
