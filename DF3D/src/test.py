@@ -31,7 +31,7 @@ def test(test_loader, model, criterion, stat):
         abserr = (out[:, dimensions] - tar[:, dimensions]) ** 2
 
         n_pts = len(dimensions)//dim
-        distance = np.zeros_like(abserr)
+        distance = np.zeros((abserr.shape[0], n_pts))
         for k in range(n_pts):
             distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
 
@@ -50,4 +50,4 @@ def test(test_loader, model, criterion, stat):
     ttl_err = np.nanmean(joint_err)
 
     print (">>> error: {} <<<".format(ttl_err))
-    return losses.avg, ttl_err, joint_err, all_output, all_target, all_input
+    return losses.avg, ttl_err, joint_err, all_dist, all_output, all_target, all_input

@@ -72,10 +72,12 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-        loss_test, err_test, joint_err, outputs, targets, inputs = \
+        loss_test, err_test, joint_err, all_err, outputs, targets, inputs = \
         test(test_loader, model, criterion, stat_3d)
             
+        print(os.path.join(opt.out_dir,"test_results.pth.tar"))
         torch.save({'loss': loss_test, 
+                    'all_err': all_err,
                     'test_err': err_test, 
                     'joint_err': joint_err, 
                     'output': outputs, 
@@ -123,7 +125,7 @@ def main(opt):
                 max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test, _, _, _, _ = test(
+        loss_test, err_test, _, _, _, _, _ = test(
                 test_loader, 
                 model, 
                 criterion, 
