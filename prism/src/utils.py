@@ -1,6 +1,9 @@
 import numpy as np
 import copy
 import scipy.signal as scs
+from operator import itemgetter
+from itertools import groupby
+
 
 def normalization_stats(train_set):
   """
@@ -158,3 +161,110 @@ def lr_decay(optimizer, step, lr, decay_step, gamma):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
+
+
+def flip_LR(data):
+    cols = list(data.columns)
+    half = int(len(cols)/2)
+    tmp = data.loc[:,cols[:half]].values
+    data.loc[:,cols[:half]] = data.loc[:,cols[half:]].values
+    data.loc[:,cols[half:]] = tmp
+    
+    return data
+
+
+def orient_left(bottom, side, th1, flip_idx):
+    #rotate flies pointing right    
+    theta = np.radians(180)
+    cos, sin = np.cos(theta), np.sin(theta)
+    R = np.array(((cos, -sin), (sin, cos)))     
+    
+    if np.sum(flip_idx) != 0:
+        tmp = bottom.loc[flip_idx,(slice(None),['x','y'])].to_numpy()
+        tmp = np.reshape(tmp, [-1, 2])
+        mu = tmp.mean(axis=0)
+        tmp = np.matmul(tmp-mu,R)# + mu
+        tmp = np.reshape( tmp, [-1, 60] )
+        bottom.loc[flip_idx,(slice(None),['x','y'])] = tmp
+
+    return bottom, side
+    
+        
+def get_epochs(data):
+    data_idx = list(data.index)
+    epochs = []
+    for k, g in groupby(enumerate(data_idx), lambda ix : ix[0] - ix[1]):
+        epochs.append(list(map(itemgetter(1), g)))
+        
+    return epochs
+
+
+def select_best_data(bottom, side, th1, th2, leg_tips):
+    
+    #split L and R (remove if we include flipping)
+    side_L_lk = side.loc[:,(leg_tips[:3],'likelihood')]
+    side_R_lk = side.loc[:,(leg_tips[3:],'likelihood')]
+    bottom_lk = bottom.loc[:,(leg_tips,'likelihood')]
+    
+    #select for high likelihood frames
+    #mask = ((side_L_lk>th1).sum(1)==3) & ((bottom_lk>th1).sum(1)==6) #only flies pointing left
+    #mask = ((side_R_lk>th1).sum(1)==3) & ((bottom_lk>th1).sum(1)==6) #only flies pointing right
+    mask = ( (((side_L_lk>th1).sum(1)==3) & ((side_R_lk>th1).sum(1)==0)) | \
+             (((side_R_lk>th1).sum(1)==3) & ((side_L_lk>th1).sum(1)==0)) ) & \
+             ((bottom_lk>th1).sum(1)==6)
+    side = side[mask].dropna()
+    bottom = bottom[mask].dropna()
+    
+    #sometimes DLC mixes up limbs so take only those frames there the x coordinate matches on side and bottom views
+    diff_L = np.abs(bottom.loc[:,(leg_tips[:3],'x')].values - side.loc[:,(leg_tips[3:],'x')].values)
+    diff_R = np.abs(bottom.loc[:,(leg_tips[3:],'x')].values - side.loc[:,(leg_tips[:3],'x')].values)
+    mask = ((diff_L<th2).sum(1)==3) | ((diff_R<th2).sum(1)==3)
+    side = side[mask].dropna()
+    bottom = bottom[mask].dropna()
+    
+    assert side.shape[0]==bottom.shape[0], 'Number of rows must match in filtered data!'
+    
+    return bottom, side
+    
+
+def augment(bottom, typ, rng):
+    tmp = bottom.loc[:,(slice(None),['x','y'])].to_numpy()
+    bottom_old = bottom.copy()
+    
+    if typ == 'rot':
+        _rng = rng
+    if typ == 'noise':
+        _rng = range(len(rng))
+    
+    for angle in _rng: 
+        bottom_rot = bottom_old.copy()
+        
+        if typ=='noise':
+            bottom_rot.loc[:,(slice(None),['x','y'])] = tmp + np.random.normal(0,6,size=tmp.shape)
+        
+        if typ=='rot':
+            theta = np.radians(angle)
+            cos, sin = np.cos(theta), np.sin(theta)
+            R1 = np.array(((cos, -sin), (sin, cos)))
+            tmp1 = np.reshape(tmp, [-1, 2])
+            mu = tmp1.mean(axis=0)
+            tmp1 = np.matmul(tmp1-mu,R1)# + mu
+            tmp1 = np.reshape( tmp1, [-1, 60] )
+            bottom_rot.loc[:,(slice(None),['x','y'])] = tmp1
+            
+        bottom = bottom.append(bottom_rot) #append
+    
+    return bottom
+
+
+def read_crop_pos(file):
+    f=open(file, "r")
+    contents =f.readlines()
+    im_file = []
+    x_pos = []
+    for i in range(4,len(contents)):
+        line = contents[i][:-1].split(' ')
+        im_file.append(line[0])
+        x_pos.append(line[1])
+        
+    return im_file, x_pos

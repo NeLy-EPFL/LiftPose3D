@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from math import atan2
+from src.utils import read_crop_pos
 
 def compute_similarity_transform(X, Y, compute_optimal_scale=False):
   """
@@ -104,4 +105,36 @@ def center_and_align(pts2d, img):
     tmp = np.matmul(tmp-c,R) + c   
     pts2d.iloc[:] = tmp.reshape(-1,tmp.shape[0]*2).flatten()
         
+    return pts2d
+
+
+def procrustes_on_epochs(data, epochs):
+    xy = data.loc[:,(slice(None),['x','y'])]
+    for e in epochs:
+        for step in range(1,len(e)):
+            X = xy.loc[e[step]-1,:]
+            Xtransf = xy.loc[e[step],:]
+                
+            X = X.to_numpy().reshape([-1, 2])
+            Xtransf = Xtransf.to_numpy().reshape([-1, 2])
+                
+            _, _, T, _, c = compute_similarity_transform(Xtransf, X)
+            Xtransf = (T@Xtransf.T).T
+
+            xy.loc[e[step],:] = Xtransf.reshape(-1, 60).flatten()
+                
+    data.loc[:,(slice(None),['x','y'])] = xy
+    
+    return data
+
+
+def rotate_to_horizontal(pts2d, path_crop_pos, path_img):
+    
+    #access corresponding image file
+    idx = pts2d.name 
+    im_file, _ = read_crop_pos(path_crop_pos)
+    im_crop_bottom = cv2.imread(path_img + im_file[idx],0)
+    
+    pts2d = center_and_align(pts2d, im_crop_bottom)
+    
     return pts2d

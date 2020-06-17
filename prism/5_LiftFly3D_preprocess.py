@@ -9,16 +9,16 @@ import src.utils as utils
 TRAIN_SUBJECTS = [1,2,3,4] #for optobot
 TEST_SUBJECTS  = [4]
 
-data_dir = '/data/LiftFly3D/prism/data_oriented_plus_noise/'
-#data_dir = '/data/LiftFly3D/optobot/network/'
+data_dir = '/data/LiftFly3D/prism/data_oriented/'
+#data_dir = '/data/LiftFly3D/prism/data_oriented_plus_noise/'
 actions = ['PR']
 rcams = []
 
 #select cameras and joints visible from cameras
-#target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
-#               [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
-target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
-               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
+target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
+               [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
+#target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
+#               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
 ref_points = [0, 5, 10,15, 20, 25]
 
 
