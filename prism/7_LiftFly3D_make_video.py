@@ -15,6 +15,8 @@ from matplotlib.legend_handler import HandlerTuple
 import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
+from tqdm import tqdm
+import src.utils as utils
 
 
 def plot_3d_graph(pos, ax, color_edge = 'k', style = '-', LR=None):
@@ -51,36 +53,12 @@ def plot_3d_graph(pos, ax, color_edge = 'k', style = '-', LR=None):
     return ax
 
 
-def unNormalizeData(data, data_mean, data_std):
-  """
-  Un-normalizes a matrix whose mean has been substracted and that has been divided by
-  standard deviation. Some dimensions might also be missing
-  """
-  data *= data_std
-  data += data_mean
-    
-  return data
 
+print('making video')
 
-def expand(data,dim_to_use,dim):
-    
-    T = data.shape[0]
-    D = dim
-    orig_data = np.zeros((T, D), dtype=np.float32)
-    orig_data[:,dim_to_use] = data
-    
-    return orig_data
-
-
-cameras = [0]
-
-#import skeleton of fly
-G, color_edge = skeleton()
-
-print('making video using cameras' + str(cameras))
-
-#load 
-data_dir = '/data/LiftFly3D/prism/data_oriented'
+#load
+G, color_edge = skeleton() 
+data_dir = '/data/LiftFly3D/prism/data_oriented/test_data/'
 data = torch.load(data_dir + '/test_results.pth.tar')
 
 tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
@@ -94,15 +72,18 @@ targets_2d = torch.load(data_dir + '/stat_2d.pth.tar')['targets_2d']
 inp_offset = np.vstack(torch.load(data_dir + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
 #unnormalize
-tar = unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
-tar = expand(tar,targets_1d,len(tar_mean))
+tar = utils.unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
+tar = utils.expand(tar,targets_1d,len(tar_mean))
 tar += tar_offset
-out = unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
-out = expand(out,targets_1d,len(tar_mean))
+out = utils.unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
+out = utils.expand(out,targets_1d,len(tar_mean))
 out += tar_offset
-inp = unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
-inp = expand(inp,targets_2d,len(inp_mean))
+inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
+inp = utils.expand(inp,targets_2d,len(inp_mean))
 inp += inp_offset
+
+#import pickle 
+#pickle.dump([tar_offset,inp_offset], open('joint_locations.pkl','wb'))
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -114,7 +95,7 @@ metadata = dict(title='LiftFly3D prediction', artist='Nely',comment='Watch this!
 writer = FFMpegWriter(fps=25, metadata=metadata)
 xlim, ylim, zlim = None,None,None
 with writer.saving(fig, "prediction_cams.mp4", 100):
-    for t in range(1000):
+    for t in tqdm(range(1100)):
         pos_pred = []
         pos_tar = []
         
@@ -156,5 +137,10 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.set_yticklabels([])
         ax.set_zticklabels([])
         ax.grid(True)
+        
+#        plt.savefig('test.png')
+#        
+#        import sys
+#        sys.exit()
     
         writer.grab_frame()

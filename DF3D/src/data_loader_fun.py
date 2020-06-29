@@ -5,15 +5,17 @@ from __future__ import print_function, absolute_import
 import os
 import torch
 from torch.utils.data import Dataset
+import numpy as np
 
 class data_loader(Dataset):
-    def __init__(self, data_path, is_train=True):
+    def __init__(self, data_path, is_train=True, noise=None):
         """
         data_path: path to dataset
         is_train: load train/test dataset
         """
         self.data_path = data_path
         self.is_train = is_train
+        self.noise = noise
 
         self.train_inp, self.train_out, self.test_inp, self.test_out = [], [], [], []
         self.train_meta, self.test_meta = [], []
@@ -42,6 +44,8 @@ class data_loader(Dataset):
     def __getitem__(self, index):
         if self.is_train:
             inputs = torch.from_numpy(self.train_inp[index]).float()
+            if self.noise is not None:
+                inputs + np.random.normal(0,self.noise, size=inputs.shape)
             outputs = torch.from_numpy(self.train_out[index]).float()
 
         else:

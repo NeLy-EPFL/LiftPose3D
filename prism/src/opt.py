@@ -33,10 +33,11 @@ class Options:
         # ===============================================================
         #                     Running options
         # ===============================================================
+        self.parser.add_argument('--noise',          type=float,  default=None)
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=100000, help='# steps of lr decay')
         self.parser.add_argument('--lr_gamma',       type=float,  default=0.96)
-        self.parser.add_argument('--epochs',         type=int,    default=100)
+        self.parser.add_argument('--epochs',         type=int,    default=200)
         self.parser.add_argument('--dropout',        type=float,  default=0.5, help='dropout probability, 1.0 to make no dropout')
         self.parser.add_argument('--batch_size',     type=int,    default=64)
         self.parser.add_argument('--job',            type=int,    default=8, help='# subprocesses to use for data loading')

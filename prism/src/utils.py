@@ -225,36 +225,6 @@ def select_best_data(bottom, side, th1, th2, leg_tips):
     assert side.shape[0]==bottom.shape[0], 'Number of rows must match in filtered data!'
     
     return bottom, side
-    
-
-def augment(bottom, typ, rng):
-    tmp = bottom.loc[:,(slice(None),['x','y'])].to_numpy()
-    bottom_old = bottom.copy()
-    
-    if typ == 'rot':
-        _rng = rng
-    if typ == 'noise':
-        _rng = range(len(rng))
-    
-    for angle in _rng: 
-        bottom_rot = bottom_old.copy()
-        
-        if typ=='noise':
-            bottom_rot.loc[:,(slice(None),['x','y'])] = tmp + np.random.normal(0,6,size=tmp.shape)
-        
-        if typ=='rot':
-            theta = np.radians(angle)
-            cos, sin = np.cos(theta), np.sin(theta)
-            R1 = np.array(((cos, -sin), (sin, cos)))
-            tmp1 = np.reshape(tmp, [-1, 2])
-            mu = tmp1.mean(axis=0)
-            tmp1 = np.matmul(tmp1-mu,R1)# + mu
-            tmp1 = np.reshape( tmp1, [-1, 60] )
-            bottom_rot.loc[:,(slice(None),['x','y'])] = tmp1
-            
-        bottom = bottom.append(bottom_rot) #append
-    
-    return bottom
 
 
 def read_crop_pos(file):

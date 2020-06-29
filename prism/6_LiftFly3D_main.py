@@ -28,8 +28,8 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=24)
-#    model = LinearModel(input_size=36, output_size=18) #for optobot
+#    model = LinearModel(input_size=48, output_size=24)
+    model = LinearModel(input_size=36, output_size=18) #for optobot
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -72,10 +72,12 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-        loss_test, err_test, joint_err, outputs, targets, inputs, bool_LR, keys = \
+        loss_test, err_test, joint_err, all_err, outputs, targets, inputs, bool_LR, keys = \
         test(test_loader, model, criterion, stat_3d)
             
+        print(os.path.join(opt.out_dir,"test_results.pth.tar"))
         torch.save({'loss': loss_test, 
+                    'all_err': all_err,
                     'test_err': err_test, 
                     'joint_err': joint_err, 
                     'output': outputs, 
@@ -99,7 +101,8 @@ def main(opt):
     
     train_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
-                            is_train=True),
+                            is_train=True,
+                            noise=opt.noise),
                             batch_size=opt.batch_size,
                             shuffle=True,
                             num_workers=opt.job,
@@ -125,7 +128,7 @@ def main(opt):
                 max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test, _, _, _, _, _, _ = test(
+        loss_test, err_test, _, _, _, _, _, _, _ = test(
                 test_loader, 
                 model, 
                 criterion, 

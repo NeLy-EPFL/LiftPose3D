@@ -33,6 +33,7 @@ class Options:
         # ===============================================================
         #                     Running options
         # ===============================================================
+        self.parser.add_argument('--noise',          type=float,  default=None)
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=100000, help='# steps of lr decay')
         self.parser.add_argument('--lr_gamma',       type=float,  default=0.96)

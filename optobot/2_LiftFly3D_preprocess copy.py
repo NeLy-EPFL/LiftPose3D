@@ -4,7 +4,7 @@ import glob
 import torch
 import pickle
 import src.utils as utils
-#import src.procrustes as procrustes
+import src.procrustes as procrustes
 
 TEST_SUBJECTS  = [0]
 
@@ -16,7 +16,7 @@ actions = ['off2']
 target_sets = [[ 1,  2,  3],  [5,  6,  7], [9, 10, 11],
                [13, 14, 15], [17, 18, 19], [21, 22, 23]]
 ref_points = [0, 4, 8, 12, 16, 20]
-scale = 28/115
+scale = 28
 
 
 def main():   
@@ -68,21 +68,15 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
   test_set, _ = utils.anchor( test_set, ref_points, target_sets, dim=2)    
 
   # Compute normalization statistics
-#  data_mean, data_std = utils.normalization_stats( test_set)
-  data_mean = torch.load(template_dir + 'stat_2d.pth.tar')['mean']
-  data_std = torch.load(template_dir + 'stat_2d.pth.tar')['std']
-  refs = [ 0,  2,3,4,   5,7,8,9,      10,12,13,14, #for optobot
-          15,17,18,19,  20,22,23,24,  25,27,28,29]
-  refs = np.array(refs)
-  refs = np.sort( np.hstack( (refs*2, refs*2+1)))  
+  data_mean, data_std = utils.normalization_stats( test_set)
   
   # Divide every dimension independently
-  test_set = utils.normalize_data( test_set, data_mean[refs], data_std[refs] )
+  test_set = utils.normalize_data( test_set, data_mean, data_std )
   
   #select coordinates to be predicted and return them as 'targets_3d'
   test_set, targets_2d = utils.collapse(test_set, None, target_sets, 2)
   _, targets_1d = utils.collapse(test_set.copy(), None, target_sets, 1)
-  
+
   return test_set, data_mean, data_std, targets_1d, targets_2d
 
 

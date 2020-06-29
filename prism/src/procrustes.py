@@ -109,7 +109,7 @@ def center_and_align(pts2d, img):
 
 
 def procrustes_on_epochs(data, epochs):
-    xy = data.loc[:,(slice(None),['x','y'])]
+    xy = data.loc[:,(slice(None),['x','y'])].copy()
     for e in epochs:
         for step in range(1,len(e)):
             X = xy.loc[e[step]-1,:]

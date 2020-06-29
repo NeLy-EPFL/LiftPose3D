@@ -99,7 +99,8 @@ def main(opt):
     
     train_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
-                            is_train=True),
+                            is_train=True,
+                            noise=opt.noise),
                             batch_size=opt.batch_size,
                             shuffle=True,
                             num_workers=opt.job,
