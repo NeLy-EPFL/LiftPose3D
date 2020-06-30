@@ -28,10 +28,10 @@ def test(test_loader, model, criterion, stat):
         # undo normalisation to calculate accuracy in real units
         dim=1
         targets_1d = stat['targets_1d']
-        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'], stat['std'], targets_1d)
-        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'], stat['std'], targets_1d)
+        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'][targets_1d], stat['std'][targets_1d])
+        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'][targets_1d], stat['std'][targets_1d])
 
-        abserr = np.abs(out[:, targets_1d] - tar[:, targets_1d])
+        abserr = np.abs(out - tar)
 
         n_pts = len(targets_1d)//dim
         distance = np.zeros_like(abserr)

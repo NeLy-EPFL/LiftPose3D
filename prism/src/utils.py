@@ -36,21 +36,15 @@ def normalize_data(data, data_mean, data_std ):
   return data
 
 
-def unNormalizeData(data, data_mean, data_std, dim_to_use):
+def unNormalizeData(data, data_mean, data_std):
   """
   Un-normalizes a matrix whose mean has been substracted and that has been divided by
   standard deviation. Some dimensions might also be missing
   """
-
-  data *= data_std[dim_to_use]
-  data += data_mean[dim_to_use]
-  
-  T = data.shape[0] # Batch size
-  D = data_mean.shape[0] # Dimensionality
-  orig_data = np.zeros((T, D), dtype=np.float32)
-  orig_data[:, dim_to_use] = data
-  
-  return orig_data
+  data *= data_std
+  data += data_mean
+    
+  return data
 
 
 def get_coords_in_dim(targets, dim):

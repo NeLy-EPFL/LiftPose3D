@@ -64,8 +64,8 @@ targets_2d = torch.load(template_dir + '/stat_2d.pth.tar')['targets_2d']
 out = utils.expand(out,targets_1d,len(out_mean))
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 
-out += out_offset
-inp += inp_offset
+out += out_offset/6
+inp += inp_offset/6
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -115,6 +115,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.grid(True)
         
 #        ax.set_axis_off()
+#        plt.plot((0,0),(0,0),(0,1000))
 #        plt.savefig('test.svg')
 #        import sys
 #        sys.exit()
