@@ -14,7 +14,7 @@ The best way to use our code is to adapt one of our examples below to your appli
 
 Currently LiftFly3D is set up to work with data supplied as a Python dictionary and saved as a pickle file. Conveniently, this is same format used for DeepFly3D, our pipeline used for multi-camera triangulation. The dictionary must contain two keys (1) 'points3d': a numpy array of dimension AxBx3 containing the 3D coordinates in a global reference frame, where A is the number of frames, B is the number of keypoints and 3 are the x, y, z coordinates, and (2) 'points2d': a numpy array of dimension CxAxBx2 containing the 2D coordinates in camera centric reference frame, where C is the number of cameras and A, B as before.
 
-Refer to sample_data.pkl for an example.
+Refer to ```sample_data.pkl``` for an example.
 
 ## Examples
 
