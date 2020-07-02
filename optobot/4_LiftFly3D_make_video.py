@@ -64,8 +64,8 @@ targets_2d = torch.load(template_dir + '/stat_2d.pth.tar')['targets_2d']
 out = utils.expand(out,targets_1d,len(out_mean))
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 
-out += out_offset/6
-inp += inp_offset/6
+out += out_offset
+inp += inp_offset
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -100,7 +100,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.legend([(p3, p4)], 
             ['LiftFly3D prediction'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0,0.9))    
+            loc=(0.1,0.9))    
         p3.remove()
         p4.remove()
         ####
@@ -115,7 +115,6 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.grid(True)
         
 #        ax.set_axis_off()
-#        plt.plot((0,0),(0,0),(0,1000))
 #        plt.savefig('test.svg')
 #        import sys
 #        sys.exit()

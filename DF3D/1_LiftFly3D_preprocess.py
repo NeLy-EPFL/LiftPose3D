@@ -5,6 +5,9 @@ import torch
 import src.utils as utils
 import pickle
 
+# =============================================================================
+# To be specified
+# =============================================================================
 
 TRAIN_SUBJECTS = [0,1,2,3,4,5]
 TEST_SUBJECTS  = [6,7]
@@ -15,7 +18,7 @@ data_dir = '/data/LiftFly3D/DF3D/data_DF3D/'
 out_dir = '/data/LiftFly3D/DF3D/cam_angles/cam' + str(cam_id)
 #out_dir = '/data/LiftFly3D/DF3D/behaviors/train_PR'
 actions = ['PR']#'MDN_CsCh', 'aDN_CsCh']
-rcams = pickle.load(open('cameras.pkl', "rb"))
+camera_matrices = '/data/LiftFly3D/DF3D/data_DF3D/cameras.pkl'
 
 interval = None #all data
 #interval = np.arange(200,700) #data during stimulation only
@@ -24,11 +27,15 @@ target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
                [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
 ref_points = [0, 5, 10, 15, 20, 25]
 
+# =============================================================================
+
 
 def main():   
     
     print('behaviors' + str(actions))
     print('processing for camera' + str(cam_id))
+    
+    rcams = pickle.load(open(camera_matrices, "rb"))
     
     #3D ground truth
     train_set, test_set, data_mean, data_std, targets_3d, vis = \

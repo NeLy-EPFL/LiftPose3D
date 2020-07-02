@@ -17,6 +17,7 @@ matplotlib.use('Agg')
 import src.utils as utils
 from skeleton import skeleton
 import pickle
+from tqdm import tqdm
 
 def plot_3d_graph(pos, ax, color_edge, style = '-'):
     
@@ -101,7 +102,7 @@ metadata = dict(title='LiftFly3D prediction', artist='Nely',comment='Watch this!
 writer = FFMpegWriter(fps=25, metadata=metadata)
 xlim, ylim, zlim = None,None,None
 with writer.saving(fig, "prediction_cams.mp4", 100):
-    for t in range(900):
+    for t in tqdm(range(900)):
         pos_pred, pos_tar = [], []
         
         ax.cla()

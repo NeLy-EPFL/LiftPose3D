@@ -85,6 +85,8 @@ inp += inp_offset
 #import pickle 
 #pickle.dump([tar_offset,inp_offset], open('joint_locations.pkl','wb'))
 
+#pickle.dump([inp,out], open('joint_locations.pkl','wb'))
+
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
 fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
@@ -92,7 +94,7 @@ ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev = 40, azim=140)
 
 metadata = dict(title='LiftFly3D prediction', artist='Nely',comment='Watch this!')
-writer = FFMpegWriter(fps=25, metadata=metadata)
+writer = FFMpegWriter(fps=15, metadata=metadata)
 xlim, ylim, zlim = None,None,None
 with writer.saving(fig, "prediction_cams.mp4", 100):
     for t in tqdm(range(1100)):
@@ -122,7 +124,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.legend([(p1, p2), (p3, p4)], 
             ['Triangulated 3D pose', 'LiftFly3D prediction'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0,0.9))    
+            loc=(0.1,0.9))    
         p1.remove()
         p2.remove()
         p3.remove()
@@ -137,10 +139,5 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.set_yticklabels([])
         ax.set_zticklabels([])
         ax.grid(True)
-        
-#        plt.savefig('test.png')
-#        
-#        import sys
-#        sys.exit()
     
         writer.grab_frame()
