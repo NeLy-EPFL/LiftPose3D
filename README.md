@@ -55,13 +55,31 @@ To test
 ```
 python 2_LiftFly3D_main.py --data_dir /directory_to_save_output --out /directory_to_save_output --test --load /directory_to_save_output/ckpt_best.pth.tar
 ```
-Refer to ```/src/opt.py``` for more options.
+Refer to ```/src/opt.py``` for more options. 
 
-```3_LiftFly3D_make_video.py``` - this creates a video comparing the predicted and ground-truth 3D coordinates
+Before you proceed, make sure you have trained a network for each camera.
+
+```3_LiftFly3D_make_video.py``` - this creates a video comparing the predicted and ground-truth 3D coordinates. 
 
 
 ### 3D pose of a freely behaving fly in a prism-mirror setup using partial triangulated data
 
+The relevant code is under the folder ```/prism``` and the corresponding data with the pre-trained network can be downloaded here.
+
+```1_crop_raw_images``` - this script makes cropped images centred around the moving fly. Images where the fly is starionary are excluded. The location of each crop is saved.
+
+```2_DLC_lateral.ipynb``` - these jupyter notebooks create DeepLabCut annotations for the ventral and lateral camera views.
+```2_DLC_ventral.ipynb```
+
+```3_select_good_predictions.ipynb``` - this jupyter notebook selects high quality predictions for training, testing and video generation. Check out the options inside the notebook.
+
+```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
+
+The rest of the scripts follow the same protocol as in the above example.
 
 
 ### Transfer learning-based 3D pose in a low resolution ventral camera setup
+
+```1_DLC_to_DF3D_convert.ipynb``` - this converts the DeepLabCut predictions into DeepFly3D format. You must run this before you proceed with the pipeline. 
+
+The rest of the scripts follow the same protocol as in the above example.
