@@ -82,4 +82,4 @@ The rest of the scripts follow the same protocol as in the above example.
 
 ```1_DLC_to_DF3D_convert.ipynb``` - this converts the DeepLabCut predictions into DeepFly3D format. You must run this before you proceed with the pipeline. 
 
-The rest of the scripts follow the same protocol as in the above example.
+The rest of the scripts follow the same protocol as in the above example. When training, use the option ```--noise std```, to add a Gaussian noise with standard deviation std during training. Adding this option is essential to coarse-grain our network to work with data that has lower resolution than the training dataset. As a rule of thumb, std should be equal to the ratio between the high and low resolution datasets.
