@@ -1,24 +1,3 @@
 __pycache__
 
-flydata*
-octopamineExperiments*
-experiments*
-prism/data
-training-datasets
-hours
-snapshot*
-checkpoint*
-log*
-DeepCut_resnet50_*
-DeepCut_resnet101*_
-.ipynb_checkpoints
-*~
-*.pyc
-*.npy
-*.h5
-*.mpeg
-*.swp
-*.tar.gz
-*.tar.*
 *.mp4
-*.DS_STORE
