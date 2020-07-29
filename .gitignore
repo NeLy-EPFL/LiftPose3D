@@ -21,3 +21,4 @@ DeepCut_resnet101*_
 *.tar.gz
 *.tar.*
 *.mp4
+*.DS_STORE
