@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 from math import atan2
 from src.utils import read_crop_pos
+import os
+#from scipy import ndimage
 
 def compute_similarity_transform(X, Y, compute_optimal_scale=False):
   """
@@ -91,12 +93,11 @@ def orientation(img):
     return angle
 
 
-def center_and_align(pts2d, img):
+def center_and_align(pts2d, angle, c):
     '''rotate align data'''
     
-    #get orientation and centre
-    angle = orientation(img)
-    c = np.array(img.shape)/2
+    idx = pts2d.name
+    angle = angle[idx]
     
     #rotate points
     cos, sin = np.cos(angle), np.sin(angle)
@@ -128,13 +129,23 @@ def procrustes_on_epochs(data, epochs):
     return data
 
 
-def rotate_to_horizontal(pts2d, path_crop_pos, path_img):
-    
-    #access corresponding image file
-    idx = pts2d.name 
+def get_orientation(path_crop_pos, path_img, index, flip_idx):
     im_file, _ = read_crop_pos(path_crop_pos)
-    im_crop_bottom = cv2.imread(path_img + im_file[idx],0)
     
-    pts2d = center_and_align(pts2d, im_crop_bottom)
+    angle_old = []
+    for i, idx in enumerate(index):
+        assert os.path.exists(path_img + im_file[idx]), 'File does not exist: %s' % path_img + im_file[idx]
+        im_crop = cv2.imread(path_img + im_file[idx],0)
+        
+        #get orientation and centre
+        angle = orientation(im_crop)
+        c = np.array(im_crop.shape)/2
+        
+        if angle_old==[]:
+            angle_old = [angle]
+        else:
+            if (np.abs(angle_old[-1] - angle)>np.pi/2) & (not flip_idx[i]):
+                angle += np.pi
+            angle_old.append(angle)
     
-    return pts2d
+    return angle_old, c

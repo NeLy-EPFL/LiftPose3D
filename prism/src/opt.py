@@ -19,7 +19,7 @@ class Options:
         self.parser.add_argument('--data_dir',       type=str, default='/data/LiftFly3D/prism/data_oriented_plus_noise/', help='path to dataset')
         self.parser.add_argument('--exp',            type=str, default='', help='ID of experiment')
         self.parser.add_argument('--out',            type=str, default='/data/LiftFly3D/prism/data_oriented_plus_noise/', help='path to save checkpoint')
-        self.parser.add_argument('--load',           type=str, default='', help='path to load a pretrained checkpoint')
+        self.parser.add_argument('--load',           type=str, default=None, help='path to load a pretrained checkpoint')
         self.parser.add_argument('--test',           dest='test', action='store_true', help='test')
         self.parser.add_argument('--resume',         dest='resume', action='store_true', help='resume to train')
 
@@ -61,6 +61,8 @@ class Options:
         if self.opt.load:
             if not os.path.isfile(self.opt.load):
                 print ("{} is not found".format(self.opt.load))
+        if self.opt.test & (self.opt.load is None):
+            raise Exception('Specify trained network using option --load')
         self.opt.is_train = False if self.opt.test else True
         self.opt.out_dir = out_dir
         self._print()

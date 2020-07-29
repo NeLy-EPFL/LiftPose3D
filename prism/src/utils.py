@@ -3,7 +3,7 @@ import copy
 import scipy.signal as scs
 from operator import itemgetter
 from itertools import groupby
-
+import os
 
 def normalization_stats(train_set):
   """
@@ -157,6 +157,62 @@ def lr_decay(optimizer, step, lr, decay_step, gamma):
     return lr
 
 
+def world_to_camera(P, R, T):
+    """
+    Rotate/translate 3d poses to camera viewpoint
+    
+    Args
+        P: Nx3 points in world coordinates
+        R: 3x3 Camera rotation matrix
+        T: 3x1 Camera translation parameters
+    Returns
+        transf: Nx2 points on camera
+    """
+
+    ndim = P.shape[1]
+    P = np.reshape(P, [-1, 3])
+  
+    assert len(P.shape) == 2
+    assert P.shape[1] == 3
+  
+    P_rot =  np.matmul(R, P.T).T + T
+  
+    return np.reshape( P_rot, [-1, ndim] )
+
+
+def camera_to_world( data, cam_par, cam ):
+    """
+    Project 3d poses using camera parameters
+    
+    Args
+        poses_set: dictionary with 3d poses
+        cams: dictionary with camera parameters
+        cam_ids: camera_ids to consider
+    Returns
+        transf: dictionary with 3d poses or 2d poses if projection is True
+    """
+
+    ndim = data.shape[1]
+    R, T, _, _, _ = cam_par[cam]
+        
+    Pcam = np.reshape(data, [-1, 3]).copy()
+    Pcam -= T
+    Pworld = np.matmul(np.linalg.inv(R), Pcam.T).T
+    
+    return np.reshape( Pworld, [-1, ndim] )
+
+
+def project_to_camera(P, intr):
+    
+    ndim = P.shape[1]
+    P = np.reshape(P, [-1, 3])  
+    proj = np.squeeze(np.matmul(intr, P[:,:,np.newaxis]))
+    proj = proj / proj[:, [2]]
+    proj = proj[:, :2]
+  
+    return np.reshape( proj, [-1, int(ndim/3*2)] )
+
+
 def flip_LR(data):
     cols = list(data.columns)
     half = int(len(cols)/2)
@@ -167,7 +223,7 @@ def flip_LR(data):
     return data
 
 
-def orient_left(bottom, side, th1, flip_idx):
+def orient_left(bottom, th1, flip_idx):
     #rotate flies pointing right    
     theta = np.radians(180)
     cos, sin = np.cos(theta), np.sin(theta)
@@ -181,7 +237,7 @@ def orient_left(bottom, side, th1, flip_idx):
         tmp = np.reshape( tmp, [-1, 60] )
         bottom.loc[flip_idx,(slice(None),['x','y'])] = tmp
 
-    return bottom, side
+    return bottom
     
         
 def get_epochs(data):
@@ -195,33 +251,30 @@ def get_epochs(data):
 
 def select_best_data(bottom, side, th1, th2, leg_tips):
     
-    #split L and R (remove if we include flipping)
-    side_L_lk = side.loc[:,(leg_tips[:3],'likelihood')]
-    side_R_lk = side.loc[:,(leg_tips[3:],'likelihood')]
+    #select those frames with high confidence ventral view (for lifting)
     bottom_lk = bottom.loc[:,(leg_tips,'likelihood')]
-    
-    #select for high likelihood frames
-    #mask = ((side_L_lk>th1).sum(1)==3) & ((bottom_lk>th1).sum(1)==6) #only flies pointing left
-    #mask = ((side_R_lk>th1).sum(1)==3) & ((bottom_lk>th1).sum(1)==6) #only flies pointing right
-    mask = ( (((side_L_lk>th1).sum(1)==3) & ((side_R_lk>th1).sum(1)==0)) | \
-             (((side_R_lk>th1).sum(1)==3) & ((side_L_lk>th1).sum(1)==0)) ) & \
-             ((bottom_lk>th1).sum(1)==6)
-    side = side[mask].dropna()
+    mask = (bottom_lk>th1).sum(1)==6
     bottom = bottom[mask].dropna()
-    
-    #sometimes DLC mixes up limbs so take only those frames there the x coordinate matches on side and bottom views
-    diff_L = np.abs(bottom.loc[:,(leg_tips[:3],'x')].values - side.loc[:,(leg_tips[3:],'x')].values)
-    diff_R = np.abs(bottom.loc[:,(leg_tips[3:],'x')].values - side.loc[:,(leg_tips[:3],'x')].values)
-    mask = ((diff_L<th2).sum(1)==3) | ((diff_R<th2).sum(1)==3)
     side = side[mask].dropna()
-    bottom = bottom[mask].dropna()
+    
+    #check which way the flies are pointing
+    side_R_lk = side.loc[:,(leg_tips[:3],'likelihood')] #high confidence on R joints means fly points right
+    flip_idx = (side_R_lk>th1).sum(1)==3
+    
+    #find high confidence and low discrepancy keypoints in each frame
+    likelihood = side.loc[:,(slice(None),'likelihood')]
+    discrepancy = np.abs(bottom.loc[:,(slice(None),'x')].values - side.loc[:,(slice(None),'x')].values)
+    good_keypts = (likelihood>th1) & (discrepancy<th2)
+    good_keypts = good_keypts.droplevel(1,axis=1) 
     
     assert side.shape[0]==bottom.shape[0], 'Number of rows must match in filtered data!'
     
-    return bottom, side
+    return bottom, side, np.array(flip_idx), good_keypts
 
 
 def read_crop_pos(file):
+    
+    assert os.path.exists(file), 'File does not exist: %s' % file
     f=open(file, "r")
     contents =f.readlines()
     im_file = []

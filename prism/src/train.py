@@ -11,7 +11,7 @@ def train(train_loader, model, criterion, optimizer,
     losses = utils.AverageMeter()
     model.train()
 
-    for i, (inps, tars, bool_LR, keys) in enumerate(tqdm(train_loader)):
+    for i, (inps, tars, good_keypts, keys) in enumerate(tqdm(train_loader)):
         glob_step += 1
         if glob_step % lr_decay == 0 or glob_step == 1:
             lr_now = utils.lr_decay(optimizer, glob_step, lr_init, lr_decay, gamma)
@@ -21,9 +21,9 @@ def train(train_loader, model, criterion, optimizer,
         #make prediction with model
         outputs = model(inputs)
         
-        #evaluate left or right side limbs based on fly orientation
-        outputs[bool_LR] = 0
-        targets[bool_LR] = 0
+        #evaluate high confidence keypoints only
+        outputs[~good_keypts] = 0
+        targets[~good_keypts] = 0
         
         # calculate loss
         optimizer.zero_grad()

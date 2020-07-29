@@ -19,39 +19,27 @@ from tqdm import tqdm
 import src.utils as utils
 
 
-def plot_3d_graph(pos, ax, color_edge = 'k', style = '-', LR=None):
+def plot_3d_graph(pos, ax, l, color_edge = 'k', style = '-', good_keypts=None):
     
     pos = np.array(pos)
-           
-    n = pos.shape[0]
 
     for i, j in enumerate(G.edges()): 
-        if LR is not None:
-            if LR[-1] & (j[0] < int(n/2)) & (j[1] < int(n/2)):   
-                
-                x = np.array((pos[j[0]][0], pos[j[1]][0]))
-                y = np.array((pos[j[0]][1], pos[j[1]][1]))
-                z = np.array((pos[j[0]][2], pos[j[1]][2]))
-                
-                ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2)
-                
-            elif LR[0] & (j[0] >= int(n/2)) & (j[1] >= int(n/2)):
-                
-                x = np.array((pos[j[0]][0], pos[j[1]][0]))
-                y = np.array((pos[j[0]][1], pos[j[1]][1]))
-                z = np.array((pos[j[0]][2], pos[j[1]][2]))
-                   
-                ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2)
-                
-        if LR is None:
-            x = np.array((pos[j[0]][0], pos[j[1]][0]))
-            y = np.array((pos[j[0]][1], pos[j[1]][1]))
-            z = np.array((pos[j[0]][2], pos[j[1]][2]))
-                   
-            ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
+        if good_keypts is not None:
+            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
+                continue
+            
+        x = np.array((pos[j[0]][0], pos[j[1]][0]))
+        y = np.array((pos[j[0]][1], pos[j[1]][1]))
+        z = np.array((pos[j[0]][2], pos[j[1]][2]))
+        
+        if i not in l.keys():               
+            l[i], = ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
+        else:
+            l[i].set_xdata(x)
+            l[i].set_ydata(y)
+            l[i].set_3d_properties(-z, zdir='z')
     
-    return ax
-
+    return l
 
 
 print('making video')
@@ -82,33 +70,28 @@ inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 inp += inp_offset
 
-#import pickle 
-#pickle.dump([tar_offset,inp_offset], open('joint_locations.pkl','wb'))
-
-#pickle.dump([inp,out], open('joint_locations.pkl','wb'))
+good_keypts = utils.expand(data['good_keypts'],targets_1d,len(tar_mean))
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
 fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 ax = fig.add_subplot(111, projection='3d')
-ax.view_init(elev = 40, azim=140)
+ax.view_init(elev=40, azim=140)
 
-metadata = dict(title='LiftFly3D prediction', artist='Nely',comment='Watch this!')
-writer = FFMpegWriter(fps=15, metadata=metadata)
+writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
+l = {}
 with writer.saving(fig, "prediction_cams.mp4", 100):
-    for t in tqdm(range(1100)):
+    for t in tqdm(range(600,650)):
         pos_pred = []
         pos_tar = []
-        
-        ax.cla()
         
         for j in range(out.shape[1]):
             pos_pred.append((inp[t, 2*j], inp[t, 2*j+1], out[t, j]))
             pos_tar.append((inp[t, 2*j], inp[t, 2*j+1], tar[t, j])) 
            
-        ax = plot_3d_graph(pos_tar, ax, color_edge = color_edge, LR=data['bool_LR'][t,:])
-        ax = plot_3d_graph(pos_pred, ax, color_edge = color_edge, style='--')       
+        l = plot_3d_graph(pos_tar, ax, l, color_edge = color_edge, good_keypts=good_keypts[t,:])
+        l = plot_3d_graph(pos_pred, ax, l, color_edge = color_edge, style='--')       
         
         if xlim is None:
             xlim = ax.get_xlim()
@@ -122,9 +105,10 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose', 'LiftFly3D prediction'], 
+            ['Triangulated 3D pose (x0.2 real time)', 'LiftFly3D prediction'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.9))    
+            loc=(0.1,0.9),
+            frameon=False)    
         p1.remove()
         p2.remove()
         p3.remove()

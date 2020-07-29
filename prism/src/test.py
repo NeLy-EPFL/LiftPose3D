@@ -11,7 +11,7 @@ def test(test_loader, model, criterion, stat):
 
     all_dist, all_output, all_target, all_input, all_keys, all_bool = [], [], [], [], [], []
 
-    for i, (inps, tars, bool_LR, keys) in enumerate(tqdm(test_loader)):
+    for i, (inps, tars, good_keypts, keys) in enumerate(tqdm(test_loader)):
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
 
@@ -22,18 +22,18 @@ def test(test_loader, model, criterion, stat):
         loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
         
-        outputs[bool_LR] = 0
-        targets[bool_LR] = 0
+        outputs[~good_keypts] = 0
+        targets[~good_keypts] = 0
         
         # undo normalisation to calculate accuracy in real units
         dim=1
-        targets_1d = stat['targets_1d']
-        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'][targets_1d], stat['std'][targets_1d])
-        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'][targets_1d], stat['std'][targets_1d])
+        dimensions = stat['targets_1d']
+        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
+        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
 
         abserr = np.abs(out - tar)
 
-        n_pts = len(targets_1d)//dim
+        n_pts = len(dimensions)//dim
         distance = np.zeros_like(abserr)
         for k in range(n_pts):
             distance[:, k] = np.sqrt(np.sum(abserr[:, dim*k:dim*(k + 1)], axis=1))
@@ -43,7 +43,7 @@ def test(test_loader, model, criterion, stat):
         all_output.append(outputs.data.cpu().numpy())
         all_target.append(targets.data.cpu().numpy())
         all_input.append(inputs.data.cpu().numpy())
-        all_bool.append(bool_LR)
+        all_bool.append(good_keypts)
         all_keys.append(keys)
     
     all_dist, all_output, all_target, all_input, all_bool, all_keys = \

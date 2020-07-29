@@ -28,8 +28,8 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-#    model = LinearModel(input_size=48, output_size=24)
-    model = LinearModel(input_size=36, output_size=18) #for optobot
+    model = LinearModel(input_size=48, output_size=24)
+#    model = LinearModel(input_size=36, output_size=18) #for optobot
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -72,7 +72,7 @@ def main(opt):
                 num_workers=opt.job,
                 pin_memory=True)
             
-        loss_test, err_test, joint_err, all_err, outputs, targets, inputs, bool_LR, keys = \
+        loss_test, err_test, joint_err, all_err, outputs, targets, inputs, good_keypts, keys = \
         test(test_loader, model, criterion, stat_3d)
             
         print(os.path.join(opt.out_dir,"test_results.pth.tar"))
@@ -84,7 +84,7 @@ def main(opt):
                     'target': targets,
                     'input': inputs,
                     'keys': keys, 
-                    'bool_LR': bool_LR}, 
+                    'good_keypts': good_keypts}, 
                     open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
             
         print ("{:.4f}".format(err_test), end='\t')

@@ -71,10 +71,9 @@ inp += inp_offset
 fig = plt.figure(figsize=plt.figaspect(1))
 fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 ax = fig.add_subplot(111, projection='3d')
-ax.view_init(elev = 40, azim=140)
+ax.view_init(elev=40, azim=140)
 
-metadata = dict(title='LiftFly3D prediction', artist='Nely',comment='Watch this!')
-writer = FFMpegWriter(fps=15, metadata=metadata)
+writer = FFMpegWriter(fps=15)
 xlim, ylim, zlim = None,None,None
 
 with writer.saving(fig, "prediction_cams.mp4", 100):
@@ -98,9 +97,10 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p3, p4)], 
-            ['LiftFly3D prediction'], 
+            ['LiftFly3D prediction (x0.25 real time)'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.9))    
+            loc=(0.1,0.9),
+            frameon=False)    
         p3.remove()
         p4.remove()
         ####

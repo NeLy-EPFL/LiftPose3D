@@ -5,22 +5,22 @@ import torch
 import pickle
 import src.utils as utils
 
-#TRAIN_SUBJECTS = [1,2,3]
-TRAIN_SUBJECTS = [1,2,3,4] #for optobot (using all data here)
-TEST_SUBJECTS  = [4]
+TRAIN_SUBJECTS = [1,2,4]
+#TRAIN_SUBJECTS = [1,2,3,4] #for optobot (using all data here)
+TEST_SUBJECTS  = [3]
 
-#data_dir = '/data/LiftFly3D/prism/data_oriented/test_data'
+data_dir = '/data/LiftFly3D/prism/data_oriented/test_data'
 #data_dir = '/data/LiftFly3D/prism/data_oriented/training_data'
-data_dir = '/data/LiftFly3D/optobot/network'
+#data_dir = '/data/LiftFly3D/optobot/network'
 actions = ['PR']
 rcams = []
 scale = None
 
 #select cameras and joints visible from cameras
-#target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
-#               [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
-target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
-               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
+target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
+               [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
+#target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
+#               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
 ref_points = [0, 5, 10, 15, 20, 25]
 
 
@@ -29,16 +29,6 @@ def main():
     #xy data
     train_set, test_set, data_mean, data_std, targets_2d, offset = \
     create_xy_data( actions, data_dir, target_sets, ref_points )
-
-    try:
-        os.remove(data_dir + '/train_2d.pth.tar')
-        os.remove(data_dir + '/test_2d.pth.tar')
-        os.remove(data_dir + '/train_3d.pth.tar')
-        os.remove(data_dir + '/test_3d.pth.tar')
-        os.remove(data_dir + '/stat_2d.pth.tar')
-        os.remove(data_dir + '/stat_3d.pth.tar')
-    except:
-        print("Did not delete the file as it didn't exists")
     
     torch.save(train_set, data_dir + '/train_2d.pth.tar')
     torch.save(test_set, data_dir + '/test_2d.pth.tar')
@@ -47,14 +37,14 @@ def main():
                 data_dir + '/stat_2d.pth.tar')
     
     #z data
-    train_set, test_set, data_mean, data_std, LR_train, LR_test, targets_1d, offset = \
+    train_set, test_set, data_mean, data_std, train_keypts, test_keypts, targets_1d, offset = \
         create_z_data( actions, data_dir, target_sets, ref_points, rcams )
         
-    torch.save([train_set, LR_train], data_dir + '/train_3d.pth.tar')
-    torch.save([test_set, LR_test], data_dir + '/test_3d.pth.tar')   
+    torch.save([train_set, train_keypts], data_dir + '/train_3d.pth.tar')
+    torch.save([test_set, test_keypts], data_dir + '/test_3d.pth.tar')   
     torch.save({'mean': data_mean, 'std': data_std, 
                 'targets_1d': targets_1d, 'offset': offset,
-                'LR_train': LR_train, 'LR_test': LR_test},
+                'LR_train': train_keypts, 'LR_test': test_keypts},
                 data_dir + '/stat_3d.pth.tar')
     
       
@@ -106,8 +96,8 @@ def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
 
     dim = 1
     # Load 3d data
-    train_set, LR_train = load_data( data_dir, TRAIN_SUBJECTS, actions, scale )
-    test_set, LR_test  = load_data( data_dir, TEST_SUBJECTS,  actions, scale )
+    train_set, train_keypts = load_data( data_dir, TRAIN_SUBJECTS, actions, scale )
+    test_set, test_keypts  = load_data( data_dir, TEST_SUBJECTS,  actions, scale )
 
     #filter data
 #  train_set = utils.filter_data(train_set)
@@ -131,8 +121,13 @@ def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
     #select coordinates to be predicted and return them as 'targets_1d'
     train_set, _ = utils.collapse(train_set, None, target_sets, dim)
     test_set, targets_1d = utils.collapse(test_set, None, target_sets, dim)
+    
+    for key in train_keypts.keys():
+        train_keypts[key] = train_keypts[key][:,targets_1d]
+    for key in test_keypts.keys():
+        test_keypts[key] = test_keypts[key][:,targets_1d]
   
-    return train_set, test_set, data_mean, data_std, LR_train, LR_test, targets_1d, offset
+    return train_set, test_set, data_mean, data_std, train_keypts, test_keypts, targets_1d, offset
 
 
 def load_data( path, flies, actions, scale=None):
@@ -151,7 +146,7 @@ def load_data( path, flies, actions, scale=None):
     fnames = glob.glob( path )
   
     data = {}
-    LR = {}
+    good_keypts = {}
     for fly in flies:
         for action in actions:
         
@@ -170,9 +165,9 @@ def load_data( path, flies, actions, scale=None):
                     poses3d /= scale
         
                 data[ (fly, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
-                LR[ (fly, action, seqname[:-4]) ] = poses['flip_idx']
+                good_keypts[ (fly, action, seqname[:-4]) ] = poses['good_keypts'].to_numpy()
 
-    return data, LR
+    return data, good_keypts
 
 
 def XY_coord( poses_set):
