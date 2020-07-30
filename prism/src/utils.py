@@ -285,3 +285,41 @@ def read_crop_pos(file):
         x_pos.append(line[1])
         
     return im_file, x_pos
+
+
+def plot_3d_graph(G, pos, ax, l, color_edge=None, style=None, good_keypts=None):
+    
+    for i, j in enumerate(G.edges()):
+        try:
+            l[i].remove()
+        except:
+            pass
+            
+        if good_keypts is not None:
+            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
+                continue
+            
+        #coordinates
+        x = np.array((pos[j[0]][0], pos[j[1]][0]))
+        y = np.array((pos[j[0]][1], pos[j[1]][1]))
+        z = np.array((pos[j[0]][2], pos[j[1]][2]))
+        
+        #edge color
+        if color_edge is not None:
+            c = color_edge[j[0]]
+        else:
+            c = 'k'
+            
+        #edge style
+        if style is None:
+            style = '-'
+
+        #udpate lines
+#        if i not in l.keys():               
+        l[i], = ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2) 
+#        else:
+#            l[i].set_xdata(x)
+#            l[i].set_ydata(y)
+#            l[i].set_3d_properties(z, zdir='z')
+    
+    return l

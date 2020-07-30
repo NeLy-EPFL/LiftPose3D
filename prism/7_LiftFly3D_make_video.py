@@ -18,35 +18,14 @@ from skeleton import skeleton
 from tqdm import tqdm
 import src.utils as utils
 
-
-def plot_3d_graph(pos, ax, l, color_edge = 'k', style = '-', good_keypts=None):
-    
-    pos = np.array(pos)
-
-    for i, j in enumerate(G.edges()): 
-        if good_keypts is not None:
-            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
-                continue
-            
-        x = np.array((pos[j[0]][0], pos[j[1]][0]))
-        y = np.array((pos[j[0]][1], pos[j[1]][1]))
-        z = np.array((pos[j[0]][2], pos[j[1]][2]))
-        
-        if i not in l.keys():               
-            l[i], = ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
-        else:
-            l[i].set_xdata(x)
-            l[i].set_ydata(y)
-            l[i].set_3d_properties(-z, zdir='z')
-    
-    return l
-
-
 print('making video')
 
-#load
-G, color_edge = skeleton() 
+#specify folder
 data_dir = '/data/LiftFly3D/prism/data_oriented/test_data/'
+
+#load
+G, color_edge = skeleton()
+legtips = [4, 9, 14, 19, 24, 29]
 data = torch.load(data_dir + '/test_results.pth.tar')
 
 tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
@@ -80,19 +59,30 @@ ax.view_init(elev=40, azim=140)
 
 writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
-l = {}
+l1, l2, trail = {}, {}, {}
 with writer.saving(fig, "prediction_cams.mp4", 100):
-    for t in tqdm(range(600,650)):
-        pos_pred = []
-        pos_tar = []
+    for t in tqdm(range(600,1000)):
         
+        thist = 5
+        pos_pred, pos_tar = [], []
         for j in range(out.shape[1]):
-            pos_pred.append((inp[t, 2*j], inp[t, 2*j+1], out[t, j]))
-            pos_tar.append((inp[t, 2*j], inp[t, 2*j+1], tar[t, j])) 
-           
-        l = plot_3d_graph(pos_tar, ax, l, color_edge = color_edge, good_keypts=good_keypts[t,:])
-        l = plot_3d_graph(pos_pred, ax, l, color_edge = color_edge, style='--')       
-        
+            tmin = max(0,t-thist)
+            pos_pred.append((inp[tmin:t, 2*j], inp[tmin:t, 2*j+1], -out[tmin:t, j]))
+            pos_tar.append((inp[tmin:t, 2*j], inp[tmin:t, 2*j+1], -tar[tmin:t, j]))
+                
+        pos_pred, pos_tar = np.array(pos_pred), np.array(pos_tar)
+                    
+        l1 = utils.plot_3d_graph(G, pos_tar[:,:,-1], ax, l1, color_edge=color_edge, good_keypts=good_keypts[t,:])    
+        l2 = utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, l2, color_edge=color_edge, style='--') 
+            
+        for leg in legtips:
+            if leg not in trail.keys():
+                trail[leg], = ax.plot(pos_pred[leg,0,:], pos_pred[leg,1,:], pos_pred[leg,2,:], c='y', alpha=0.9)
+            else:
+                trail[leg].set_xdata(pos_pred[leg,0,:])
+                trail[leg].set_ydata(pos_pred[leg,1,:])
+                trail[leg].set_3d_properties(pos_pred[leg,2,:], zdir='z')
+
         if xlim is None:
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
