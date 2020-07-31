@@ -48,7 +48,8 @@ def average_cameras(tar):
 cameras = [1,5]
 #cameras = [2,6] #keep order, they come in L-R pairs!
 
-root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam'
+#root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam'
+root_dir = '/data/LiftFly3D/DF3D/lift_vs_tri/test_dataset/cam'
 
 #import
 G, color_edge = skeleton() #skeleton

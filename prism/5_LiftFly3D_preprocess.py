@@ -4,64 +4,49 @@ import glob
 import torch
 import pickle
 import src.utils as utils
+import yaml
 
-TRAIN_SUBJECTS = [1,2,4]
-#TRAIN_SUBJECTS = [1,2,3,4] #for optobot (using all data here)
-TEST_SUBJECTS  = [3]
-
-data_dir = '/data/LiftFly3D/prism/data_oriented/test_data'
-#data_dir = '/data/LiftFly3D/prism/data_oriented/training_data'
-#data_dir = '/data/LiftFly3D/optobot/network'
-actions = ['PR']
-rcams = []
-scale = None
-
-#select cameras and joints visible from cameras
-target_sets = [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14],
-               [16, 17, 18, 19], [21, 22, 23, 24], [26, 27, 28, 29]]
-#target_sets = [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
-#               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
-ref_points = [0, 5, 10, 15, 20, 25]
-
+#load global parameters
+par = yaml.full_load(open("params.yaml", "rb"))
 
 def main():   
 
+    print('behaviors' + str(par['actions']))
+    
+    
+    rcams = []
+    
     #xy data
     train_set, test_set, data_mean, data_std, targets_2d, offset = \
-    create_xy_data( actions, data_dir, target_sets, ref_points )
+    create_xy_data( par['actions'], par['data_dir'], par['target_sets'], par['roots'] )
     
-    torch.save(train_set, data_dir + '/train_2d.pth.tar')
-    torch.save(test_set, data_dir + '/test_2d.pth.tar')
+    torch.save(train_set, par['data_dir'] + '/train_2d.pth.tar')
+    torch.save(test_set, par['data_dir'] + '/test_2d.pth.tar')
     torch.save({'mean': data_mean, 'std': data_std, 
                 'targets_2d': targets_2d, 'offset': offset},
-                data_dir + '/stat_2d.pth.tar')
+                par['data_dir'] + '/stat_2d.pth.tar')
     
     #z data
     train_set, test_set, data_mean, data_std, train_keypts, test_keypts, targets_1d, offset = \
-        create_z_data( actions, data_dir, target_sets, ref_points, rcams )
+        create_z_data( par['actions'], par['data_dir'], par['target_sets'], par['roots'], rcams )
         
-    torch.save([train_set, train_keypts], data_dir + '/train_3d.pth.tar')
-    torch.save([test_set, test_keypts], data_dir + '/test_3d.pth.tar')   
+    torch.save([train_set, train_keypts], par['data_dir'] + '/train_3d.pth.tar')
+    torch.save([test_set, test_keypts], par['data_dir'] + '/test_3d.pth.tar')   
     torch.save({'mean': data_mean, 'std': data_std, 
                 'targets_1d': targets_1d, 'offset': offset,
                 'LR_train': train_keypts, 'LR_test': test_keypts},
-                data_dir + '/stat_3d.pth.tar')
+                par['data_dir'] + '/stat_3d.pth.tar')
     
       
-def create_xy_data( actions, data_dir, target_sets, ref_points ):
+def create_xy_data( actions, data_dir, target_sets, roots ):
     """
     Creates 2d poses by projecting 3d poses with the corresponding camera
     parameters.
     """
 
-    dim=2
     # Load 3d data
-    train_set, _ = load_data( data_dir, TRAIN_SUBJECTS, actions, scale )
-    test_set, _  = load_data( data_dir, TEST_SUBJECTS,  actions, scale )
-  
-    #filter data
-#  train_set = utils.filter_data(train_set)
-#    test_set = utils.filter_data(test_set, window=5, order=2)
+    train_set, _ = load_data( data_dir, par['train_subjects'], actions, par['scale'] )
+    test_set, _  = load_data( data_dir, par['test_subjects'],  actions, par['scale'] )
   
     #project data to ventral view
     train_set = XY_coord( train_set )
@@ -75,8 +60,8 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
 #    torch.save(template_set[refs], data_dir + '/template.pth.tar')
 
     # anchor points
-    train_set, _ = utils.anchor( train_set, ref_points, target_sets, dim)
-    test_set, offset = utils.anchor( test_set, ref_points, target_sets, dim)
+    train_set, _ = utils.anchor( train_set, roots, target_sets, par['in_dim'])
+    test_set, offset = utils.anchor( test_set, roots, target_sets, par['in_dim'])
     
     # Compute normalization statistics
     data_mean, data_std = utils.normalization_stats( train_set)
@@ -86,30 +71,25 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
     test_set  = utils.normalize_data( test_set,  data_mean, data_std )
   
     #select coordinates to be predicted and return them as 'targets_3d'
-    train_set, _ = utils.collapse(train_set, None, target_sets, dim)
-    test_set, targets_2d = utils.collapse(test_set, None, target_sets, dim)
+    train_set, _ = utils.collapse(train_set, None, target_sets, par['in_dim'])
+    test_set, targets_2d = utils.collapse(test_set, None, target_sets, par['in_dim'])
 
     return train_set, test_set, data_mean, data_std, targets_2d, offset
 
 
-def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
+def create_z_data( actions, data_dir, target_sets, roots, rcams ):
 
-    dim = 1
     # Load 3d data
-    train_set, train_keypts = load_data( data_dir, TRAIN_SUBJECTS, actions, scale )
-    test_set, test_keypts  = load_data( data_dir, TEST_SUBJECTS,  actions, scale )
-
-    #filter data
-#  train_set = utils.filter_data(train_set)
-#    test_set = utils.filter_data(test_set, window=5, order=2)
+    train_set, train_keypts = load_data( data_dir, par['train_subjects'], actions, par['scale'] )
+    test_set, test_keypts  = load_data( data_dir, par['test_subjects'],  actions, par['scale'] )
   
     #rotate to align with 2D
     train_set = Z_coord( train_set)
     test_set  = Z_coord( test_set )
   
     # anchor points
-    train_set, _ = utils.anchor( train_set, ref_points, target_sets, dim)
-    test_set, offset = utils.anchor( test_set, ref_points, target_sets, dim)
+    train_set, _ = utils.anchor( train_set, roots, target_sets, par['out_dim'])
+    test_set, offset = utils.anchor( test_set, roots, target_sets, par['out_dim'])
 
     # Compute normalization statistics.
     data_mean, data_std = utils.normalization_stats( train_set)
@@ -119,8 +99,8 @@ def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
     test_set  = utils.normalize_data( test_set,  data_mean, data_std )
   
     #select coordinates to be predicted and return them as 'targets_1d'
-    train_set, _ = utils.collapse(train_set, None, target_sets, dim)
-    test_set, targets_1d = utils.collapse(test_set, None, target_sets, dim)
+    train_set, _ = utils.collapse(train_set, None, target_sets, par['out_dim'])
+    test_set, targets_1d = utils.collapse(test_set, None, target_sets, par['out_dim'])
     
     for key in train_keypts.keys():
         train_keypts[key] = train_keypts[key][:,targets_1d]
@@ -130,7 +110,7 @@ def create_z_data( actions, data_dir, target_sets, ref_points, rcams ):
     return train_set, test_set, data_mean, data_std, train_keypts, test_keypts, targets_1d, offset
 
 
-def load_data( path, flies, actions, scale=None):
+def load_data( path, flies, actions, scale=1):
     """
     Load 3d ground truth, put it in a dictionary
 
@@ -161,8 +141,7 @@ def load_data( path, flies, actions, scale=None):
                 poses3d = np.reshape(poses3d, 
                           (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
                 
-                if scale is not None:
-                    poses3d /= scale
+                poses3d /= scale
         
                 data[ (fly, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
                 good_keypts[ (fly, action, seqname[:-4]) ] = poses['good_keypts'].to_numpy()
