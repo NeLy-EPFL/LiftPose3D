@@ -4,14 +4,17 @@ from torch.utils.data import Dataset
 import numpy as np
 
 class data_loader(Dataset):
-    def __init__(self, data_path, is_train=True, noise=None):
+    def __init__(self, data_path, is_train=True, noise=None, predict=False):
         """
         data_path: path to dataset
         is_train: load train/test dataset
+        noise: std. of additive zero-mean Gaussian noise used in training
+        predict: only predict but do not test
         """
 
         self.is_train = is_train
         self.noise = noise
+        self.predict = predict
 
         self.train_inp, self.test_inp,  = [], []
         self.train_out, self.test_out = [], []
@@ -23,7 +26,7 @@ class data_loader(Dataset):
             self.train_2d = torch.load(os.path.join(data_path, 'train_2d.pth.tar'))
             self.train_stat = torch.load(os.path.join(data_path, 'stat_2d.pth.tar'))
             for key in self.train_2d.keys():
-                num_f, num_d = self.train_3d[key].shape
+                num_f, _ = self.train_2d[key].shape
                 assert self.train_3d[key].shape[0] == self.train_2d[key].shape[0], '(training) 3d & 2d shape not matched'
                 for i in range(num_f):
                     self.train_inp.append(self.train_2d[key][i])
@@ -32,16 +35,19 @@ class data_loader(Dataset):
                     self.train_keys.append(key) 
                     
         else:# load test data
-            self.test_3d, self.test_bool = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
+            if not predict:
+                self.test_3d, self.test_bool = torch.load(os.path.join(data_path, 'test_3d.pth.tar'))
             self.test_2d = torch.load(os.path.join(data_path, 'test_2d.pth.tar'))
             for key in self.test_2d.keys():
-                num_f, num_d = self.test_3d[key].shape
-                assert self.test_2d[key].shape[0] == self.test_3d[key].shape[0], '(test) 3d & 2d shape not matched'
+                num_f, _ = self.test_2d[key].shape
+                if not predict:
+                    assert self.test_2d[key].shape[0] == self.test_3d[key].shape[0], '(test) 3d & 2d shape not matched'
                 for i in range(num_f):
                     self.test_inp.append(self.test_2d[key][i])
-                    self.test_out.append(self.test_3d[key][i])
-                    self.test_keypts.append(self.test_bool[key][i])
-                    self.test_keys.append(key)        
+                    if not predict:
+                        self.test_out.append(self.test_3d[key][i])
+                        self.test_keypts.append(self.test_bool[key][i])
+                        self.test_keys.append(key)        
         
     def __getitem__(self, index):
         if self.is_train:
@@ -55,9 +61,14 @@ class data_loader(Dataset):
             
         else:
             inputs = torch.from_numpy(self.test_inp[index]).float()
-            outputs = torch.from_numpy(self.test_out[index]).float()
-            good_keypts = torch.from_numpy(self.test_keypts[index])
-            keys = self.test_keys[index]
+            if self.predict:
+                outputs = torch.from_numpy(np.array(0))
+                good_keypts = torch.from_numpy(np.array(0))
+                keys = torch.from_numpy(np.array(0))
+            else:
+                outputs = torch.from_numpy(self.test_out[index]).float()
+                good_keypts = torch.from_numpy(self.test_keypts[index])
+                keys = self.test_keys[index]
 
         return inputs, outputs, good_keypts, keys
 

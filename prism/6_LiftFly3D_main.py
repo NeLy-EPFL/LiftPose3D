@@ -28,8 +28,8 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=48, output_size=24)
-#    model = LinearModel(input_size=36, output_size=18) #for optobot
+#    model = LinearModel(input_size=48, output_size=24)
+    model = LinearModel(input_size=36, output_size=18) #for optobot
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -63,17 +63,21 @@ def main(opt):
     print("\n>>> loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
     
+    #loader for testing and prediction
+    test_loader = DataLoader(
+                dataset=data_loader(data_path=opt.data_dir, 
+                                    is_train=False,
+                                    predict=opt.predict),
+                                    batch_size=opt.batch_size,
+                                    shuffle=False,
+                                    num_workers=opt.job,
+                                    pin_memory=True)
+    
     # test
-    if opt.test:
-        test_loader = DataLoader(
-                dataset=data_loader(data_path=opt.data_dir, is_train=False),
-                batch_size=opt.batch_size,
-                shuffle=False,
-                num_workers=opt.job,
-                pin_memory=True)
+    if opt.test | opt.predict:
             
         loss_test, err_test, joint_err, all_err, outputs, targets, inputs, good_keypts, keys = \
-        test(test_loader, model, criterion, stat_3d)
+        test(test_loader, model, criterion, stat_3d, predict=opt.predict)
             
         print(os.path.join(opt.out_dir,"test_results.pth.tar"))
         torch.save({'loss': loss_test, 
@@ -86,19 +90,13 @@ def main(opt):
                     'keys': keys, 
                     'good_keypts': good_keypts}, 
                     open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
-            
-        print ("{:.4f}".format(err_test), end='\t')
+        
+        if not opt.predict:
+            print ("{:.4f}".format(err_test), end='\t')
+        
         sys.exit()
 
-    # load datasets for training
-    test_loader = DataLoader(
-        dataset=data_loader(data_path=opt.data_dir, 
-                            is_train=False),
-                            batch_size=opt.batch_size,
-                            shuffle=False,
-                            num_workers=opt.job,
-                            pin_memory=True)
-    
+    # loader for training    
     train_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
                             is_train=True,
