@@ -1,43 +1,18 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Mar 25 17:53:14 2020
-
-@author: adamgosztolai
-"""
-
 import torch
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from matplotlib.animation import FFMpegWriter
+from matplotlib.legend_handler import HandlerTuple
 import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
-from matplotlib.legend_handler import HandlerTuple
 import pickle
 from tqdm import tqdm
 import src.utils as utils
 
-
-def plot_3d_graph(pos, ax, color_edge = 'k', style = '-'):
-    
-    pos = np.array(pos)
-    
-    for i, j in enumerate(G.edges()): 
-        xid, yid = j[0], j[1]
-        if xid is not None and yid is not None:
-            x = np.array((pos[xid][0], pos[yid][0]))
-            y = np.array((pos[xid][1], pos[yid][1]))
-            z = np.array((pos[xid][2], pos[yid][2]))
-                   
-            ax.plot(x, y, -z, style, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
-    
-    return ax
-
-
 G, color_edge = skeleton() #skeleton of fly
-
+legtips = [4, 9, 14, 19, 24, 29]
 print('making video')
 
 data_dir = '/data/LiftFly3D/optobot/102906_s1a5_p6-0' #data directory
@@ -64,8 +39,11 @@ targets_2d = torch.load(template_dir + '/stat_2d.pth.tar')['targets_2d']
 out = utils.expand(out,targets_1d,len(out_mean))
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 
+out *= 6
+
 out += out_offset
 inp += inp_offset
+
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -73,19 +51,29 @@ fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=40, azim=140)
 
-writer = FFMpegWriter(fps=15)
+writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
-
+l, trail = {}, {}
+thist = 5
 with writer.saving(fig, "prediction_cams.mp4", 100):
-    for t in tqdm(range(799)):
+    for t in tqdm(range(2399)):
+              
         pos_pred = []
-        
-        ax.cla()
-        
         for j in range(out.shape[1]):
-            pos_pred.append((inp[t, 2*j], inp[t, 2*j+1], out[t, j]))
-           
-        ax = plot_3d_graph(pos_pred, ax, color_edge = color_edge, style='--')       
+            tmin = max(0,t-thist)
+            pos_pred.append((inp[tmin:(t+1), 2*j], inp[tmin:(t+1), 2*j+1], -out[tmin:(t+1), j]))
+                
+        pos_pred = np.array(pos_pred)
+        
+        l = utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, l, color_edge=color_edge) 
+            
+        for leg in legtips:
+            if leg not in trail.keys():
+                trail[leg], = ax.plot(pos_pred[leg,0,:], pos_pred[leg,1,:], pos_pred[leg,2,:], c='y', alpha=0.9)
+            else:
+                trail[leg].set_xdata(pos_pred[leg,0,:])
+                trail[leg].set_ydata(pos_pred[leg,1,:])
+                trail[leg].set_3d_properties(pos_pred[leg,2,:], zdir='z')     
         
         if xlim is None:
             xlim = ax.get_xlim()
@@ -97,10 +85,11 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p3, p4)], 
-            ['LiftFly3D prediction (x0.25 real time)'], 
+            ['LiftFly3D prediction \n(x0.25 real time)'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.9),
-            frameon=False)    
+            loc=(0.1,0.85),
+            frameon=False, 
+            fontsize=15)    
         p3.remove()
         p4.remove()
         ####

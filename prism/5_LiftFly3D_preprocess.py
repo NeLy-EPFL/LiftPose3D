@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import glob
 import torch
@@ -6,8 +7,10 @@ import pickle
 import src.utils as utils
 import yaml
 
+usr_input = sys.argv[-1]
+
 #load global parameters
-par = yaml.full_load(open("params.yaml", "rb"))
+par = yaml.full_load(open(usr_input, "rb"))
 
 def main():   
 
@@ -144,7 +147,7 @@ def load_data( path, flies, actions, scale=1):
                 poses3d /= scale
         
                 data[ (fly, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
-                good_keypts[ (fly, action, seqname[:-4]) ] = poses['good_keypts'].to_numpy()
+                good_keypts[ (fly, action, seqname[:-4]) ] = poses['good_keypts']
 
     return data, good_keypts
 

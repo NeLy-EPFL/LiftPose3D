@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Mar 25 17:53:14 2020
-
-@author: adamgosztolai
-"""
-
 import torch
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -15,6 +7,7 @@ from matplotlib.legend_handler import HandlerTuple
 import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
+import pickle
 from tqdm import tqdm
 import src.utils as utils
 

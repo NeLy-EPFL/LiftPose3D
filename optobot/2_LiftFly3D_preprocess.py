@@ -4,52 +4,38 @@ import glob
 import torch
 import pickle
 import src.utils as utils
-#import src.procrustes as procrustes
+import yaml
 
-TEST_SUBJECTS  = [0]
-
-data_dir = '/data/LiftFly3D/optobot/102906_s1a5_p6-0/'
-template_dir = '/data/LiftFly3D/optobot/network/'
-actions = ['off2']
-
-#select cameras and joints visible from cameras
-target_sets = [[ 1,  2,  3],  [5,  6,  7], [9, 10, 11],
-               [13, 14, 15], [17, 18, 19], [21, 22, 23]]
-ref_points = [0, 4, 8, 12, 16, 20]
-scale = 28/115
-
+par = yaml.full_load(open('params.yaml', "rb"))
 
 def main():   
     
     try:
-        os.remove(data_dir + '/test_2d.pth.tar')
-        os.remove(data_dir + '/stat_2d.pth.tar')
+        os.remove(par['data_dir'] + '/test_2d.pth.tar')
+        os.remove(par['data_dir'] + '/stat_2d.pth.tar')
     except:
         print("Did not delete the file as it didn't exists")
     
     test_set, data_mean, data_std, targets_1d, targets_2d = \
-    create_xy_data( actions, data_dir, target_sets, ref_points )
+    create_xy_data( par['actions'], par['data_dir'], par['target_sets'], par['roots'] )
     
-    torch.save(test_set, data_dir + '/test_2d.pth.tar')
+    torch.save(test_set, par['data_dir'] + '/test_2d.pth.tar')
     torch.save({'mean': data_mean, 'std': data_std, 
                 'targets_1d': targets_1d, 'targets_2d': targets_2d},
-                data_dir + '/stat_2d.pth.tar')
+                par['data_dir'] + '/stat_2d.pth.tar')
 
-    
-# =============================================================================
-# Define actions
-# =============================================================================    
-def create_xy_data( actions, data_dir, target_sets, ref_points ):
+      
+def create_xy_data( actions, data_dir, target_sets, roots ):
   """
   Creates 2d poses by projecting 3d poses with the corresponding camera
   parameters.
   """
 
   # Load 3d data
-  test_set = load_data( data_dir, TEST_SUBJECTS,  actions, scale )
+  test_set = load_data( data_dir, par['test_subjects'], actions, par['scale'] )
   
   #procrustes wrt prism data
-#  template = torch.load(template_dir + 'template.pth.tar')
+#  template = torch.load(par['template_dir'] + 'template.pth.tar')
 #  target = np.median(np.vstack(test_set.values()),axis=0)
 #  template = template.reshape([-1, 2])
 #  target = target.reshape([-1, 2])
@@ -65,14 +51,13 @@ def create_xy_data( actions, data_dir, target_sets, ref_points ):
 #      test_set[key] = tmp.reshape([-1, 48])
       
   # anchor points
-  test_set, _ = utils.anchor( test_set, ref_points, target_sets, dim=2)    
+  test_set, _ = utils.anchor( test_set, roots, target_sets, dim=2)    
 
   # Compute normalization statistics
-#  data_mean, data_std = utils.normalization_stats( test_set)
-  data_mean = torch.load(template_dir + 'stat_2d.pth.tar')['mean']
-  data_std = torch.load(template_dir + 'stat_2d.pth.tar')['std']
-  refs = [ 0,  2,3,4,   5,7,8,9,      10,12,13,14, #for optobot
-          15,17,18,19,  20,22,23,24,  25,27,28,29]
+  data_mean = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['mean']
+  data_std = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['std']
+  refs = [ 1,  2,3,4,   6,7,8,9,      11,12,13,14, #for optobot
+          16,17,18,19,  21,22,23,24,  26,27,28,29]
   refs = np.array(refs)
   refs = np.sort( np.hstack( (refs*2, refs*2+1)))  
   
@@ -108,7 +93,7 @@ def load_data( path, flies, actions, scale ):
   for fly in flies:
     for action in actions:
         
-      fname = [file for file in fnames if ("fly" + str(fly) + '_' in file and '.pkl' in file) and (action in file)]    
+      fname = [file for file in fnames if ("Fly" + str(fly) in file and '.pkl' in file) and (action in file)]    
       
       for fname_ in fname:
           
@@ -119,8 +104,7 @@ def load_data( path, flies, actions, scale ):
         poses2d = np.reshape(poses2d, 
                           (poses2d.shape[0], poses2d.shape[1]*poses2d.shape[2]))
         
-        if scale is not None:
-            poses2d /= scale 
+        poses2d /= scale 
         data[ (fly, action, seqname[:-4]) ] = poses2d #[:-4] is to get rid of .pkl extension
 
   return data
