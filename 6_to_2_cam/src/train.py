@@ -15,10 +15,10 @@ def train(train_loader, model, criterion, optimizer,
         glob_step += 1
         if glob_step % lr_decay == 0 or glob_step == 1:
             lr_now = utils.lr_decay(optimizer, glob_step, lr_init, lr_decay, gamma)
+            
+        #make prediction with model
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
-
-        #make prediction with model
         outputs = model(inputs)
 
         # calculate loss

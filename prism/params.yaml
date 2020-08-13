@@ -1,5 +1,5 @@
-#data_dir: /data/LiftFly3D/prism/data_oriented/test_data'
-data_dir: '/data/LiftFly3D/prism/data_oriented/training_data'
+data_dir: '/data/LiftFly3D/prism/data_oriented/test_data'
+#data_dir: '/data/LiftFly3D/prism/data_oriented/training_data'
 ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 1

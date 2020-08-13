@@ -12,10 +12,10 @@ def test(test_loader, model, criterion, stat):
     all_dist, all_output, all_target, all_input = [], [], [], []
 
     for i, (inps, tars) in enumerate(tqdm(test_loader)):
-        inputs = Variable(inps.cuda())
-        targets = Variable(tars.cuda(non_blocking=True))
 
         #make prediction with model
+        inputs = Variable(inps.cuda())
+        targets = Variable(tars.cuda(non_blocking=True))
         outputs = model(inputs)
 
         # calculate loss
@@ -28,12 +28,8 @@ def test(test_loader, model, criterion, stat):
         tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
         out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
         
-        abserr = np.abs(out - tar)
-
-        n_pts = len(dimensions)//dim
-        distance = np.zeros((abserr.shape[0], n_pts))
-        for k in range(n_pts):
-            distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
+        #compute error
+        distance = utils.ms_error(tar,out,dim)
 
         #group and stack
         all_dist.append(distance)

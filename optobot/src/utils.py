@@ -288,13 +288,9 @@ def read_crop_pos(file):
     return im_file, x_pos
 
 
-def plot_3d_graph(G, pos, ax, l, color_edge=None, style=None, good_keypts=None):
+def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
     
     for i, j in enumerate(G.edges()):
-        try:
-            l[i].remove()
-        except:
-            pass
             
         if good_keypts is not None:
             if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
@@ -315,15 +311,24 @@ def plot_3d_graph(G, pos, ax, l, color_edge=None, style=None, good_keypts=None):
         if style is None:
             style = '-'
 
-        #udpate lines
-#        if i not in l.keys():               
-        l[i], = ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2) 
-#        else:
-#            l[i].set_xdata(x)
-#            l[i].set_ydata(y)
-#            l[i].set_3d_properties(z, zdir='z')
+        #plot lines           
+        ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2) 
+        
+        
+def plot_trailing_points(pos,thist,ax):
     
-    return l
+    if pos.shape[2]<thist:
+        thist=pos.shape[2]
+    
+    alphas = np.linspace(0.1, 1, thist)
+    rgba_colors = np.zeros((thist,4))
+    rgba_colors[:,[0,1,2]] = 0.8
+    rgba_colors[:, 3] = alphas
+    for j in range(pos.shape[0]):
+        ax.scatter(pos[j,0,:], pos[j,1,:], pos[j,2,:], '-o', color=rgba_colors)
+        for i in range(thist-1):
+            if i<thist:
+                ax.plot(pos[j,0,i:i+2], pos[j,1,i:i+2], pos[j,2,i:i+2], '-o', c=rgba_colors[i,:])
 
 
 def video_to_imgs(vid_path):

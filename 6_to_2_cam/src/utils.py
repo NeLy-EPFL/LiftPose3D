@@ -1,23 +1,19 @@
 import numpy as np
-import copy
 import scipy.signal as scs
-from operator import itemgetter
-from itertools import groupby
-import os
 
-def normalization_stats(train_set):
+def normalization_stats(data):
   """
   Computes normalization statistics: mean and stdev, dimensions used and ignored
 
   Args
-    complete_data: nxd np array with poses
-    dim. integer={1,2,3} dimensionality of the data
+    data: dictionary or np arrays or size frames x dimensions
   Returns
     data_mean: np vector with the mean of the data
     data_std: np vector with the standard deviation of the data
   """
 
-  complete_data = copy.deepcopy( np.vstack( train_set.values() ))
+  complete_data = np.concatenate([v for k,v in data.items()], 0)
+  print(complete_data.shape)
   data_mean = np.mean(complete_data, axis=0)
   data_std  =  np.std(complete_data, axis=0)
   
@@ -27,6 +23,10 @@ def normalization_stats(train_set):
 def normalize_data(data, data_mean, data_std ):
   """
   Normalizes a dictionary of poses
+  
+  Args
+    data: 
+  Returns
   """
  
   for key in data.keys():
@@ -86,19 +86,14 @@ def anchor(poses, anchors, target_sets, dim):
   return poses, offset
 
 
-def collapse(data, vis, targets, dim ):
+def collapse(data, target_sets, dim ):
   """
   Normalizes a dictionary of poses
   """
-  dim_to_use = get_coords_in_dim(targets, dim)
-  
-  if vis is not None:
-      vis = np.array([item for item in list(vis) for i in range(dim)])
-      vis = vis[dim_to_use]
-      dim_to_use = dim_to_use[vis]
+  dim_to_use = get_coords_in_dim(target_sets, dim)
  
-  for key in data.keys():
-    data[ key ] = data[ key ][ :, dim_to_use ]  
+  for key in data.keys():     
+        data[ key ] = data[ key ][ :, dim_to_use ]  
 
   return data, dim_to_use
 
@@ -126,14 +121,11 @@ def filter_data(poses, window=5, order=2):
         poses: dictionary with filtered poses
     '''
         
-    for k in poses.keys():
-        poses_smooth = np.zeros_like(poses[k])
-        for j in range(poses_smooth.shape[1]):
-                poses_smooth[:,j] = scs.savgol_filter(poses[k][:,j], window, order)
-                
-        poses[k] = poses_smooth
-        
-    return poses
+    poses_smooth = np.zeros_like(poses)
+    for j in range(poses_smooth.shape[1]):
+        poses_smooth[:,j] = scs.savgol_filter(poses[:,j], window, order)
+                        
+    return poses_smooth
 
 
 class AverageMeter(object):
@@ -157,57 +149,140 @@ def lr_decay(optimizer, step, lr, decay_step, gamma):
     return lr
 
 
-def world_to_camera(P, R, T):
+def ms_error(tar,out,dim):
+    
+    abserr = np.abs(out - tar)
+
+    n_pts = abserr.shape[1]//dim
+    e = np.zeros((abserr.shape[0], n_pts))
+    for k in range(n_pts):
+        e[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
+    
+    return e
+
+
+def world_to_camera(Pworld, par):
   """
   Rotate/translate 3d poses to camera viewpoint
 
   Args
     P: Nx3 points in world coordinates
-    R: 3x3 Camera rotation matrix
-    T: 3x1 Camera translation parameters
+    par: dictionary of camera parameters
   Returns
     transf: Nx2 points on camera
   """
-
-  ndim = P.shape[1]
-  P = np.reshape(P, [-1, 3])
+      
+  ndim = Pworld.shape[1]
   
-  assert len(P.shape) == 2
-  assert P.shape[1] == 3
+  assert len(Pworld.shape) == 2
+      
+  if type(par) is list:
+      assert len(par) == Pworld.shape[0]
+      
+      Pcam = np.zeros_like(Pworld)
+      for i in range(len(par)):   
+          tmp = np.reshape(Pworld[i,:], [-1, 3]).copy()
+          tmp =  np.matmul(par[i]['R'], tmp.T).T 
+          tmp += par[i]['tvec']
+          Pcam[i,:] = np.reshape( tmp, [-1, ndim] )
+  else:
+      Pcam = np.reshape(Pworld, [-1, 3]).copy()
+      Pcam = np.matmul(par['R'], Pcam.T).T
+      Pcam += par['tvec']
+      Pcam = np.reshape( Pcam, [-1, ndim] )
   
-  P_rot =  np.matmul(R, P.T).T + T
-  
-  return np.reshape( P_rot, [-1, ndim] )
+  return Pcam
 
 
-def camera_to_world( data, cam_par, cam ):
+def camera_to_world(Pcam, par):
   """
   Project 3d poses using camera parameters
 
   Args
-    poses_set: dictionary with 3d poses
+    Pcam: dictionary with 3d poses
     cams: dictionary with camera parameters
     cam_ids: camera_ids to consider
   Returns
     transf: dictionary with 3d poses or 2d poses if projection is True
   """
 
-  ndim = data.shape[1]
-  R, T, _, _, _ = cam_par[cam]
-    
-  Pcam = np.reshape(data, [-1, 3]).copy()
-  Pcam -= T
-  Pworld = np.matmul(np.linalg.inv(R), Pcam.T).T
+  ndim = Pcam.shape[1]
   
-  return np.reshape( Pworld, [-1, ndim] )
+  if type(par) is list:
+      assert len(par) == Pcam.shape[0]
+     
+      Pworld = np.zeros_like(Pcam)
+      for i in range(len(par)):  
+          tmp = np.reshape(Pcam[i,:], [-1, 3]).copy()
+          tmp -= par[i]['tvec']
+          tmp = np.matmul(np.linalg.inv(par[i]['R']), tmp.T).T
+          Pworld[i,:] = np.reshape( tmp, [-1, ndim] )
+  else:
+      Pworld = np.reshape(Pcam, [-1, 3]).copy()
+      Pworld -= par['tvec']
+      Pworld = np.matmul(np.linalg.inv(par['R']), Pworld.T).T
+      Pworld = np.reshape( Pworld, [-1, ndim] )
+  
+  return Pworld
 
 
-def project_to_camera(P, intr):
+def project_to_camera(P, par):
     
   ndim = P.shape[1]
-  P = np.reshape(P, [-1, 3])  
-  proj = np.squeeze(np.matmul(intr, P[:,:,np.newaxis]))
-  proj = proj / proj[:, [2]]
-  proj = proj[:, :2]
   
-  return np.reshape( proj, [-1, int(ndim/3*2)] )
+  if type(par) is list:
+      assert len(par) == P.shape[0]
+      
+      Pproj = np.zeros_like(P)
+      for i in range(len(par)):     
+          tmp = np.reshape(P[i,:], [-1, 3])  
+          tmp = np.squeeze(np.matmul(par['intr'], tmp[:,:,np.newaxis]))
+          tmp /= tmp[:, [2]]
+          tmp = tmp[:, :2]
+          Pproj[i,:] = np.reshape( tmp, [-1, int(ndim/3*2)] )
+  else:
+      P = np.reshape(P, [-1, 3]).copy()
+      Pproj = np.squeeze(np.matmul(par['intr'], P[:,:,np.newaxis]))
+      Pproj /= Pproj[:, [2]]
+      Pproj = Pproj[:, :2]
+  
+  return Pproj
+
+
+def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
+    
+    for i, j in enumerate(G.edges()):
+            
+        if good_keypts is not None:
+            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
+                continue
+            
+        #coordinates
+        x = np.array((pos[j[0]][0], pos[j[1]][0]))
+        y = np.array((pos[j[0]][1], pos[j[1]][1]))
+        z = np.array((pos[j[0]][2], pos[j[1]][2]))
+        
+        #edge color
+        if color_edge is not None:
+            c = color_edge[j[0]]
+        else:
+            c = 'k'
+            
+        #edge style
+        if style is None:
+            style = '-'
+
+        #plot           
+        ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2) 
+        
+        
+def plot_trailing_points(pos,thist,ax):
+    alphas = np.linspace(0.1, 1, thist)
+    rgba_colors = np.zeros((thist,4))
+    rgba_colors[:,[0,1,2]] = 0.8
+    rgba_colors[:, 3] = alphas
+    for j in range(pos.shape[0]):
+        ax.scatter(pos[j,0,:], pos[j,1,:], pos[j,2,:], '-o', color=rgba_colors)
+        for i in range(thist-1):
+            if i<thist:
+                ax.plot(pos[j,0,i:i+2], pos[j,1,i:i+2], pos[j,2,i:i+2], '-o', c=rgba_colors[i,:])

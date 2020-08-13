@@ -1,37 +1,24 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 15 11:08:38 2020
-
-@author: adamgosztolai
-"""
-
 import networkx as nx
 '''
 Joints
 ------
-0:  BODY_COXA,    :19 
-1:  COXA_FEMUR,   :20 
-2:  FEMUR_TIBIA,  :21
-3:  TIBIA_TARSUS, :22
-4:  TARSUS_TIP,   :23
+0:  BODY_COXA,    :15
+1:  COXA_FEMUR,   :16 
+2:  FEMUR_TIBIA,  :17
+3:  TIBIA_TARSUS, :18
+4:  TARSUS_TIP,   :19
 
-5:  BODY_COXA,    :24
-6:  COXA_FEMUR,   :25
-7:  FEMUR_TIBIA,  :26
-8:  TIBIA_TARSUS, :27
-9:  TARSUS_TIP,   :28
+5:  BODY_COXA,    :20
+6:  COXA_FEMUR,   :21
+7:  FEMUR_TIBIA,  :22
+8:  TIBIA_TARSUS, :23
+9:  TARSUS_TIP,   :24
     
-10: BODY_COXA,    :29
-11: COXA_FEMUR,   :30
-12: FEMUR_TIBIA,  :31
-13: TIBIA_TARSUS, :32
-14: TARSUS_TIP,   :33
-
-15: ANTENNA,      :34
-16: STRIPE,       :35
-17: STRIPE,       :36
-18: STRIPE,       :37
+10: BODY_COXA,    :25
+11: COXA_FEMUR,   :26
+12: FEMUR_TIBIA,  :27
+13: TIBIA_TARSUS, :28
+14: TARSUS_TIP,   :29
 '''
 
 def skeleton():
@@ -43,14 +30,14 @@ def skeleton():
              (25,26),(26,27),(27,28),(28,29)]
 
     #0: LF, 1: LM, 2: LH, 3: RF, 4: RM, 5: RH, 
-    limb_id = [i for i in range(6) for j in range(4)]
+    limb_id = [i for i in range(6) for j in range(5)]
     nodes = [i for i in range(30)]
     
     colors = [[186,30,49], [201,86,79], [213,133,121], #RF, RM, RH
               [15,115, 153], [26,141, 175], [117,190,203] #LF, LM, LH
               ]
     
-    edge_colors = [[x / 255.0 for x in colors[i]]  for i in limb_id]
+    edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
     
     #build graph
     G=nx.Graph()
