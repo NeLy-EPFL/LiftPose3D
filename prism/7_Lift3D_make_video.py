@@ -23,12 +23,18 @@ data = torch.load(data_dir + '/test_results.pth.tar')
 tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
 tar_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
 targets_1d = torch.load(data_dir + '/stat_3d.pth.tar')['targets_1d']
-tar_offset = np.vstack(torch.load(data_dir + '/stat_3d.pth.tar')['offset'].values())[0,:]
+tar_offset = np.vstack(torch.load(data_dir + '/stat_3d.pth.tar')['offset'].values())
 
 inp_mean = torch.load(data_dir + '/stat_2d.pth.tar')['mean']
 inp_std = torch.load(data_dir + '/stat_2d.pth.tar')['std']
 targets_2d = torch.load(data_dir + '/stat_2d.pth.tar')['targets_2d']
 inp_offset = np.vstack(torch.load(data_dir + '/stat_2d.pth.tar')['offset'].values())[0,:]
+
+good_keypts = utils.expand(data['good_keypts'],targets_1d,len(tar_mean))
+if np.sum(good_keypts[0,:15])>10:
+    tar_offset = np.hstack((tar_offset[0,:15],tar_offset[0,:15]))
+else:
+    tar_offset = np.hstack((tar_offset[0,15:],tar_offset[0,15:]))
 
 #unnormalize
 tar = utils.unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
@@ -40,8 +46,6 @@ out += tar_offset
 inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 inp += inp_offset
-
-good_keypts = utils.expand(data['good_keypts'],targets_1d,len(tar_mean))
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))

@@ -127,14 +127,11 @@ def filter_data(poses, window=5, order=2):
         poses: dictionary with filtered poses
     '''
         
-    for k in poses.keys():
-        poses_smooth = np.zeros_like(poses[k])
-        for j in range(poses_smooth.shape[1]):
-                poses_smooth[:,j] = scs.savgol_filter(poses[k][:,j], window, order)
-                
-        poses[k] = poses_smooth
+    poses_smooth = np.zeros_like(poses)
+    for j in range(poses_smooth.shape[1]):
+        poses_smooth[:,j] = scs.savgol_filter(poses[:,j], window, order) 
         
-    return poses
+    return poses_smooth
 
 
 class AverageMeter(object):

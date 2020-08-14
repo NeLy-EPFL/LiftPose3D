@@ -126,14 +126,11 @@ def filter_data(poses, window=5, order=2):
         poses: dictionary with filtered poses
     '''
         
-    for k in poses.keys():
-        poses_smooth = np.zeros_like(poses[k])
-        for j in range(poses_smooth.shape[1]):
-                poses_smooth[:,j] = scs.savgol_filter(poses[k][:,j], window, order)
-                
-        poses[k] = poses_smooth
+    poses_smooth = np.zeros_like(poses)
+    for j in range(poses_smooth.shape[1]):
+        poses_smooth[:,j] = scs.savgol_filter(poses[:,j], window, order) 
         
-    return poses
+    return poses_smooth
 
 
 class AverageMeter(object):
@@ -211,6 +208,40 @@ def project_to_camera(P, intr):
     proj = proj[:, :2]
   
     return np.reshape( proj, [-1, int(ndim/3*2)] )
+
+
+def XY_coord( poses_set):
+    """
+    Project 3d poses to XY coord
+    """
+    t2d = {}
+
+    for key in poses_set.keys():
+        t3d = poses_set[ key ]
+
+        ndim = t3d.shape[1]
+        XY = np.reshape(t3d, [-1, 3])
+        XY = XY[:,:2]
+        t2d[ key ] = np.reshape( XY, [-1, ndim//3*2] )
+ 
+    return t2d
+
+
+def Z_coord( poses_set):
+    """
+    Project 3d poses to Z coord
+    """
+    t1d = {}
+
+    for key in poses_set.keys():
+        t3d = poses_set[ key ]
+
+        ndim = t3d.shape[1]
+        Z = np.reshape(t3d, [-1, 3])
+        Z = Z[:,2]
+        t1d[ key ] = np.reshape( Z, [-1, ndim//3] )
+
+    return t1d
 
 
 def flip_LR(data):

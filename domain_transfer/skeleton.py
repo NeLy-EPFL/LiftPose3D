@@ -35,8 +35,7 @@ def skeleton():
              (26,27),(27,28),(28,29)]
 
     #0: LF, 1: LM, 2: LH, 3: RF, 4: RM, 5: RH, 
-    limb_id = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
-    
+    limb_id = [i for i in range(6) for j in range(5)]
     nodes = [i for i in range(30)]
     
     colors = [[15,115,153], [26,141,175], [117,190,203], #LF, LM, LH

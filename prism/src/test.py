@@ -49,7 +49,7 @@ def test(test_loader, model, criterion, stat, predict=False):
     
     if predict:
         return None, None, None, None, all_output, None, all_input, None, None
-    
+        
     all_target = np.vstack(all_target)
     all_dist = np.vstack(all_dist)
     all_bool = np.vstack(all_bool)

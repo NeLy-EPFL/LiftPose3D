@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import glob
 import torch
@@ -6,7 +7,10 @@ import pickle
 import src.utils as utils
 import yaml
 
-par = yaml.full_load(open('params.yaml', "rb"))
+usr_input = sys.argv[-1]
+
+#load global parameters
+par = yaml.full_load(open(usr_input, "rb"))
 
 def main():   
     
@@ -59,7 +63,7 @@ def create_xy_data( actions, data_dir, target_sets, roots ):
   refs = [ 1,  2,3,4,   6,7,8,9,      11,12,13,14, #for optobot
           16,17,18,19,  21,22,23,24,  26,27,28,29]
   refs = np.array(refs)
-  refs = np.sort( np.hstack( (refs*2, refs*2+1)))  
+  refs = np.sort( np.hstack( (refs*2, refs*2+1)))
   
   # Divide every dimension independently
   test_set = utils.normalize_data( test_set, data_mean[refs], data_std[refs] )
@@ -86,7 +90,7 @@ def load_data( path, flies, actions, scale ):
     data: Dictionary with keys k=(subject, action)
   """
 
-  path = os.path.join(path, '*')
+  path = os.path.join(path, '*.pkl')
   fnames = glob.glob( path )
   
   data = {}
