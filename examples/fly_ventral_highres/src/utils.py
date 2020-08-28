@@ -316,7 +316,7 @@ def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
         
 def plot_skeleton(G, x, y, color_edge,  ax=None, good_keypts=None):
            
-    for i, j in enumerate(G.edges()): 
+    for i, j in enumerate(G.edges()):
         if good_keypts is not None:
             if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
                 continue   

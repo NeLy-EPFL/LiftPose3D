@@ -55,14 +55,14 @@ inp = utils.filter_data(inp, window=9, order=2)
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
-fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+fig.subplots_adjust(left=0, right=1, bottom=0, top=0.97)
 ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=40, azim=140)
 
 writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
 thist = 20
-with writer.saving(fig, "prediction_cams.mp4", 100):
+with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
     for t in tqdm(range(135)):
               
         plt.cla()
@@ -92,7 +92,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.legend([(p3, p4)], 
             ['LiftPose3D prediction'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.85),
+            loc=(0.1,0.95),
             frameon=False, 
             fontsize=15)    
         p3.remove()

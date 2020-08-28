@@ -39,9 +39,9 @@ else:
     out_offset = np.hstack((out_offset[0,15:],out_offset[0,15:]))
 
 #inputs
-targets_2d = torch.load(par['template_dir'] + '/stat_2d.pth.tar')['targets_2d']    
-inp_mean = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['mean']
-inp_std = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['std']
+targets_2d = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['targets_2d']    
+inp_mean = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['mean']
+inp_std = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['std']
 inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 inp_offset = np.vstack(torch.load(par['template_dir'] + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
@@ -58,7 +58,7 @@ inp = utils.filter_data(inp, window=9, order=2)
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
-fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+fig.subplots_adjust(left=0, right=1, bottom=0, top=0.97)
 ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=40, azim=140)
 
@@ -95,7 +95,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.legend([(p3, p4)], 
             ['LiftPose3D prediction'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.85),
+            loc=(0.1,0.95),
             frameon=False, 
             fontsize=15)    
         p3.remove()
@@ -110,9 +110,6 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         ax.set_yticklabels([])
         ax.set_zticklabels([])
         
-#        plt.savefig('test.svg')
-#        import sys
-#        sys.exit()
         ax.grid(True)
     
         writer.grab_frame()

@@ -29,7 +29,7 @@ def create_xy_data( actions, data_dir, target_sets, roots ):
   parameters.
   """
 
-  # Load 3d data
+  # Load data
   test_set = load_data( data_dir, par['test_subjects'], actions )
       
   # anchor points

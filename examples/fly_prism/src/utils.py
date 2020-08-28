@@ -253,22 +253,6 @@ def flip_LR(data):
     data.loc[:,cols[half:]] = tmp
     
     return data
-
-
-def orient_left(bottom, th1,c):
-    cos, sin = np.cos(np.pi), np.sin(np.pi)
-    R = np.array(((cos, -sin), (sin, cos)))   
-    
-    x = bottom.loc[:,(slice(None),['x'])].to_numpy()
-    flip_idx = x[:,0] > x[:,-1]
-    
-    tmp = bottom.loc[flip_idx,(slice(None),['x','y'])].to_numpy()
-    tmp = np.reshape(tmp, [-1, 2])
-    tmp = np.matmul(tmp-c,R) + c
-    tmp = np.reshape( tmp, [-1, 60] )
-    bottom.loc[flip_idx,(slice(None),['x','y'])] = tmp
-
-    return bottom
     
         
 def get_epochs(data):

@@ -55,7 +55,7 @@ ax.view_init(elev=40, azim=140)
 
 writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
-with writer.saving(fig, "prediction_cams.mp4", 100):
+with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
     for t in tqdm(range(600,1000)):
         
         plt.cla()
@@ -88,9 +88,9 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose', 'LiftPose3D prediction'], 
+            ['Triangulated 3D pose using both the ventral/side views', 'LiftPose3D prediction using only the ventral view'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
-            loc=(0.1,0.9),
+            loc=(0.05,0.9),
             frameon=False)    
         p1.remove()
         p2.remove()

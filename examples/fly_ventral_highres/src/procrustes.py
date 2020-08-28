@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
-from math import atan2
-#from scipy import ndimage
+#from math import atan2
+from scipy import ndimage
 
 def compute_similarity_transform(X, Y, compute_optimal_scale=False):
   """
@@ -64,47 +64,66 @@ def compute_similarity_transform(X, Y, compute_optimal_scale=False):
   return d, Z, T, b, c
 
 
-def orientation(img, th=130):
+def orientation(img, th=10, k=30):
     img_th = img.copy()
-    img_th[img_th < th] = 0 # was 140
     
-    # Find all the contours in the thresholded image
-    contours, _ = cv2.findContours(img_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    if len(contours) < 1 : return None
-    for i, contour in enumerate(contours):
-        # Calculate the area of each contour
-        area = cv2.contourArea(contour)
-        # Ignore contours that are too small or too large
-        if area > 10000:
-            break
+    #threshold
+    _, img_thresh = cv2.threshold(img_th, th, 255, cv2.THRESH_BINARY)
 
-    # Find the orientation of each shape
-    img_pts = np.empty((len(contour), 2), dtype=np.float64)
-    img_pts[:,0], img_pts[:,1] = contour[:,0,0], contour[:,0,1]
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    flybody = get_largest_conncomp(img_thresh) #mask of fly
+    flybody = cv2.morphologyEx(flybody, cv2.MORPH_OPEN, kernel) #chop legs off with kernel
 
-    # PCA analysis
-    mean = np.empty((0))
-    _, eigenvectors, _ = cv2.PCACompute2(img_pts, mean)
-
-    angle = atan2(eigenvectors[0,1], eigenvectors[0,0])
+    contour, _ = cv2.findContours(flybody, 1, 2)
+    contour = max(contour, key=cv2.contourArea)
     
-    return angle, img_pts
+    ellipse = cv2.fitEllipse(contour)   
+    cx, cy = int(ellipse[0][0]), int(ellipse[0][1])
+    angle = ellipse[2]+90
+    
+    h, w = img.shape
+    M_tr = np.float32([[1,0,w/2-cx],[0,1,h/2-cy]])
+    flybody = cv2.warpAffine(flybody,M_tr,(w,h))
+    img = cv2.warpAffine(img,M_tr,(w,h))
+    img = ndimage.rotate(img, angle, reshape=False)
+    
+    return angle, (cx,cy), img
 
 
-def center_and_align(pts2d, angle, c):
+def get_largest_conncomp(img):
+    '''
+    In a binary image, compute the biggest component (with connected components analysis)
+    Input:
+        img: binary image
+    Output:   
+        biggestComponent: binary image of biggest component in img
+    '''
+    output = cv2.connectedComponentsWithStats(img, 4, cv2.CV_32S)
+    stats = np.transpose(output[2])
+    sizes = stats[4]
+    labelMax = np.where(sizes == np.amax(sizes[1:]))
+    biggestComponent = np.zeros_like(img)
+    biggestComponent[np.where(output[1] == labelMax[0])] = 255
+    
+    return biggestComponent
+
+
+def center_and_align(pts2d, angle, shape, c):
     '''rotate align data'''
+    
+    pts2d = pts2d.copy()
+    pts2d += shape
+    pts2d -= c
     
     #rotate points
     cos, sin = np.cos(angle), np.sin(angle)
     R = np.array(((cos, -sin), (sin, cos)))    
-    pts2d = np.matmul(pts2d-c,R) + c   
-#    pts2d.iloc[:] = tmp.reshape(-1,tmp.shape[0]*2).flatten()
-#    pts2d.iloc[:] = tmp
+    pts2d = np.matmul(pts2d-shape,R)+shape  
     
     if pts2d[0,0]>pts2d[-1,-1]:
         cos, sin = np.cos(np.pi), np.sin(np.pi)
         R = np.array(((cos, -sin), (sin, cos)))    
-        pts2d = np.matmul(pts2d-c,R) + c
+        pts2d = np.matmul(pts2d-shape,R)+shape
         angle += np.pi
         
     return pts2d, angle
@@ -113,35 +132,38 @@ def center_and_align(pts2d, angle, c):
 def procrustes_on_keypoints(data, keypoints):
     xy = data.copy()
     template = xy[:,keypoints,:].mean(0)
+    transf = {'R':[],'t':[]}
     for step in range(data.shape[0]):
         
         A = xy[step,keypoints,:]
         
         xytrans = xy[step,:,:]
 
-        _, _, T,_, c = compute_similarity_transform(template, A)
-        xytrans = np.dot(xytrans, T) + c
+        _, _, R,_, t = compute_similarity_transform(template, A)
+        xytrans = np.dot(xytrans, R) + t
+        transf['R'].append(R)
+        transf['t'].append(t)
 
         xy[step,:,:] = xytrans
     
-    return xy
+    return xy, transf
 
 
-def get_orientation(img_paths, index,th):
-    
-    angle_old = []
-    for i, idx in enumerate(index):
-        im_crop = cv2.imread(img_paths[idx],0)
-        
-        #get orientation and centre
-        angle = orientation(im_crop,th)
-        c = np.array(im_crop.shape)/2
-        
-        if angle_old==[]:
-            angle_old = [angle]
-        else:
-            if np.abs(angle_old[-1] - angle)>np.pi/2:
-                angle += np.pi
-            angle_old.append(angle)
-    
-    return angle_old, c
+#def get_orientation(img_paths, index,th):
+#    
+#    angle_old = []
+#    for i, idx in enumerate(index):
+#        im_crop = cv2.imread(img_paths[idx],0)
+#        
+#        #get orientation and centre
+#        angle = orientation(im_crop,th)
+#        c = np.array(im_crop.shape)/2
+#        
+#        if angle_old==[]:
+#            angle_old = [angle]
+#        else:
+#            if np.abs(angle_old[-1] - angle)>np.pi/2:
+#                angle += np.pi
+#            angle_old.append(angle)
+#    
+#    return angle_old, c

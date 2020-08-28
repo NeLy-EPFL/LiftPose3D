@@ -1,10 +1,9 @@
-data_dir: '/data/LiftFly3D/prism/data_oriented/test_data'
-#data_dir: '/data/LiftFly3D/prism/data_oriented/training_data'
+data_dir: '/data/LiftFly3D/flylimbtracker/network'
 ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 1
 dims_to_exclude: [15,16,17,18,34,35,36,37] #dimensions to not consider
-train_subjects: [1,2,4]
+train_subjects: [1,2,3,4]
 test_subjects: [3]
 cam_id: 0
 actions: ['PR'] #actions to load

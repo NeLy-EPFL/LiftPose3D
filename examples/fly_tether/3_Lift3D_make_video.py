@@ -30,6 +30,7 @@ root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam'
 
 #import
 G, color_edge = skeleton() #skeleton
+legtips = [4, 9, 14, 19, 24, 29]
 
 print('making video using cameras' + str(cameras))
 
@@ -51,9 +52,6 @@ for cam in cameras:
     data = torch.load(data_dir + '/test_results.pth.tar')
     tar_ = data['target']
     out_ = data['output']
-    
-    tar_ = utils.filter_data(tar_, window=5, order=2)
-    out_ = utils.filter_data(out_, window=5, order=2)
     
     #expand
     tar_ = utils.expand(tar_, targets_3d, len(tar_mean))
@@ -94,19 +92,27 @@ fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=30, azim=25)
 
-writer = FFMpegWriter(fps=25)
-with writer.saving(fig, "prediction_cams.mp4", 100):
+writer = FFMpegWriter(fps=10)
+with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
     for t in tqdm(range(900)):
         pos_pred, pos_tar = [], []
         
         ax.cla()
         
-        for j in range(tar.shape[1]//3):
-            pos_tar.append((tar[t, 3*j], tar[t, 3*j+1], tar[t, 3*j+2]))
-            pos_pred.append((out[t, 3*j], out[t, 3*j+1], out[t, 3*j+2]))
-            
-        utils.plot_3d_graph(G,  pos_tar, ax, color_edge = color_edge)
-        utils.plot_3d_graph(G, pos_pred, ax, color_edge = color_edge, style='--')
+        thist = 7
+        pos_pred, pos_tar = [], []
+        for j in range(out.shape[1]//3):
+            tmin = max(0,t-thist+1)
+            pos_pred.append((out[tmin:(t+1), 3*j], out[tmin:(t+1), 3*j+1], out[tmin:(t+1), 3*j+2]))
+            pos_tar.append((tar[tmin:(t+1), 3*j], tar[tmin:(t+1), 3*j+1], tar[tmin:(t+1), 3*j+2]))
+                
+        pos_pred, pos_tar = np.array(pos_pred), np.array(pos_tar)
+        
+        utils.plot_trailing_points(pos_pred[legtips,:,:],min(thist,t+1),ax)
+        
+        #plot skeleton
+        utils.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge)    
+        utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge, style='--')
             
         #### this bit is just to make special legend 
         pts = np.array([1,1])
@@ -115,7 +121,7 @@ with writer.saving(fig, "prediction_cams.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose', 'LiftPose3D prediction'], 
+            ['Triangulated 3D pose using 6 cameras', 'LiftPose3D prediction using 2 cameras'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
             loc=(0.1,0.9),
             frameon=False)    

@@ -1,151 +1,110 @@
 import numpy as np
 import cv2
-from math import atan2
 from src.utils import read_crop_pos
 import os
-import src.procrustes as procrustes
-#from scipy import ndimage
-
-def compute_similarity_transform(X, Y, compute_optimal_scale=False):
-  """
-  A port of MATLAB's `procrustes` function to Numpy.
-  Adapted from http://stackoverflow.com/a/18927641/1884420
-  Args
-    X: array NxM of targets, with N number of points and M point dimensionality
-    Y: array NxM of inputs
-    compute_optimal_scale: whether we compute optimal scale or force it to be 1
-  Returns:
-    d: squared error after transformation
-    Z: transformed Y
-    T: computed rotation
-    b: scaling
-    c: translation
-  """
-
-  muX = X.mean(0)
-  muY = Y.mean(0)
-
-  X0 = X - muX
-  Y0 = Y - muY
-
-  ssX = (X0**2.).sum()
-  ssY = (Y0**2.).sum()
-
-  # centred Frobenius norm
-  normX = np.sqrt(ssX)
-  normY = np.sqrt(ssY)
-
-  # scale to equal (unit) norm
-  X0 = X0 / normX
-  Y0 = Y0 / normY
-
-  # optimum rotation matrix of Y
-  A = np.dot(X0.T, Y0)
-  U,s,Vt = np.linalg.svd(A,full_matrices=False)
-  V = Vt.T
-  T = np.dot(V, U.T)
-
-  # Make sure we have a rotation
-  detT = np.linalg.det(T)
-  V[:,-1] *= np.sign( detT )
-  s[-1]   *= np.sign( detT )
-  T = np.dot(V, U.T)
-
-  traceTA = s.sum()
-
-  if compute_optimal_scale:  # Compute optimum scaling of Y.
-    b = traceTA * normX / normY
-    d = 1 - traceTA**2
-    Z = normX*traceTA*np.dot(Y0, T) + muX
-  else:  # If no scaling allowed
-    b = 1
-    d = 1 + ssY/ssX - 2 * traceTA * normY / normX
-    Z = normY*np.dot(Y0, T) + muX
-
-  c = muX - b*np.dot(muY, T)
-
-  return d, Z, T, b, c
+from scipy import ndimage
 
 
-def orientation(img):
+def orientation(img, th=10, k=30):
     img_th = img.copy()
-    img_th[img_th < 130] = 0 # was 140
     
-    # Find all the contours in the thresholded image
-    contours, _ = cv2.findContours(img_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    if len(contours) < 1 : return None
-    for i, contour in enumerate(contours):
-        # Calculate the area of each contour
-        area = cv2.contourArea(contour)
-        # Ignore contours that are too small or too large
-        if area > 10000:
-            break
+    #threshold
+    _, img_thresh = cv2.threshold(img_th, th, 255, cv2.THRESH_BINARY)
 
-    # Find the orientation of each shape
-    img_pts = np.empty((len(contour), 2), dtype=np.float64)
-    img_pts[:,0], img_pts[:,1] = contour[:,0,0], contour[:,0,1]
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    flybody = get_largest_conncomp(img_thresh) #mask of fly
+    flybody = cv2.morphologyEx(flybody, cv2.MORPH_OPEN, kernel) #chop legs off with kernel
 
-    # PCA analysis
-    mean = np.empty((0))
-    _, eigenvectors, _ = cv2.PCACompute2(img_pts, mean)
-
-    angle = atan2(eigenvectors[0,1], eigenvectors[0,0])
+    contour, _ = cv2.findContours(flybody, 1, 2)
+    contour = max(contour, key=cv2.contourArea)
     
-    return angle
+    ellipse = cv2.fitEllipse(contour)   
+    cx, cy = int(ellipse[0][0]), int(ellipse[0][1])
+    angle = ellipse[2]+90
+    
+    h, w = img.shape
+    M_tr = np.float32([[1,0,w/2-cx],[0,1,h/2-cy]])
+    flybody = cv2.warpAffine(flybody,M_tr,(w,h))
+    img = cv2.warpAffine(img,M_tr,(w,h))
+    img = ndimage.rotate(img, angle, reshape=False)
+    
+    return angle, (cx,cy), img
 
 
-def center_and_align(pts2d, angle, c):
+def get_largest_conncomp(img):
+    '''
+    In a binary image, compute the biggest component (with connected components analysis)
+    Input:
+        img: binary image
+    Output:   
+        biggestComponent: binary image of biggest component in img
+    '''
+    output = cv2.connectedComponentsWithStats(img, 4, cv2.CV_32S)
+    stats = np.transpose(output[2])
+    sizes = stats[4]
+    labelMax = np.where(sizes == np.amax(sizes[1:]))
+    biggestComponent = np.zeros_like(img)
+    biggestComponent[np.where(output[1] == labelMax[0])] = 255
+    
+    return biggestComponent
+    
+
+def plot_skeleton(G,x, y, color_edge,  ax=None, good_keypts=None):
+    import matplotlib.pyplot as plt
+           
+    for i, j in enumerate(G.edges()): 
+        if good_keypts is not None:
+            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
+                continue   
+       
+        u = np.array((x[j[0]], x[j[1]]))
+        v = np.array((y[j[0]], y[j[1]]))
+        if ax is not None:
+            ax.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2)
+        else:
+            plt.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
+
+
+def center_and_align(pts2d, angle, shape, c):
     '''rotate align data'''
     
     idx = pts2d.name
     angle = angle[idx]
     
+    tmp = pts2d.to_numpy().reshape(-1, 2)
+    tmp += shape//2
+    tmp -= c[idx]
+    
     #rotate points
     cos, sin = np.cos(angle), np.sin(angle)
     R = np.array(((cos, -sin), (sin, cos)))    
-    tmp = pts2d.to_numpy().reshape(-1, 2)
-    tmp = np.matmul(tmp-c,R) + c   
-    pts2d.iloc[:] = tmp.reshape(-1,tmp.shape[0]*2).flatten()
+     
+    rot = np.matmul(tmp-shape//2,R) + shape[::-1]//2
+        
+    if rot[0,0]>rot[-1,-1]:
+        cos, sin = np.cos(angle+np.pi), np.sin(angle+np.pi)
+        R = np.array(((cos, -sin), (sin, cos)))    
+        rot = np.matmul(tmp-shape//2,R)+shape[::-1]//2
+    
+    pts2d.iloc[:] = rot.reshape(-1,rot.shape[0]*2).flatten()
         
     return pts2d
-
-
-def procrustes_on_keypoints(data, keypoints):
-    xy = data.loc[:,(slice(None),['x','y'])].copy()
-    template = xy.loc[:,(keypoints,['x','y'])].mean(0).to_numpy().reshape([-1, 2])
-    for step in range(data.shape[0]):
-        
-        A = xy.loc[step,(keypoints,['x','y'])].to_numpy().reshape([-1, 2])
-        
-        xytrans = xy.loc[step,:].to_numpy().reshape([-1, 2])
-
-        _, _, T,_, c = procrustes.compute_similarity_transform(template, A)
-        xytrans = np.dot(xytrans, T) + c
-
-        xy.loc[step,:] = xytrans.reshape(-1, 60).flatten()
-                
-    data.loc[:,(slice(None),['x','y'])] = xy
-    
-    return data
 
 
 def get_orientation(path_crop_pos, path_img, index):
     im_file, _ = read_crop_pos(path_crop_pos)
     
-    angle_old = []
+    angles, imgs_reg, centers, imgs = [], [], [], []
     for i, idx in enumerate(index):
         assert os.path.exists(path_img + im_file[idx]), 'File does not exist: %s' % path_img + im_file[idx]
         im_crop = cv2.imread(path_img + im_file[idx],0)
-        
+              
         #get orientation and centre
-        angle = orientation(im_crop)
-        c = np.array(im_crop.shape)/2
+        angle, c, img_rot = orientation(im_crop, 10)
+
+        angles.append(angle)
+        imgs_reg.append(img_rot)
+        centers.append(c)
+        imgs.append(im_crop)
         
-        if angle_old==[]:
-            angle_old = [angle]
-        else:
-            if np.abs(angle_old[-1] - angle)>np.pi/2:
-                angle += np.pi
-            angle_old.append(angle)
-    
-    return angle_old, c
+    return angles, centers, imgs_reg, im_crop.shape

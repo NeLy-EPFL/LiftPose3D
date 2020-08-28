@@ -5,6 +5,7 @@ from operator import itemgetter
 from itertools import groupby
 import os
 import cv2
+import matplotlib.pyplot as plt
 
 def normalization_stats(train_set):
   """
@@ -341,6 +342,21 @@ def video_to_imgs(vid_path):
             break        
     
     return imgs
+
+
+def plot_skeleton(G, x, y, color_edge,  ax=None, good_keypts=None):
+           
+    for i, j in enumerate(G.edges()):
+        if good_keypts is not None:
+            if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
+                continue   
+       
+        u = np.array((x[j[0]], x[j[1]]))
+        v = np.array((y[j[0]], y[j[1]]))
+        if ax is not None:
+            ax.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2)
+        else:
+            plt.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
 
 
 def read_convergence_info(file):
