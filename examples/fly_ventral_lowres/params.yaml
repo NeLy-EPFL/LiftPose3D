@@ -1,9 +1,8 @@
-data_dir: '/data/LiftFly3D/optobot/102906_s1a5_p6-0/'
-template_dir: '/data/LiftFly3D/optobot/network/'
-ndims: 38 #number of dimensions in dataset
+data_dir: '/data/LiftFly3D/fly_ventral_lowres/102906_s1a5_p6-0/'
+template_dir: '/data/LiftFly3D/fly_ventral_lowres/network/'
+n_keypoints: 
 in_dim: 2
 out_dim: 1
-dims_to_exclude: [] #dimensions to not consider
 test_subjects: [0]
 actions: ['all'] #actions to load
 interval: []

@@ -43,15 +43,11 @@ targets_2d = torch.load(par['template_dir'] + '/stat_2d.pth.tar')['targets_2d']
 out = utils.expand(out,targets_1d,len(out_mean))
 inp = utils.expand(inp,targets_2d,len(inp_mean))
 
-#out *= 6
-
 out += out_offset
 inp += inp_offset
 
-out = utils.filter_data(out, window=9, order=2)
-inp = utils.filter_data(inp, window=9, order=2)
-
-
+#out = utils.filter_data(out, window=9, order=2)
+#inp = utils.filter_data(inp, window=9, order=2)
 
 # Set up a figure twice as tall as it is wide
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -63,7 +59,7 @@ writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
 thist = 20
 with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
-    for t in tqdm(range(135)):
+    for t in tqdm(range(out.shape[0])):
               
         plt.cla()
         
@@ -107,9 +103,6 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         ax.set_yticklabels([])
         ax.set_zticklabels([])
         
-        plt.savefig('test.svg')
-        import sys
-        sys.exit()
         ax.grid(True)
     
         writer.grab_frame()

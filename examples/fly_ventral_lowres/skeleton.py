@@ -10,33 +10,33 @@ import networkx as nx
 '''
 Joints
 ------
-0:  COXA_FEMUR,   :12
-1:  FEMUR_TIBIA,  :13
-2:  TIBIA_TARSUS, :14
-3:  TARSUS_TIP,   :15
+0:  BODY_COXA,    :15
+2:  FEMUR_TIBIA,  :17
+3:  TIBIA_TARSUS, :18
+4:  TARSUS_TIP,   :19
 
-4:  COXA_FEMUR,   :16
-5:  FEMUR_TIBIA,  :17
-6:  TIBIA_TARSUS, :18
-7:  TARSUS_TIP,   :19
+5:  BODY_COXA,    :20
+7:  FEMUR_TIBIA,  :22
+8:  TIBIA_TARSUS, :23
+9:  TARSUS_TIP,   :24
     
-8:  COXA_FEMUR,   :20
-9:  FEMUR_TIBIA,  :21
-10: TIBIA_TARSUS, :22
-11: TARSUS_TIP,   :24
+10: BODY_COXA,    :25
+12: FEMUR_TIBIA,  :27
+13: TIBIA_TARSUS, :28
+14: TARSUS_TIP,   :29
 '''
 
 def skeleton():
-    edges = [(0,1),(1,2),(2,3),
-             (4,5),(5,6),(6,7),
-             (8,9),(9,10),(10,11),
-             (12,13),(13,14),(14,15),
+    edges = [(1,2),(2,3),(3,4),
+             (6,7),(7,8),(8,9),
+             (11,12),(12,13),(13,14),
              (16,17),(17,18),(18,19),
-             (20,21),(21,22),(22,23)]
+             (21,22),(22,23),(23,24),
+             (26,27),(27,28),(28,29)]
 
     #0: LF, 1: LM, 2: LH, 3: RF, 4: RM, 5: RH, 
-    limb_id = [i for i in range(6) for j in range(4)]
-    nodes = [i for i in range(24)]
+    limb_id = [i for i in range(6) for j in range(5)]
+    nodes = [i for i in range(30)]
     
     colors = [[15,115,153], [26,141,175], [117,190,203], #LF, LM, LH
               [186,30,49], [201,86,79], [213,133,121] #RF, RM, RH

@@ -77,12 +77,19 @@ def load_data( path, flies, actions ):
   for fly in flies:
     for action in actions:
         
-      fname = [file for file in fnames if ("Fly" + str(fly) in file and '.pkl' in file) and (action in file)]    
+      fname = fnames.copy()
+        
+      if fly!='all':
+          fname = [file for file in fname if "Fly"+ str(fly) in file]   
+                
+      if action!='all':
+          fname = [file for file in fname if action in file] 
+                
+      assert len(fname)!=0, 'No files found. Check path!'
       
       for fname_ in fname:
           
         seqname = os.path.basename( fname_ )  
-        print(fname)
         poses = pickle.load(open(fname_, "rb"))
         poses2d = poses['points2d']
         poses2d = np.reshape(poses2d, 

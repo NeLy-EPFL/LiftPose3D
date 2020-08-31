@@ -1,4 +1,4 @@
-data_dir: '/data/LiftFly3D/optobot/network'
+data_dir: '/data/LiftFly3D/fly_ventral_lowres/network'
 ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 1
