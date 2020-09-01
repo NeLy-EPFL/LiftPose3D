@@ -1,4 +1,5 @@
 import numpy as np
+import src.stat as stats
 import src.utils as utils
 from tqdm import tqdm
 from torch.autograd import Variable
@@ -25,11 +26,11 @@ def test(test_loader, model, criterion, stat):
         # undo normalisation to calculate accuracy in real units
         dim=3
         dimensions = stat['targets_3d']
-        tar = utils.unNormalizeData(targets.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
-        out = utils.unNormalizeData(outputs.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
+        tar = stats.unNormalize(targets.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
+        out = stats.unNormalize(outputs.data.cpu().numpy(), stat['mean'][dimensions], stat['std'][dimensions])
         
         #compute error
-        distance = utils.ms_error(tar,out,dim)
+        distance = stats.abs_error(tar,out,dim)
 
         #group and stack
         all_dist.append(distance)

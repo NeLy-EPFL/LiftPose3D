@@ -24,9 +24,7 @@ def main(opt):
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
     data = data_loader(data_path=opt.data_dir)
     input_size = len(data.train_inp[0])
-    output_size = len(data.train_out[0])   
-    print('\n>>> input dimension: {} '.format(input_size))
-    print('>>> output dimension: {} \n'.format(output_size))
+    output_size = len(data.train_out[0])
 
     # save options
     log.save_options(opt, opt.out_dir)

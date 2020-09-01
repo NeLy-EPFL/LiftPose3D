@@ -1,10 +1,8 @@
-import os
 import sys
 import numpy as np
-import glob
 import torch
-import pickle
 import src.utils as utils
+import src.load as load 
 import yaml
 
 usr_input = sys.argv[-1]
@@ -30,7 +28,7 @@ def create_xy_data( actions, data_dir, target_sets, roots ):
   """
 
   # Load data
-  test_set = load_data( data_dir, par['test_subjects'], actions )
+  test_set, _, _ = load.load_3D( data_dir, subjects=par['test_subjects'], actions=actions )
       
   # anchor points
   test_set, _ = utils.anchor( test_set, roots, target_sets, dim=2)    
@@ -53,51 +51,6 @@ def create_xy_data( actions, data_dir, target_sets, roots ):
   _, targets_1d = utils.collapse(test_set.copy(), None, target_sets, 1)
   
   return test_set, data_mean, data_std, targets_1d, targets_2d
-
-
-# =============================================================================
-# Load functions
-# =============================================================================
-def load_data( path, flies, actions ):
-  """
-  Loads 3d ground truth, and puts it in an easy-to-acess dictionary
-
-  Args
-    path: String. Path where to load the data from
-    flies: List of integers. Flies whose data will be loaded
-    actions: List of strings. The actions to load
-  Returns:
-    data: Dictionary with keys k=(subject, action)
-  """
-
-  path = os.path.join(path, '*.pkl')
-  fnames = glob.glob( path )
-  
-  data = {}
-  for fly in flies:
-    for action in actions:
-        
-      fname = fnames.copy()
-        
-      if fly!='all':
-          fname = [file for file in fname if "Fly"+ str(fly) in file]   
-                
-      if action!='all':
-          fname = [file for file in fname if action in file] 
-                
-      assert len(fname)!=0, 'No files found. Check path!'
-      
-      for fname_ in fname:
-          
-        seqname = os.path.basename( fname_ )  
-        poses = pickle.load(open(fname_, "rb"))
-        poses2d = poses['points2d']
-        poses2d = np.reshape(poses2d, 
-                          (poses2d.shape[0], poses2d.shape[1]*poses2d.shape[2]))
-        
-        data[ (fly, action, seqname[:-4]) ] = poses2d #[:-4] is to get rid of .pkl extension
-
-  return data
 
 
 if __name__ == "__main__":

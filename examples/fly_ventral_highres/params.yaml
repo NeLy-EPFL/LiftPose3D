@@ -3,7 +3,6 @@ template_dir: '/data/LiftFly3D/fly_ventral_highres/network/'
 ndims: 30 #number of dimensions in dataset
 in_dim: 2
 out_dim: 1
-dims_to_exclude: [] #dimensions to not consider
 test_subjects: ['']
 actions: [''] #actions to load
 interval: []

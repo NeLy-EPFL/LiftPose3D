@@ -8,7 +8,9 @@ import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
 from tqdm import tqdm
+import src.plotting as plotting
 import src.utils as utils
+import src.stat as stat
 
 print('making video')
 
@@ -30,21 +32,21 @@ inp_std = torch.load(data_dir + '/stat_2d.pth.tar')['std']
 targets_2d = torch.load(data_dir + '/stat_2d.pth.tar')['targets_2d']
 inp_offset = np.vstack(torch.load(data_dir + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
-good_keypts = utils.expand(data['good_keypts'],targets_1d,len(tar_mean))
+good_keypts = utils.add_roots(data['good_keypts'],targets_1d,len(tar_mean))
 if np.sum(good_keypts[0,:15])>10:
     tar_offset = np.hstack((tar_offset[0,:15],tar_offset[0,:15]))
 else:
     tar_offset = np.hstack((tar_offset[0,15:],tar_offset[0,15:]))
 
 #unnormalize
-tar = utils.unNormalizeData(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
-tar = utils.expand(tar,targets_1d,len(tar_mean))
+tar = stat.unNormalize(data['target'], tar_mean[targets_1d], tar_std[targets_1d])
+tar = utils.add_roots(tar,targets_1d,len(tar_mean))
 tar += tar_offset
-out = utils.unNormalizeData(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
-out = utils.expand(out,targets_1d,len(tar_mean))
+out = stat.unNormalize(data['output'], tar_mean[targets_1d], tar_std[targets_1d])
+out = utils.add_roots(out,targets_1d,len(tar_mean))
 out += tar_offset
-inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
-inp = utils.expand(inp,targets_2d,len(inp_mean))
+inp = stat.unNormalize(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
+inp = utils.add_roots(inp,targets_2d,len(inp_mean))
 inp += inp_offset
 
 # Set up a figure
@@ -70,11 +72,11 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         pos_pred, pos_tar = np.array(pos_pred), np.array(pos_tar)
                     
         #plot trailing dots
-        utils.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
+        plotting.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
         
         #plot skeleton
-        utils.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge, good_keypts=good_keypts[t,:])    
-        utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge, style='--') 
+        plotting.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge, good_keypts=good_keypts[t,:])    
+        plotting.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge, style='--') 
 
         if xlim is None:
             xlim = ax.get_xlim()

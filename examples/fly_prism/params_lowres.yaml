@@ -3,8 +3,8 @@ ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 1
 dims_to_exclude: [15,16,17,18,34,35,36,37] #dimensions to not consider
-train_subjects: [1,2,3,4] #for optobot (using all data here)
-test_subjects: [3]
+train_subjects: ['001','002','003','004'] #for optobot (using all data here)
+test_subjects: []
 cam_id: 0
 actions: ['all'] #actions to load
 interval: []
