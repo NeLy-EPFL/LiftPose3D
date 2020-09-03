@@ -63,9 +63,9 @@ ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=40, azim=140)
 
 writer = FFMpegWriter(fps=10)
-xlim, ylim, zlim = None,None,None
+xlim, ylim, zlim = None, None, None
 thist = 20
-with writer.saving(fig, "prediction_cams.mp4", 100):
+with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
     for t in tqdm(range(100)):
               
         plt.cla()

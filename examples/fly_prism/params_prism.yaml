@@ -1,5 +1,5 @@
-#data_dir: '/data/LiftFly3D/prism/data_oriented/test_data'
-data_dir: '/data/LiftFly3D/prism/data_oriented/training_data'
+#data_dir: '/data/LiftPose3D/prism/data_oriented/test_data'
+data_dir: '/data/LiftPose3D/prism/data_oriented/training_data'
 in_dim: 2
 out_dim: 1
 train_subjects: ['001','002','003']

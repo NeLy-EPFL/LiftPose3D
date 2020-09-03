@@ -121,7 +121,7 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose using 6 cameras', 'LiftPose3D prediction using 2 cameras'], 
+            ['Triangulated 3D pose using 3 cameras per keypoint', 'LiftPose3D prediction using 1 camera per keypoint'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
             loc=(0.1,0.9),
             frameon=False)    

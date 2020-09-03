@@ -22,7 +22,8 @@ def main():
     torch.save(train_set, par['data_dir'] + '/train_2d.pth.tar')
     torch.save(test_set, par['data_dir'] + '/test_2d.pth.tar')
     torch.save({'mean': mean, 'std': std, 
-                'targets_2d': targets_2d, 'offset': offset_2d},
+                'targets_2d': targets_2d, 'offset': offset_2d,
+                'input_size': len(targets_2d)},
                 par['data_dir'] + '/stat_2d.pth.tar')
     
     #z data
@@ -33,7 +34,8 @@ def main():
     torch.save([test_set, test_keypts], par['data_dir'] + '/test_3d.pth.tar')   
     torch.save({'mean': mean, 'std': std, 
                 'targets_1d': targets_1d, 'offset': offset_1d,
-                'LR_train': train_keypts, 'LR_test': test_keypts},
+                'LR_train': train_keypts, 'LR_test': test_keypts,
+                'output_size': len(targets_1d)},
                 par['data_dir'] + '/stat_3d.pth.tar')
     
       

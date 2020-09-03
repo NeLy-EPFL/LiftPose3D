@@ -13,30 +13,31 @@ par = yaml.full_load(open(usr_input, "rb"))
 
 def main():   
     
-    test_set, data_mean, data_std, targets_1d, targets_2d = \
-    create_xy_data(par['actions'], par['data_dir'], par['target_sets'], par['roots'] )
+    test_set, mean, std, targets_1d, targets_2d = \
+    create_xy_data(par)
     
     torch.save(test_set, par['data_dir'] + '/test_2d.pth.tar')
-    torch.save({'mean': data_mean, 'std': data_std, 
-                'targets_1d': targets_1d, 'targets_2d': targets_2d},
+    torch.save({'mean': mean, 'std': std, 
+                'targets_1d': targets_1d, 'targets_2d': targets_2d,
+                'input_size': len(targets_2d)},
                 par['data_dir'] + '/stat_2d.pth.tar')
 
       
-def create_xy_data( actions, data_dir, target_sets, roots ):
+def create_xy_data( par ):
   """
   Creates 2d poses by projecting 3d poses with the corresponding camera
   parameters.
   """
 
-  # Load data
-  test_set, _, _ = load.load_3D( data_dir, subjects=par['test_subjects'], actions=actions )
+  # Load
+  test_set, _, _ = load.load_3D( par['data_dir'], par, subjects=par['test_subjects'], actions=par['actions'] )
       
   # anchor points
-  test_set, _ = utils.anchor( test_set, roots, target_sets, dim=2)    
+  test_set, _ = utils.anchor( test_set, par['roots'], par['target_sets'], dim=2)    
 
   # Compute normalization statistics
-  data_mean = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['mean']
-  data_std = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['std']
+  mean = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['mean']
+  std = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['std']
   
   if 'template_coords' in par.keys():
       refs = np.array(par['template_coords'])
@@ -45,13 +46,13 @@ def create_xy_data( actions, data_dir, target_sets, roots ):
       refs = None
   
   # Divide every dimension independently
-  test_set = stat.normalize_data( test_set, data_mean[refs], data_std[refs] )
+  test_set = stat.normalize( test_set, mean[refs], std[refs] )
   
   #select coordinates to be predicted and return them as 'targets_3d'
-  test_set, targets_2d = utils.collapse(test_set, None, target_sets, 2)
-  _, targets_1d = utils.collapse(test_set.copy(), None, target_sets, 1)
+  test_set, targets_2d = utils.collapse(test_set, par['target_sets'], 2)
+  _, targets_1d = utils.collapse(test_set.copy(), par['target_sets'], 1)
   
-  return test_set, data_mean, data_std, targets_1d, targets_2d
+  return test_set, mean, std, targets_1d, targets_2d
 
 
 if __name__ == "__main__":

@@ -1,13 +1,11 @@
-data_dir: '/data/LiftFly3D/fly_ventral_lowres/102906_s1a5_p6-0/'
-template_dir: '/data/LiftFly3D/fly_ventral_lowres/network/'
-n_keypoints: 
+data_dir: '/data/LiftPose3D/fly_ventral_lowres/102906_s1a5_p6-0/'
+template_dir: '/data/LiftPose3D/fly_ventral_lowres/network/'
 in_dim: 2
 out_dim: 1
 test_subjects: [0]
 actions: ['all'] #actions to load
-interval: []
 target_sets: [[ 1,  2,  3],  [5,  6,  7], [9, 10, 11],
                [13, 14, 15], [17, 18, 19], [21, 22, 23]]
 roots: [0, 4, 8, 12, 16, 20]
 template_coords: [ 1,2,3,4,   6,7,8,9,  11,12,13,14, #coordinates in the prism system
-          16,17,18,19,  21,22,23,24,  26,27,28,29]
+                  16,17,18,19,  21,22,23,24,  26,27,28,29]

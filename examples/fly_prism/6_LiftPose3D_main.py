@@ -22,9 +22,10 @@ def main(opt):
     # data loading
     print("\n>>> loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
-    data = data_loader(data_path=opt.data_dir)
-    input_size = len(data.train_inp[0])
-    output_size = len(data.train_out[0])   
+    stat_2d = torch.load(os.path.join(opt.data_dir, 'stat_2d.pth.tar'))
+    input_size = stat_2d['input_size']
+    output_size = stat_3d['output_size']
+    
     print('\n>>> input dimension: {} '.format(input_size))
     print('>>> output dimension: {} \n'.format(output_size))
 
@@ -75,7 +76,7 @@ def main(opt):
     # test
     if opt.test | opt.predict:
             
-        loss_test, err_test, joint_err, all_err, outputs, targets, inputs, good_keypts, keys = \
+        loss_test, err_test, joint_err, all_err, outputs, targets, inputs, good_keypts = \
         test(test_loader, model, criterion, stat_3d, predict=opt.predict)
             
         print(os.path.join(opt.out_dir,"test_results.pth.tar"))
@@ -86,7 +87,6 @@ def main(opt):
                     'output': outputs, 
                     'target': targets,
                     'input': inputs,
-                    'keys': keys, 
                     'good_keypts': good_keypts}, 
                     open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
         
@@ -125,7 +125,7 @@ def main(opt):
                 max_norm=opt.max_norm)
         
         #test
-        loss_test, err_test, _, _, _, _, _, _, _ = test(
+        loss_test, err_test, _, _, _, _, _, _ = test(
                 test_loader, 
                 model, 
                 criterion, 

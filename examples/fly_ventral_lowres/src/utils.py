@@ -161,16 +161,11 @@ def anchor(poses, anchors, target_sets, dim):
   return poses, offset
 
 
-def collapse(data, vis, targets, dim ):
+def collapse(data, targets, dim ):
   """
   Normalizes a dictionary of poses
   """
   dim_to_use = get_coords_in_dim(targets, dim)
-  
-  if vis is not None:
-      vis = np.array([item for item in list(vis) for i in range(dim)])
-      vis = vis[dim_to_use]
-      dim_to_use = dim_to_use[vis]
  
   for key in data.keys():
     data[ key ] = data[ key ][ :, dim_to_use ]  
@@ -417,19 +412,25 @@ def video_to_imgs(vid_path):
     return imgs
 
 
-def plot_skeleton(G, x, y, color_edge,  ax=None, good_keypts=None):
-           
+def plot_skeleton(G, x, y, color_edge=None,  ax=None, good_keypts=None):
+            
     for i, j in enumerate(G.edges()):
         if good_keypts is not None:
             if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):
                 continue   
        
+        #edge color
+        if color_edge is not None:
+            c = color_edge[j[0]]
+        else:
+            c = 'k'
+            
         u = np.array((x[j[0]], x[j[1]]))
         v = np.array((y[j[0]], y[j[1]]))
         if ax is not None:
-            ax.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2)
+            ax.plot(u, v, c=c, alpha=1.0, linewidth = 2)
         else:
-            plt.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth = 2) 
+            plt.plot(u, v, c=c, alpha=1.0, linewidth = 2) 
 
 
 def read_convergence_info(file):

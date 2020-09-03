@@ -20,7 +20,7 @@ def load_3D( path, par, cam_id=None, subjects='all', actions='all' ):
     
     path = os.path.join(path, '*.pkl')
     fnames = glob.glob( path )
-    
+
     data, cam_par, good_keypts = {}, {}, {}
     for subject in subjects:
         for action in actions:
@@ -40,6 +40,7 @@ def load_3D( path, par, cam_id=None, subjects='all', actions='all' ):
         
                 #load
                 poses = pickle.load(open(fname_, "rb"))
+                print(fname_)
                 poses3d = poses['points3d']
                 
                 #only take data in a specified interval

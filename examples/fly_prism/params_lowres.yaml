@@ -1,13 +1,9 @@
-data_dir: '/data/LiftFly3D/fly_ventral_lowres/network'
-ndims: 38 #number of dimensions in dataset
+data_dir: '/data/LiftPose3D/fly_ventral_lowres/network'
 in_dim: 2
 out_dim: 1
-dims_to_exclude: [15,16,17,18,34,35,36,37] #dimensions to not consider
 train_subjects: ['001','002','003','004'] #for optobot (using all data here)
-test_subjects: []
-cam_id: 0
+test_subjects: ['all']
 actions: ['all'] #actions to load
-interval: []
 target_sets: [[ 2,  3,  4],  [7,  8,  9], [12, 13, 14], #for optobot
               [17, 18, 19], [22, 23, 24], [27, 28, 29]]
 roots: [1, 6, 11, 16, 21, 26]
