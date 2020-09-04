@@ -4,3 +4,4 @@ __pycache__
 *.DS_STORE
 *.png
 .DS_Store
+.ipynb_checkpoints
