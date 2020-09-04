@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
     
-    for i, j in enumerate(G.edges()):
+    for i, j in enumerate(reversed(list(G.edges()))):
             
         if good_keypts is not None:
             if (good_keypts[j[0]]==0) | (good_keypts[j[1]]==0):

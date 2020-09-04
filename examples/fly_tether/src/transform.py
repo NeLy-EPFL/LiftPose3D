@@ -29,25 +29,23 @@ def world_to_camera(poses_world, cam_par):
     return poses_cam
 
 
-def camera_to_world( poses_cam, cam_par, cam ):
+def camera_to_world( poses_cam, cam_par ):
     """
     Rotate/translate 3d poses from camera to world
     
     Args
         poses_cam: poses in camera coordinates
         cam_par: dictionary with camera parameters
-        cam: camera_ids to consider
         
     Returns
         poses_world: poses in world coordinates
     """
 
     ndim = poses_cam.shape[1]
-    R, T, _, _, _ = cam_par[cam]
         
     poses_world = np.reshape(poses_cam, [-1, 3]).copy()
-    poses_world -= T
-    poses_world = np.matmul(np.linalg.inv(R), poses_world.T).T
+    poses_world -= cam_par['tvec']
+    poses_world = np.matmul(np.linalg.inv(cam_par['R']), poses_world.T).T
     poses_world = np.reshape( poses_world, [-1, ndim] )
     
     return poses_world

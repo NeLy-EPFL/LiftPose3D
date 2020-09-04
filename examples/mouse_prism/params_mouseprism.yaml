@@ -1,4 +1,4 @@
-data_dir: '/data/LiftFly3D/mouse'
+data_dir: '/data/LiftPose3D/mouse_prism'
 in_dim: 2
 out_dim: 1
 train_subjects: ['G6AE1','G6AE2','G6AE3','G6AE5']

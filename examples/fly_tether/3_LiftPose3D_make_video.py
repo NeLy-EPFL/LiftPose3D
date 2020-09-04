@@ -7,6 +7,9 @@ from matplotlib.legend_handler import HandlerTuple
 from matplotlib.animation import FFMpegWriter
 matplotlib.use('Agg')
 import src.utils as utils
+import src.transform as transform
+import src.stat as stat
+import src.plotting as plotting
 from skeleton import skeleton
 from tqdm import tqdm
 
@@ -25,8 +28,8 @@ def average_cameras(tar):
 cameras = [1,5]
 #cameras = [2,6] #keep order, they come in L-R pairs!
 
-root_dir = '/data/LiftFly3D/DF3D/cam_angles/cam'
-#root_dir = '/data/LiftFly3D/DF3D/lift_vs_tri/cam'
+root_dir = '/data/LiftPose3D/fly_tether/cam_angles/cam'
+#root_dir = '/data/LiftPose3D/fly_tether/lift_vs_tri/cam'
 
 #import
 G, color_edge = skeleton() #skeleton
@@ -54,20 +57,20 @@ for cam in cameras:
     out_ = data['output']
     
     #expand
-    tar_ = utils.expand(tar_, targets_3d, len(tar_mean))
-    out_ = utils.expand(out_, targets_3d, len(tar_mean))
+    tar_ = utils.add_roots(tar_, targets_3d, len(tar_mean))
+    out_ = utils.add_roots(out_, targets_3d, len(tar_mean))
     
     #unnormalise
-    tar_ = utils.unNormalizeData(tar_, tar_mean, tar_std) 
-    out_ = utils.unNormalizeData(out_, tar_mean, tar_std)
+    tar_ = stat.unNormalize(tar_, tar_mean, tar_std) 
+    out_ = stat.unNormalize(out_, tar_mean, tar_std)
     
     #translate legs back to their original places
     tar_ += offset[0,:]
     out_ += offset[0,:]
     
-    #transform back to world
-    tar_ = utils.camera_to_world(tar_, cam_par)
-    out_ = utils.camera_to_world(out_, cam_par)
+    #transform back to worldcamera_to_world( poses_cam, cam_par, cam )
+    tar_ = transform.camera_to_world(tar_, cam_par[0])
+    out_ = transform.camera_to_world(out_, cam_par[0])
     
     #take only visible coordinates
     if cam==1:
@@ -77,14 +80,13 @@ for cam in cameras:
     if cam==5:
         tar_[:,:tar_.shape[1]//2]=0
         out_[:,:tar_.shape[1]//2]=0
-
+    
     tar.append(tar_)
     out.append(out_)
     
 #combine cameras
 tar = average_cameras(tar)
 out = average_cameras(out)
-
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))
@@ -108,11 +110,11 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
                 
         pos_pred, pos_tar = np.array(pos_pred), np.array(pos_tar)
         
-        utils.plot_trailing_points(pos_pred[legtips,:,:],min(thist,t+1),ax)
+        plotting.plot_trailing_points(pos_pred[legtips,:,:],min(thist,t+1),ax)
         
         #plot skeleton
-        utils.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge)    
-        utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge, style='--')
+        plotting.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge)    
+        plotting.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge, style='--')
             
         #### this bit is just to make special legend 
         pts = np.array([1,1])

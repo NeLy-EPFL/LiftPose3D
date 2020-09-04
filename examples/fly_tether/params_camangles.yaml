@@ -1,5 +1,5 @@
-data_dir: '/data/LiftFly3D/DF3D/data_DF3D/'
-out_dir: '/data/LiftFly3D/DF3D/cam_angles/cam25'
+data_dir: '/data/LiftPose3D/fly_tether/data_DF3D/'
+out_dir: '/data/LiftPose3D/fly_tether/cam_angles/cam25'
 ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 3
