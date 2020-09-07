@@ -1,6 +1,6 @@
 # LiftPose3D
 
-Tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
+The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
 For the theoretical background and for more details on the following examples have a look at our paper:
 
@@ -8,13 +8,29 @@ paper citation/hyperlink here
 
 Don't forget to cite us if you find our work useful.
 
-The best way to use our code is to adapt one of our examples below to your application.
+Here are a few steps to follow to use our code.
 
 ## Data format
 
-Currently LiftFly3D works with data supplied as a Python dictionary and saved as a pickle file. Conveniently, this is same format used for DeepFly3D, our pipeline used for multi-camera 3D pose estimation. The dictionary must contain two keys (1) 'points3d': a numpy array of dimension AxBx3 containing the 3D coordinates in a global reference frame, where A is the number of frames, B is the number of keypoints and 3 are the x, y, z coordinates, and (2) 'points2d': a numpy array of dimension CxAxBx2 containing the 2D coordinates in camera centric reference frame, where C is the number of cameras and A, B as before.
+Ensure that you provide your data as a Python dictionary and saved as a pickle file. Our code uses the following dictionary keys
 
-Refer to ```sample_data.pkl``` for an example.
+1. 3D poses (mandatory): This is the ground truth and must be provided every time you train a network. 
+
+```'points3d'```: a numpy array of dimension AxBx3 containing the 3D coordinates in a global reference frame, where A is the number of frames, B is the number of keypoints and 3 are the x, y, z coordinates. 
+
+2. 2D poses (Optional): These are typically 2D pose predictions from markerless pose estimation software (DeepFly3D, DeepLabCut etc.). If you use this key, follow the 'tethered fly' example code for more details. If you do not use this key, the 2D poses will need to be found by projection. See 'fly in prism-mirror setup' or 'mouse in prism-mirror setup' for more details.
+
+```'points2d'```: a numpy array of dimension CxAxBx2 containing the 2D coordinates in camera centric reference frame, where C is the number of cameras and A, B as before.
+
+3. Keypoints to be used for training (optional): If you use this key, see example 'fly in prism-mirror setup' or 'mouse in prism-mirror setup' for more details.
+
+```'good_keypts'```: boolean binary of dimension AxBx3, where an entry 1 means that the coordinate is to be used for training, 0 means it is to be ommitted from training.
+
+4. Camera parameters: parameters of cameras used during training. 
+
+```n``` (where n is the camera number): a dictionary with keys 'R' (3x3 rotation matrix), 'tvec' (1x3 translation vector), 'vis' (1x#number of dimensions boolean vector of visible points from camera n)
+
+Refer to ```/sample data``` for examples.
 
 ## Examples
 
