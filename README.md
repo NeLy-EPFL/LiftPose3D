@@ -47,9 +47,9 @@ To run the pipeline, the following parameters need to be defined in a file named
 - [x] *actions*: behaviors used (string to seach for in filenames) - specifying 'all' will not apply filter
 
 **Optional**:
-- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/'
-- [ ] *interval*: interval of frames to consider (e.g., [400,800])
-- [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8])
+- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/' - used for domain-transfer only, see example **III**.
+- [ ] *interval*: interval of frames to consider (e.g., [400,800]) - used in example **I**.
+- [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8]) - used in example **I**
 
 ## Preprocessing 
 
@@ -113,7 +113,7 @@ The rest of the scripts follow the same protocol as in the above example.
 The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
 
 1. ```1_DLC_to_LiftPose3D.ipynb``` - convert DeepLabCut predictions into LiftPose3D format and aligns the flies as in examples **II**. Importantly, it performs a rescaling to match the scales between the prism-mirror and the ventral camera datasets. This step is crucial and may need to be adjusted manually to get a good alignment of the datasets.
-2. ```2_LiftPose3D_preprocess.py``` - this preprocessing is slightly different from before because it uses the statistics of the prism-mirror setup to normalize the data.
+2. ```2_LiftPose3D_preprocess.py``` - this preprocessing is slightly different from before because it uses the statistics of the prism-mirror setup to normalize the data. Make sure you specify the option *template_dir* in the configuration file.
 3. Train a network using the prism-mirror dataset. When training for the low resolution dataset, use the option ```--noise 4```, to add a Gaussian noise with standard deviation 4 during training. Adding this option is essential to coarse-grain our network to work with data that has lower resolution than the training dataset. As a rule of thumb, std should be equal to the ratio between the high and low resolution datasets. For example, our training data is at 112 px/mm and out test data is at 28 px/mm to std should be at least 4.
 \
 *Example*: in ```/examples/fly_prism``` run ```python 6_LiftFly3D_main.py --data_dir /data/LiftPose3D/fly_prism/ --out /data/LiftPose3D/fly_ventral_lowres/ --noise 4 --epochs 500```
