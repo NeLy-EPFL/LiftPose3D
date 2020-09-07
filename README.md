@@ -39,7 +39,7 @@ To run the pipeline, the following parameters need to be defined in a file named
 **Mandatory**:
 - [x] *data_dir*: folder to load data from (e.g., '/data/LiftPose3D/fly_ventral_highres/network/')
 - [x] *in_dim*: input dimension (typically 2)
-- [x] *out_dim*: output dimension (typically 1 or 3)
+- [x] *out_dim*: output dimension (typically 1 - depth only - or 3 - full 3D)
 - [x] *target_sets*: dependent keypoints to compute relative to a root (e.g., [[ 1,  2,  3,  4],  [6,  7,  8,  9]])
 - [x] *roots*: root points (e.g., [0, 5], length must equal to the length of target_sets)
 
