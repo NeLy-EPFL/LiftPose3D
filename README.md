@@ -1,4 +1,4 @@
-# LiftFly3D
+# LiftPose3D
 
 Tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
