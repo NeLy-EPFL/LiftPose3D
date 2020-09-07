@@ -18,15 +18,15 @@ Ensure that you provide your data as a Python dictionary and saved as a pickle f
 
 ```'points3d'```: a numpy array of dimension AxBx3 containing the 3D coordinates in a global reference frame, where A is the number of frames, B is the number of keypoints and 3 are the x, y, z coordinates. 
 
-**2. 2D poses**: These are typically 2D pose predictions from markerless pose estimation software (DeepFly3D, DeepLabCut etc.). If you use this key, follow the 'tethered fly' example code for more details. If you do not use this key, the 2D poses will need to be found by projection in order to train the network. See *'fly in prism-mirror setup'* or *'mouse in prism-mirror setup'* for more details. If you want to use a pretrained network for prediction, you only need this key. See *'fly ventral view'* for details.
+**2. 2D poses**: These are typically 2D pose predictions from markerless pose estimation software (DeepFly3D, DeepLabCut etc.). If you use this key, follow example **I** for more details. If you do not use this key, the 2D poses will need to be found by projection in order to train the network. See examples **II** for more details. If you want to use a pretrained network for prediction, you only need this key. See examples **III** for details.
 
 ```'points2d'```: a numpy array of dimension CxAxBx2 containing the 2D coordinates in camera centric reference frame, where C is the number of cameras and A, B as before.
 
-**3. Keypoints to be used for training**: If you use this key, you can specify which dimensions at every frame are used for training. see example *'fly in prism-mirror setup'* or *'mouse in prism-mirror setup'* for more details.
+**3. Keypoints to be used for training**: If you use this key, you can specify which dimensions at every frame are used for training. See example **II** for more details.
 
 ```'good_keypts'```: boolean binary of dimension AxBx3, where an entry 1 means that the coordinate is to be used for training, 0 means it is to be ommitted from training.
 
-**4. Camera parameters**: parameters of cameras used during training. Is this is not used, then projections will be onto the Cartesian axes. See *'fly in prism-mirror setup'* or *'mouse in prism-mirror setup'* for examples.
+**4. Camera parameters**: parameters of cameras used during training. Is this is not used, then projections will be onto the Cartesian axes. See examples **II**.
 
 ```n``` (where n is the camera number): a dictionary with keys 'R' (3x3 rotation matrix), 'tvec' (1x3 translation vector), 'vis' (1x#number of dimensions boolean vector of visible points from camera n)
 
@@ -44,12 +44,12 @@ To run the pipeline, the following parameters need to be defined in a file named
 - [x] *roots*: root points (e.g., [0, 5], length must equal to the length of target_sets)
 
 **Optional**:
-- [ ] \(Optional) *train_subjects*: individuals used for training (string to seach for in filenames)
-* *test_subjects*: individuals used for testing (string to seach for in filenames)
-* *actions*: behaviors used (string to seach for in filenames)
-* *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/'
-* *interval*: interval of frames to consider (e.g., [400,800])
-* *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8])
+- [ ] *train_subjects*: individuals used for training (string to seach for in filenames)
+- [ ] *test_subjects*: individuals used for testing (string to seach for in filenames)
+- [ ] *actions*: behaviors used (string to seach for in filenames)
+- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/'
+- [ ] *interval*: interval of frames to consider (e.g., [400,800])
+- [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8])
 
 ## Preprocessing 
 
@@ -83,7 +83,7 @@ To predict using a pre-trained network (when you don't have a training dataset),
 
 The output will be saved as ```test_results.pth.tar```.
 
-To add a Gaussian noise during training add ```--noise 3```, where 3 is the standard deviation of the noise. This can be used to scale the resolution of the network, see *'fly ventral view'* for mode details.
+To add a Gaussian noise during training add ```--noise 3```, where 3 is the standard deviation of the noise. This can be used to scale the resolution of the network, see examples **III** for mode details.
 
 Refer to ```/src/opt.py``` for more options. 
 
@@ -91,31 +91,33 @@ Refer to ```/src/opt.py``` for more options.
 
 To reproduce our results in the following examples, the provided Python scripts must be run in order as numbered. 
 
-### Reducing the number of cameras needed for full 3D pose estimation
+### I. Reducing the number of cameras needed for full 3D pose estimation
 
 The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
 
-### Predicting 3D pose in freely behaving animals with occluded keypoints
+### II. Predicting 3D pose in freely behaving animals with occluded keypoints
 
 The relevant code is under the folder ```/examples/fly_prism``` and ```/examples/mouse_prism```.
 
+You can ignore 1-2 and use our data directly.
 
-
-```1_crop_raw_images``` - this script makes cropped images centred around the moving fly. Images where the fly is starionary are excluded. The location of each crop is saved.
-```2_DLC_lateral.ipynb``` and ```2_DLC_ventral.ipynb``` - jupyter notebooks used to create DeepLabCut annotations for the ventral and lateral camera views.
-
-
-```3_select_good_predictions.ipynb``` - this jupyter notebook selects high quality predictions for training, testing and video generation. Check out the options inside the notebook.
-
-```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
+1. ```1_crop_raw_images``` - this script makes cropped images centred around the moving fly. Images where the fly is starionary are excluded. The location of each crop is saved.
+2. ```2_DLC_lateral.ipynb``` and ```2_DLC_ventral.ipynb``` - jupyter notebooks used to create DeepLabCut annotations for the ventral and lateral camera views.
+3. ```3_select_good_predictions.ipynb``` - this jupyter notebook selects high quality predictions for training and testing. Check out the options inside the notebook.
+4. ```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
 
 The rest of the scripts follow the same protocol as in the above example.
 
-
-### Using domain adaptation to lift new experimental data where triangulation is impossible
+### III. Using domain adaptation to lift new experimental data where triangulation is impossible
 
 The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
 
-```1_DLC_to_DF3D_convert.ipynb``` - this converts the DeepLabCut predictions into DeepFly3D format. You must run this before you proceed with the pipeline. 
+1. ```1_DLC_to_LiftPose3D.ipynb``` - convert DeepLabCut predictions into LiftPose3D format and aligns the flies as in examples **II**. Importantly, it performs a rescaling to match the scales between the prism-mirror and the ventral camera datasets. This step is crucial and may need to be adjusted manually to get a good alignment of the datasets.
+2. ```2_LiftPose3D_preprocess.py``` - this preprocessing is slightly different from before because it uses the statistics of the prism-mirror setup to normalize the data.
+3. Train a network using the prism-mirror dataset. When training for the low resolution dataset, use the option ```--noise 4```, to add a Gaussian noise with standard deviation 4 during training. Adding this option is essential to coarse-grain our network to work with data that has lower resolution than the training dataset. As a rule of thumb, std should be equal to the ratio between the high and low resolution datasets. For example, our training data is at 112 px/mm and out test data is at 28 px/mm to std should be at least 4.
 
-The rest of the scripts follow the same protocol as in the above example. When training, use the option ```--noise std```, to add a Gaussian noise with standard deviation std during training. Adding this option is essential to coarse-grain our network to work with data that has lower resolution than the training dataset. As a rule of thumb, std should be equal to the ratio between the high and low resolution datasets. For example, our training data is at 114 px/mm and out test data is at 24 px/mm to std should be at least 4.75.
+E.g. in ```/examples/fly_prism``` run ```python 6_LiftFly3D_main.py --data_dir /data/LiftPose3D/fly_prism/ --out /data/LiftPose3D/fly_ventral_lowres/ --noise 4 --epochs 500```
+
+4. Predict the 3D points using the trained network.
+
+E.g. in ```/examples/fly_prism``` run ```python 6_LiftFly3D_main.py --data_dir /data/LiftPose3D/fly_ventral_lowres/ --out /data/LiftPose3D/fly_ventral_lowres/ --predict --load /data/LiftPose3D/fly_ventral_lowres/ckpt_best.pth.tar```
