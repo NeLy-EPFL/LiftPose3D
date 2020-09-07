@@ -42,11 +42,11 @@ To run the pipeline, the following parameters need to be defined in a file named
 - [x] *out_dim*: output dimension (typically 1 - depth only - or 3 - full 3D)
 - [x] *target_sets*: dependent keypoints to compute relative to a root (e.g., [[ 1,  2,  3,  4],  [6,  7,  8,  9]])
 - [x] *roots*: root points (e.g., [0, 5], length must equal to the length of target_sets)
+- [x] *train_subjects*: individuals used for training (string to seach for in filenames) - specifying 'all' will not apply filter
+- [x] *test_subjects*: individuals used for testing (string to seach for in filenames) - specifying 'all' will not apply filter
+- [x] *actions*: behaviors used (string to seach for in filenames) - specifying 'all' will not apply filter
 
 **Optional**:
-- [ ] *train_subjects*: individuals used for training (string to seach for in filenames)
-- [ ] *test_subjects*: individuals used for testing (string to seach for in filenames)
-- [ ] *actions*: behaviors used (string to seach for in filenames)
 - [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/'
 - [ ] *interval*: interval of frames to consider (e.g., [400,800])
 - [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8])
