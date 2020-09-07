@@ -4,7 +4,7 @@ The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates
 
 For the theoretical background and for more details on the following examples have a look at our paper:
 
-paper citation/hyperlink here
+**paper citation/hyperlink here**
 
 Don't forget to cite us if you find our work useful.
 
