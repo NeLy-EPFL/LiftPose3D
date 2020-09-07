@@ -4,12 +4,13 @@ import glob
 import pickle
 
 
-def load_3D( path, par, cam_id=None, subjects='all', actions='all' ):
+def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
     """
     Load 3D ground truth
 
     Args
         path: String. Path where to load the data from
+        par: dictionary of parameters
         subjects: List of strings coding for strings in filename
         actions: List of strings coding for strings in filename
     Returns
@@ -43,12 +44,12 @@ def load_3D( path, par, cam_id=None, subjects='all', actions='all' ):
                 poses3d = poses['points3d']
                 
                 #only take data in a specified interval
-                if 'interval' in par.keys():
+                if (par is not None) and ('interval' in par.keys()):
                     frames = np.arange(par['interval'][0], par['interval'][1])
                     poses3d = poses3d[frames, :,:] #only load the stimulation interval
                     
                 #remove specified dimensions
-                if 'dims_to_exclude' in par.keys():
+                if (par is not None) and ('dims_to_exclude' in par.keys()):
                     dimensions = [i for i in range(par['ndims']) if i not in par['dims_to_exclude']]   
                     poses3d = poses3d[:, dimensions,:]
                     
@@ -74,16 +75,16 @@ def load_3D( path, par, cam_id=None, subjects='all', actions='all' ):
     return data, good_keypts, cam_par
 
 
-def load_2D(path, par, cam_id, subjects='all', actions='all'):
+def load_2D(path, par=None, cam_id=0, subjects='all', actions='all'):
     """
-    Load 2d data, put it in a dictionary.
+    Load 2D data
     
     Args
         path: string. Directory where to load the data from,
-        flies: list of integers. Subjects whose data will be loaded.
-        actions: list of strings. The actions to load.
+        subjects: List of strings coding for strings in filename
+        actions: List of strings coding for strings in filename
     Returns
-        data: dictionary with keys k=(fly, action, filename)
+        data: dictionary with keys k=(subject, action, filename)
     """
 
     path = os.path.join(path, '*.pkl')
@@ -96,7 +97,7 @@ def load_2D(path, par, cam_id, subjects='all', actions='all'):
             fname = fnames.copy()
         
             if subject!='all':
-                fname = [file for file in fname if "Fly"+ str(subject) in file]   
+                fname = [file for file in fname if str(subject) in file]   
                 
             if action!='all':
                 fname = [file for file in fname if action in file]   
@@ -111,12 +112,12 @@ def load_2D(path, par, cam_id, subjects='all', actions='all'):
                 poses = poses['points2d']
                 
                 #only take data in a specified interval
-                if par['interval'] != []:
+                if (par is not None) and ('interval' in par.keys()):
                     frames = np.arange(par['interval'][0], par['interval'][1])
                     poses = poses[:,frames,:,:]
                     
                 #remove specified dimensions
-                if 'dims_to_exclude' in par.keys():
+                if (par is not None) and ('dims_to_exclude' in par.keys()):
                     dimensions = [i for i in range(par['ndims']) if i not in par['dims_to_exclude']]      
                     poses = poses[:,:,dimensions,:]
                     

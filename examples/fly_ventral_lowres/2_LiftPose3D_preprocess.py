@@ -19,7 +19,8 @@ def main():
     torch.save(test_set, par['data_dir'] + '/test_2d.pth.tar')
     torch.save({'mean': mean, 'std': std, 
                 'targets_1d': targets_1d, 'targets_2d': targets_2d,
-                'input_size': len(targets_2d)},
+                'input_size': len(targets_2d),
+                'output_size': len(targets_1d)},
                 par['data_dir'] + '/stat_2d.pth.tar')
 
       

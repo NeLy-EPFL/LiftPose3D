@@ -1,6 +1,5 @@
 import os
 import sys
-
 import torch
 import torch.nn as nn
 import torch.optim
@@ -19,12 +18,21 @@ def main(opt):
     err_best = 1000
     glob_step = 0
     lr_now = opt.lr
+    
+    # data loading
+    print("\n>>> loading data")
+    stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
+    input_size = stat_3d['input_size']
+    output_size = stat_3d['output_size']
+    
+    print('\n>>> input dimension: {} '.format(input_size))
+    print('>>> output dimension: {} \n'.format(output_size))
 
     # save options
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=12, output_size=6)
+    model = LinearModel(input_size=input_size, output_size=output_size)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()
@@ -53,10 +61,6 @@ def main(opt):
     else:
         logger = log.Logger(os.path.join(opt.out_dir, log_file))
         logger.set_names(['epoch', 'lr', 'loss_train', 'loss_test', 'err_test'])
-
-    # data loading
-    print("\n>>> loading data")
-    stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
     
     #loader for testing and prediction
     test_loader = DataLoader(

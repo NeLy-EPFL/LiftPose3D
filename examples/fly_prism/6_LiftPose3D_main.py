@@ -22,8 +22,7 @@ def main(opt):
     # data loading
     print("\n>>> loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
-    stat_2d = torch.load(os.path.join(opt.data_dir, 'stat_2d.pth.tar'))
-    input_size = stat_2d['input_size']
+    input_size = stat_3d['input_size']
     output_size = stat_3d['output_size']
     
     print('\n>>> input dimension: {} '.format(input_size))
@@ -33,7 +32,7 @@ def main(opt):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=input_size, output_size=output_size) #for optobot
+    model = LinearModel(input_size=input_size, output_size=output_size)
     model = model.cuda()
     model.apply(weight_init)
     criterion = nn.MSELoss(size_average=True).cuda()

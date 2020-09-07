@@ -15,15 +15,6 @@ def main():
     
     print('behaviors' + str(par['actions']))
     print('processing for camera' + str(par['cam_id']))
-        
-    #3D ground truth
-    train_set, test_set, mean, std, targets_3d, rcams_test, offset = \
-        read_3d_data( par )
-    
-    torch.save(train_set, par['out_dir'] + '/train_3d.pth.tar')
-    torch.save(test_set, par['out_dir'] + '/test_3d.pth.tar')
-    torch.save({'mean': mean, 'std': std, 'targets_3d': targets_3d, 'rcams': rcams_test, 'offset': offset},
-                par['out_dir'] + '/stat_3d.pth.tar')
     
     #HG prediction (i.e. deeplabcut or similar) 
     train_set, test_set, mean, std, targets_2d = \
@@ -33,6 +24,20 @@ def main():
     torch.save(test_set, par['out_dir'] + '/test_2d.pth.tar')
     torch.save({'mean': mean, 'std': std, 'targets_2d': targets_2d},
                 par['out_dir'] + '/stat_2d.pth.tar')
+    
+    #3D ground truth
+    train_set, test_set, mean, std, targets_3d, rcams_test, offset = \
+        read_3d_data( par )
+    
+    torch.save(train_set, par['out_dir'] + '/train_3d.pth.tar')
+    torch.save(test_set, par['out_dir'] + '/test_3d.pth.tar')
+    torch.save({'mean': mean, 'std': std, 
+                'targets_3d': targets_3d, 
+                'rcams': rcams_test, 
+                'offset': offset,
+                'output_side': len(targets_3d),
+                'input_size': len(targets_2d)},
+                par['out_dir'] + '/stat_3d.pth.tar')
        
 
 def read_3d_data( par ):
@@ -40,7 +45,7 @@ def read_3d_data( par ):
     Pipeline for processing 3D ground-truth data
     """
     
-    # Load 3d data
+    # Load data
     train, _, rcams_train = load.load_3D( par['data_dir'], par, cam_id=par['cam_id'], subjects=par['train_subjects'], actions=par['actions'] )
     test,  _, rcams_test  = load.load_3D( par['data_dir'], par, cam_id=par['cam_id'], subjects=par['test_subjects'],  actions=par['actions'] )
     
@@ -69,7 +74,7 @@ def read_2d_predictions( par ):
     Pipeline for processing 2D data (stacked hourglass predictions)
     """
 
-    # Load 2d data
+    # Load data
     train = load.load_2D( par['data_dir'], par, cam_id=par['cam_id'], subjects=par['train_subjects'], actions=par['actions'])
     test  = load.load_2D( par['data_dir'], par, cam_id=par['cam_id'], subjects=par['test_subjects'],  actions=par['actions'])
 

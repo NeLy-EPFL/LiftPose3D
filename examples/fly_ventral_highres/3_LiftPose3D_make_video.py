@@ -2,37 +2,39 @@ import torch
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import matplotlib
 from matplotlib.animation import FFMpegWriter
 from matplotlib.legend_handler import HandlerTuple
-import matplotlib
 matplotlib.use('Agg')
+import src.plotting as plotting
+import src.utils as utils
+import src.stat as stat
 from skeleton import skeleton
 from tqdm import tqdm
-import src.utils as utils
 import yaml
 import sys
 
-G, color_edge = skeleton() #skeleton of fly
-legtips = [4, 9, 14, 19, 24, 29]
 print('making video')
 
+#specify folder
 usr_input = sys.argv[-1]
 
 #load global parameters
 par = yaml.full_load(open(usr_input, "rb"))
-        
-#predictions
+
+#load
+G, color_edge = skeleton()
+legtips = [4, 9, 14, 19, 24, 29]
 data = torch.load(par['data_dir'] + '/test_results.pth.tar')
 
-#output
 targets_1d = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['targets_1d']
 out_mean = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['mean']
 out_std = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['std']
-out = utils.unNormalizeData(data['output'], out_mean[targets_1d], out_std[targets_1d])
+out = stat.unNormalize(data['output'], out_mean[targets_1d], out_std[targets_1d])
 out_offset = np.vstack(torch.load(par['data_dir']  + '/stat_3d.pth.tar')['offset'].values())
 good_keypts = np.vstack(torch.load(par['data_dir']  + '/stat_3d.pth.tar')['LR_test'].values())
 
-good_keypts = utils.expand(good_keypts,targets_1d,len(out_mean))
+good_keypts = utils.add_roots(good_keypts,targets_1d,len(out_mean))
 if np.sum(good_keypts[0,:15])>10:
     out_offset = np.hstack((out_offset[0,:15],out_offset[0,:15]))
 else:
@@ -42,13 +44,13 @@ else:
 targets_2d = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['targets_2d']    
 inp_mean = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['mean']
 inp_std = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['std']
-inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
+inp = stat.unNormalize(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 inp_offset = np.vstack(torch.load(par['template_dir'] + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
 targets_1d = torch.load(par['template_dir'] + '/stat_3d.pth.tar')['targets_1d'] 
 targets_2d = torch.load(par['template_dir'] + '/stat_2d.pth.tar')['targets_2d'] 
-out = utils.expand(out,targets_1d,len(out_mean))
-inp = utils.expand(inp,targets_2d,len(inp_mean))
+out = utils.add_roots(out,targets_1d,len(out_mean))
+inp = utils.add_roots(inp,targets_2d,len(inp_mean))
 
 out += out_offset
 inp += inp_offset
@@ -78,10 +80,10 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         pos_pred = np.array(pos_pred)
         
         #plot skeleton
-        utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge) 
+        plotting.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge) 
             
         #plot trailing points
-        utils.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
+        plotting.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
         
         if xlim is None:
             xlim = ax.get_xlim()
@@ -109,7 +111,6 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_zticklabels([])
-        
         ax.grid(True)
     
         writer.grab_frame()

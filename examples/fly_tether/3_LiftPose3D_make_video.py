@@ -3,8 +3,8 @@ import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib
-from matplotlib.legend_handler import HandlerTuple
 from matplotlib.animation import FFMpegWriter
+from matplotlib.legend_handler import HandlerTuple
 matplotlib.use('Agg')
 import src.utils as utils
 import src.transform as transform
@@ -12,6 +12,8 @@ import src.stat as stat
 import src.plotting as plotting
 from skeleton import skeleton
 from tqdm import tqdm
+import yaml
+import sys
 
 def average_cameras(tar):
     #average over cameras
@@ -24,12 +26,16 @@ def average_cameras(tar):
     return tar_avg
 
 
+#specify folder
+usr_input = sys.argv[-1]
+
+#load global parameters
+par = yaml.full_load(open(usr_input, "rb"))
+
 #cameras = [0,4]
-cameras = [1,5]
-#cameras = [2,6] #keep order, they come in L-R pairs!
+cameras = par['cam_id']
 
 root_dir = '/data/LiftPose3D/fly_tether/cam_angles/cam'
-#root_dir = '/data/LiftPose3D/fly_tether/lift_vs_tri/cam'
 
 #import
 G, color_edge = skeleton() #skeleton
@@ -123,7 +129,8 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose using 3 cameras per keypoint', 'LiftPose3D prediction using 1 camera per keypoint'], 
+            ['Triangulated 3D pose using 3 cameras per keypoint', \
+             'LiftPose3D prediction using 1 camera per keypoint'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
             loc=(0.1,0.9),
             frameon=False)    

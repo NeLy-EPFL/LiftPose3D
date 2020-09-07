@@ -1,16 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function, absolute_import, division
-
 import os
 import sys
-
 import torch
 import torch.nn as nn
 import torch.optim
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-
 from src.test import test
 from src.train import train
 from src.opt import Options
@@ -28,9 +22,9 @@ def main(opt):
     # data loading
     print("\n>>> loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, 'stat_3d.pth.tar'))
-    data = data_loader(data_path=opt.data_dir)
-    input_size = len(data.train_inp[0])
-    output_size = len(data.train_out[0])
+    input_size = stat_3d['input_size']
+    output_size = stat_3d['output_size']
+    
     print('\n>>> input dimension: {} '.format(input_size))
     print('>>> output dimension: {} \n'.format(output_size))
 
@@ -68,14 +62,18 @@ def main(opt):
         logger = log.Logger(os.path.join(opt.out_dir, log_file))
         logger.set_names(['epoch', 'lr', 'loss_train', 'loss_test', 'err_test'])
     
+    #loader for testing and prediction
+    test_loader = DataLoader(
+                dataset=data_loader(data_path=opt.data_dir, 
+                                    is_train=False,
+                                    predict=opt.predict),
+                                    batch_size=opt.batch_size,
+                                    shuffle=False,
+                                    num_workers=opt.job,
+                                    pin_memory=True)
+                
     # test
-    if opt.test:
-        test_loader = DataLoader(
-                dataset=data_loader(data_path=opt.data_dir, is_train=False),
-                batch_size=opt.batch_size,
-                shuffle=False,
-                num_workers=opt.job,
-                pin_memory=True)
+    if opt.test | opt.predict:
             
         loss_test, err_test, joint_err, all_err, outputs, targets, inputs = \
         test(test_loader, model, criterion, stat_3d)
@@ -89,19 +87,14 @@ def main(opt):
                     'target': targets,
                     'input': inputs}, 
                     open(os.path.join(opt.out_dir,"test_results.pth.tar"), "wb"))
+
+
+        if not opt.predict:
+            print ("{:.4f}".format(err_test), end='\t')
             
-        print ("{:.4f}".format(err_test), end='\t')
         sys.exit()
 
-    # load datasets for training
-    test_loader = DataLoader(
-        dataset=data_loader(data_path=opt.data_dir, 
-                            is_train=False),
-                            batch_size=opt.batch_size,
-                            shuffle=False,
-                            num_workers=opt.job,
-                            pin_memory=True)
-    
+    # loader for training     
     train_loader = DataLoader(
         dataset=data_loader(data_path=opt.data_dir, 
                             is_train=True,

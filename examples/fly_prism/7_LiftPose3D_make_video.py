@@ -2,35 +2,40 @@ import torch
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import matplotlib
 from matplotlib.animation import FFMpegWriter
 from matplotlib.legend_handler import HandlerTuple
-import matplotlib
 matplotlib.use('Agg')
 from skeleton import skeleton
 from tqdm import tqdm
 import src.plotting as plotting
 import src.utils as utils
 import src.stat as stat
+import yaml
+import sys
 
 print('making video')
 
 #specify folder
-data_dir = '/data/LiftFly3D/prism/data_oriented/test_data/'
+usr_input = sys.argv[-1]
+
+#load global parameters
+par = yaml.full_load(open(usr_input, "rb"))
 
 #load
 G, color_edge = skeleton()
 legtips = [4, 9, 14, 19, 24, 29]
-data = torch.load(data_dir + '/test_results.pth.tar')
+data = torch.load(par['data_dir'] + '/test_results.pth.tar')
 
-tar_mean = torch.load(data_dir + '/stat_3d.pth.tar')['mean']
-tar_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
-targets_1d = torch.load(data_dir + '/stat_3d.pth.tar')['targets_1d']
-tar_offset = np.vstack(torch.load(data_dir + '/stat_3d.pth.tar')['offset'].values())
+tar_mean = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['mean']
+tar_std = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['std']
+targets_1d = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['targets_1d']
+tar_offset = np.vstack(torch.load(par['data_dir'] + '/stat_3d.pth.tar')['offset'].values())
 
-inp_mean = torch.load(data_dir + '/stat_2d.pth.tar')['mean']
-inp_std = torch.load(data_dir + '/stat_2d.pth.tar')['std']
-targets_2d = torch.load(data_dir + '/stat_2d.pth.tar')['targets_2d']
-inp_offset = np.vstack(torch.load(data_dir + '/stat_2d.pth.tar')['offset'].values())[0,:]
+inp_mean = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['mean']
+inp_std = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['std']
+targets_2d = torch.load(par['data_dir'] + '/stat_2d.pth.tar')['targets_2d']
+inp_offset = np.vstack(torch.load(par['data_dir'] + '/stat_2d.pth.tar')['offset'].values())[0,:]
 
 good_keypts = utils.add_roots(data['good_keypts'],targets_1d,len(tar_mean))
 if np.sum(good_keypts[0,:15])>10:
@@ -90,7 +95,8 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         p3, = ax.plot(pts, pts, pts, 'r--', dashes=(2, 2))
         p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
         ax.legend([(p1, p2), (p3, p4)], 
-            ['Triangulated 3D pose using both the ventral/side views', 'LiftPose3D prediction using only the ventral view'], 
+            ['Triangulated 3D pose using both the ventral/side views', \
+             'LiftPose3D prediction using only the ventral view'], 
             numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)},
             loc=(0.05,0.9),
             frameon=False)    
