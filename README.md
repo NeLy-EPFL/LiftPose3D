@@ -47,9 +47,10 @@ To run the pipeline, the following parameters need to be defined in a file named
 - [x] *actions*: behaviors used (string to seach for in filenames) - specifying 'all' will not apply filter
 
 **Optional**:
-- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/' - used for domain-transfer only, see example **III**.
+- [ ] *cam_id*: ID of cameras to be used - used in example **I**.
 - [ ] *interval*: interval of frames to consider (e.g., [400,800]) - used in example **I**.
 - [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8]) - used in example **I**
+- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/' - used for domain-transfer only, see example **III**
 
 ## Preprocessing 
 
