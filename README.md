@@ -114,8 +114,10 @@ To reproduce our results in the following examples, the provided Python scripts 
 The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
 
 ### II. Predicting 3D pose in freely behaving animals with occluded keypoints
-<img src="images/fig2ad.png" width="480">
 
+<p align="center">
+  <img src="images/fig2ad.png" width="960">
+</p>
 
 The relevant code is under the folder ```/examples/fly_prism``` and ```/examples/mouse_prism```.
 
@@ -129,8 +131,9 @@ You can ignore 1-2 and use our data directly.
 The rest of the scripts follow the same protocol as in the above example.
 1
 ### III. Using domain adaptation to lift new experimental data where triangulation is impossible
-<img src="images/fig3ad.png" width="480">
-
+<p align="center">
+  <img src="images/fig3ad.png" width="960">
+</p>
 The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
 
 1. ```1_DLC_to_LiftPose3D.ipynb``` - converts DeepLabCut predictions into LiftPose3D format and aligns the flies as in examples **II**. Importantly, it performs a rescaling to match the scales between the prism-mirror and the ventral camera datasets. This step is crucial and may need to be adjusted manually to get a good alignment of the datasets.
