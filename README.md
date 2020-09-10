@@ -1,4 +1,6 @@
 # LiftPose3D
+<img src="images/fig1ad.png" width="480">
+
 
 The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
@@ -111,6 +113,8 @@ To reproduce our results in the following examples, the provided Python scripts 
 The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
 
 ### II. Predicting 3D pose in freely behaving animals with occluded keypoints
+<img src="images/fig2ad.png" width="480">
+
 
 The relevant code is under the folder ```/examples/fly_prism``` and ```/examples/mouse_prism```.
 
@@ -122,8 +126,9 @@ You can ignore 1-2 and use our data directly.
 4. ```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
 
 The rest of the scripts follow the same protocol as in the above example.
-
+1
 ### III. Using domain adaptation to lift new experimental data where triangulation is impossible
+<img src="images/fig3ad.png" width="480">
 
 The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
 
