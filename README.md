@@ -1,6 +1,7 @@
 # LiftPose3D
-<img src="images/fig1ad.png" width="480">
-
+<p align="center">
+  <img src="images/fig1ad.png" width="480">
+</p>
 
 The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
