@@ -1,4 +1,7 @@
 # LiftPose3D
+<p align="center">
+  <img src="images/fig1ad.png" width="720">
+</p>
 
 The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
@@ -13,7 +16,8 @@ Don't forget to cite us if you find our work useful:
   author    = {Adam Gosztolai and
                Semih Günel and
                Marco Pietro Abrate and
-               Daniel Morales and
+               Daniel Morales and 
+               Victor Lobato Rios and
                Helge Rhodin and
                PascalFua and
                Pavan Ramdya},
@@ -104,13 +108,25 @@ Refer to ```/src/opt.py``` for more options.
 
 ## Examples
 
+<p align="center">
+  <img src="images/fig2f.png" width="480">
+</p>
+
 To reproduce our results in the following examples, the provided Python scripts must be run in order as numbered. 
 
 ### I. Reducing the number of cameras needed for full 3D pose estimation
 
+<p align="center">
+  <img src="images/fig2hi.png" width="480">
+</p>
+
 The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
 
 ### II. Predicting 3D pose in freely behaving animals with occluded keypoints
+
+<p align="center">
+  <img src="images/fig2ad.png" width="960">
+</p>
 
 The relevant code is under the folder ```/examples/fly_prism``` and ```/examples/mouse_prism```.
 
@@ -122,9 +138,11 @@ You can ignore 1-2 and use our data directly.
 4. ```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
 
 The rest of the scripts follow the same protocol as in the above example.
-
+1
 ### III. Using domain adaptation to lift new experimental data where triangulation is impossible
-
+<p align="center">
+  <img src="images/fig3ad.png" width="960">
+</p>
 The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
 
 1. ```1_DLC_to_LiftPose3D.ipynb``` - converts DeepLabCut predictions into LiftPose3D format and aligns the flies as in examples **II**. Importantly, it performs a rescaling to match the scales between the prism-mirror and the ventral camera datasets. This step is crucial and may need to be adjusted manually to get a good alignment of the datasets.
