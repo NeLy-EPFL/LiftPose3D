@@ -108,9 +108,17 @@ Refer to ```/src/opt.py``` for more options.
 
 ## Examples
 
+<p align="center">
+  <img src="images/fig2f.png" width="480">
+</p>
+
 To reproduce our results in the following examples, the provided Python scripts must be run in order as numbered. 
 
 ### I. Reducing the number of cameras needed for full 3D pose estimation
+
+<p align="center">
+  <img src="images/fig2hi.png" width="480">
+</p>
 
 The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
 
