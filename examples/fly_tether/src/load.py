@@ -98,7 +98,7 @@ def load_2D(path, par=None, cam_id=None, subjects='all', actions='all'):
         for action in actions:
             
             fname = fnames.copy()
-        
+                    
             if subject!='all':
                 fname = [file for file in fname if str(subject) in file]   
                 
@@ -112,30 +112,33 @@ def load_2D(path, par=None, cam_id=None, subjects='all', actions='all'):
                 f = os.path.basename( fname_ )  
         
                 poses = pickle.load(open(fname_, "rb"))
-                poses = poses['points2d']
+                poses2d = poses['points2d']
                 
                 #only take data in a specified interval
                 if (par is not None) and ('interval' in par.keys()):
                     frames = np.arange(par['interval'][0], par['interval'][1])
-                    poses = poses[:,frames,:,:]
+                    poses2d = poses2d[:,frames,:,:]
                     
                 #remove specified dimensions
                 if (par is not None) and ('dims_to_exclude' in par.keys()):
                     dimensions = [i for i in range(par['ndims']) if i not in par['dims_to_exclude']]      
-                    poses = poses[:,:,dimensions,:]
+                    poses2d = poses2d[:,:,dimensions,:]
                     
                 if cam_id is None:
-                    poses_cam = poses[0,:,:,:]
+                    poses_cam = poses2d[0,:,:,:]
                     poses_cam = np.reshape(poses_cam, 
-                        (poses.shape[1], poses.shape[2]*poses.shape[3]))    
+                        (poses2d.shape[1], poses2d.shape[2]*poses2d.shape[3]))    
 
                     data[ (subject, action, f[:-4]) ] = poses_cam
                     
                 else:
                     for c in cam_id:
-                        poses_cam = poses[c,:,:,:]
+                        poses_cam = poses2d[c,:,:,:]
+                        ids = poses[c]['vis'][dimensions]
+                        ids = np.array(ids).astype(bool)
+                        poses_cam = poses_cam[:,ids,:]
                         poses_cam = np.reshape(poses_cam, 
-                            (poses.shape[1], poses.shape[2]*poses.shape[3]))    
+                            (poses2d.shape[1], sum(ids)*poses2d.shape[3]))    
         
                         data[ (subject, action, f[:-4] + '.cam_' + str(c)) ] = poses_cam
             

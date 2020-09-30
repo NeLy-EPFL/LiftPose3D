@@ -4,21 +4,24 @@ from torch.utils.data import Dataset
 import numpy as np
 
 class data_loader(Dataset):
-    def __init__(self, data_path, is_train=True, noise=None):
+    def __init__(self, data_path, is_train=True, noise=None, predict=False):
         """
         data_path: path to dataset
         is_train: load train/test dataset
+        noise: std. of additive zero-mean Gaussian noise used in training
+        predict: only predict but do not test
         """
         
         self.is_train = is_train
         self.noise = noise
+        self.predict = predict
 
         self.train_inp, self.test_inp,  = [], []
         self.train_out, self.test_out = [], []
         self.train_keypts, self.test_keypts = [], []
         self.test_keys, self.train_keys = [], []
 
-        if self.is_train: # loading training data
+        if self.is_train: # load training data
             self.train_3d = torch.load(os.path.join(data_path, 'train_3d.pth.tar'))
             self.train_2d = torch.load(os.path.join(data_path, 'train_2d.pth.tar'))
             self.train_stat = torch.load(os.path.join(data_path, 'stat_2d.pth.tar'))

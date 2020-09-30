@@ -63,7 +63,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
     return poses, offset
 
 
-def remove_roots(data, targets, n_dim ):
+def remove_roots(data, targets, n_dim, vis=None):
     """
     Normalizes a dictionary of poses
   
@@ -75,10 +75,13 @@ def remove_roots(data, targets, n_dim ):
     Returns
         data: dictionary of experiments with roots removed
         dim_to_use: list of dimensions in use for lifting
-    """
+    """        
+    
     dim_to_use = get_coords_in_dim(targets, n_dim)
  
     for key in data.keys():
+        if vis is not None:
+            data[ key ] = data[ key ][ :, vis ]  
         data[ key ] = data[ key ][ :, dim_to_use ]  
 
     return data, dim_to_use
