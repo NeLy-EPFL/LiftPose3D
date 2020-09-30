@@ -35,7 +35,7 @@ def main():
                 'targets_3d': targets_3d, 
                 'rcams': rcams_test, 
                 'offset': offset,
-                'output_side': len(targets_3d),
+                'output_size': len(targets_3d),
                 'input_size': len(targets_2d)},
                 par['out_dir'] + '/stat_3d.pth.tar')
        
@@ -90,7 +90,7 @@ def read_2d_predictions( par ):
     #select coordinates to be predicted and return them as 'targets'
     train, _ = utils.remove_roots(train, par['target_sets'], par['in_dim'])
     test, targets = utils.remove_roots(test, par['target_sets'], par['in_dim'])
-  
+    
     return train, test, mean, std, targets
 
 

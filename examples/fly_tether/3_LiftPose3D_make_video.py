@@ -32,10 +32,11 @@ usr_input = sys.argv[-1]
 #load global parameters
 par = yaml.full_load(open(usr_input, "rb"))
 
-#cameras = [0,4]
-cameras = par['cam_id']
+cameras = [2,5]
+#cameras = par['cam_id']
 
-root_dir = '/data/LiftPose3D/fly_tether/cam_angles/cam'
+#root_dir = '/data/LiftPose3D/fly_tether/cam_angles/cam'
+root_dir = '/data/LiftPose3D/fly_tether/cam_angles/grooming_test/cam'
 
 #import
 G, color_edge = skeleton() #skeleton
@@ -53,7 +54,7 @@ for cam in cameras:
     tar_std = torch.load(data_dir + '/stat_3d.pth.tar')['std']
     targets_3d = torch.load(data_dir + '/stat_3d.pth.tar')['targets_3d']
     cam_par = torch.load(data_dir + '/stat_3d.pth.tar')['rcams']
-    cam_par = [vv for k,v in cam_par.items() for vv in v]
+    cam_par = list(cam_par.values())
     offset = torch.load(data_dir + '/stat_3d.pth.tar')['offset']
     offset = np.concatenate([v for k,v in offset.items()], 0)
     
@@ -75,24 +76,22 @@ for cam in cameras:
     out_ += offset[0,:]
     
     #transform back to worldcamera_to_world( poses_cam, cam_par, cam )
-    tar_ = transform.camera_to_world(tar_, cam_par[0])
-    out_ = transform.camera_to_world(out_, cam_par[0])
+    tar_ = transform.camera_to_world(tar_, cam_par[0][cam])
+    out_ = transform.camera_to_world(out_, cam_par[0][cam])
     
-    #take only visible coordinates
-    if cam==1:
-        tar_[:,tar_.shape[1]//2:]=0
-        out_[:,tar_.shape[1]//2:]=0
-        
-    if cam==5:
-        tar_[:,:tar_.shape[1]//2]=0
-        out_[:,:tar_.shape[1]//2]=0
+#    tar_ = utils.filter_data(tar_, window=5, order=2)
+#    out_ = utils.filter_data(out_, window=5, order=2)
     
     tar.append(tar_)
     out.append(out_)
     
+tar = np.concatenate(tar,axis=1)
+out = np.concatenate(out,axis=1)
+
 #combine cameras
-tar = average_cameras(tar)
-out = average_cameras(out)
+#tar = average_cameras(tar)
+#out = average_cameras(out)
+#print(tar.shape)
 
 # Set up a figure
 fig = plt.figure(figsize=plt.figaspect(1))

@@ -1,13 +1,15 @@
-data_dir: '/data/LiftFly3D/DF3D/data_DF3D/'
-out_dir: '/data/LiftFly3D/DF3D/behaviors/train_MDN'
+data_dir: '/data/LiftPose3D/fly_tether/data_DF3D/'
+#out_dir: '/data/LiftFly3D/fly_tether/behaviors/train_MDN'
+out_dir: '/data/LiftPose3D/fly_tether/cam_angles/grooming_test/cam2'
 ndims: 38 #number of dimensions in dataset
 in_dim: 2
 out_dim: 3
 dims_to_exclude: [15,16,17,18,34,35,36,37] #dimensions to not consider
 train_subjects: [1,2,3,4,5]
 test_subjects: [6,7]
-cam_id: 2
-actions: ['PR', 'MDN_CsCh', 'aDN_CsCh'] #actions to load
-interval: []#[200,700]# if only stimulation period
+cam_id: [2]
+actions: ['aDN_CsCh'] #actions to load
+#actions: ['PR', 'MDN_CsCh', 'aDN_CsCh'] #actions to load
+#interval: [200,700]# if only stimulation period
 target_sets: [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14]]
 roots: [0, 5, 10]
