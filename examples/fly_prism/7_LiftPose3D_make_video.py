@@ -63,7 +63,8 @@ ax.view_init(elev=40, azim=140)
 writer = FFMpegWriter(fps=10)
 xlim, ylim, zlim = None,None,None
 with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
-    for t in tqdm(range(600,1000)):
+#    for t in tqdm(range(600,1000)):
+    for t in tqdm(range(5184)):
         
         plt.cla()
         
@@ -71,13 +72,13 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         pos_pred, pos_tar = [], []
         for j in range(out.shape[1]):
             tmin = max(0,t-thist+1)
-            pos_pred.append((inp[tmin:(t+1), 2*j], inp[tmin:(t+1), 2*j+1], out[tmin:(t+1), j]))
-            pos_tar.append((inp[tmin:(t+1), 2*j], inp[tmin:(t+1), 2*j+1], tar[tmin:(t+1), j]))
+            pos_pred.append((inp[tmin:(t+1), 2*j], inp[tmin:(t+1), 2*j+1], -out[tmin:(t+1), j]))
+            pos_tar.append((inp[tmin:(t+1), 2*j], inp[tmin:(t+1), 2*j+1], -tar[tmin:(t+1), j]))
                 
         pos_pred, pos_tar = np.array(pos_pred), np.array(pos_tar)
                     
         #plot trailing dots
-        plotting.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
+        plotting.plot_trailing_points(pos_pred[legtips,:,:],min(thist,t+1),ax)
         
         #plot skeleton
         plotting.plot_3d_graph(G, pos_tar[:,:,-1], ax, color_edge=color_edge, good_keypts=good_keypts[t,:])    
