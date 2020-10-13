@@ -7,16 +7,21 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from math import atan2
+from skimage.filters.rank import median
+from skimage.morphology import disk
 
 
 def _remove_borders(img, bwidth):
-    img = img[:, bwidth + 0:-bwidth]
+    img = img[:, bwidth:-bwidth]
 
     return img
 
 
-def _separate_bottom_side_flies(img, th):
-    fl_img = np.mean(img, axis=0)
+def _separate_flies_vertically(img, th):
+    # denoise with median filter
+    # _img = median(img, disk(1))
+    _img = img[horiz_crop_bottom_1:horiz_crop_bottom_2, :]
+    fl_img = np.mean(_img, axis=0)
 
     if DEBUG:
         fig = plt.figure(figsize=(5, 3))
@@ -25,7 +30,7 @@ def _separate_bottom_side_flies(img, th):
         plt.pause(2)
         plt.close(fig)
 
-    fl_img_comp = fl_img > th
+    fl_img_comp = fl_img > th 
     left_vert_crop = np.argmax(fl_img_comp)
     right_vert_crop = len(fl_img) - np.argmax(fl_img_comp[::-1])
 
@@ -35,33 +40,8 @@ def _separate_bottom_side_flies(img, th):
     right_bbox_pad = int(np.ceil(mean_bbox_pad))
     print(left_bbox_pad)
 
-    return img[:horiz_crop, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
-           img[horiz_crop:, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
-           left_vert_crop - left_bbox_pad, \
-           right_vert_crop + right_bbox_pad
-
-
-def _separate_bottom_side_flies_vertical_only(img, th):
-    fl_img = np.mean(img, axis=0)
-
-    if DEBUG:
-        fig = plt.figure(figsize=(5, 3))
-        plt.plot(fl_img)
-        plt.show(block=False)
-        plt.pause(2)
-        plt.close(fig)
-
-    fl_img_comp = fl_img > th
-    left_vert_crop = np.argmax(fl_img_comp)
-    right_vert_crop = len(fl_img) - np.argmax(fl_img_comp[::-1])
-
-    bbox_dim = right_vert_crop - left_vert_crop
-    mean_bbox_pad = (bbox_width - bbox_dim) / 2
-    left_bbox_pad = int(np.floor(mean_bbox_pad))
-    right_bbox_pad = int(np.ceil(mean_bbox_pad))
-    print(left_bbox_pad)
-
-    return img[:, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
+    return img[horiz_crop_bottom_1:horiz_crop_bottom_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
+           img[horiz_crop_up_1:horiz_crop_up_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
            left_vert_crop - left_bbox_pad, \
            right_vert_crop + right_bbox_pad
 
@@ -100,18 +80,19 @@ def _find_orientation(img):
     if DEBUG:
         img_debug = img.copy()
         cv2.drawContours(img_debug, contours, i, (255, 0, 0), 2)
-        cv2.putText(img_debug, "%.2f degree" % angle, (10, horiz_crop - 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(img_debug, "%.2f degree" % angle, (10, horiz_crop_bottom_1 - 50), cv2.FONT_HERSHEY_SIMPLEX,
                     0.8, (255, 0, 0), 1, cv2.LINE_AA)
         cv2.imshow("bottom", img_debug)
         cv2.waitKey(1000)
     return angle
 
 
-def _save_bottom_side_images(bottom_img, side_img, orientation, dd, img_name):
+def _save_images(ventral_view_img, up_side_view_img, orientation, dd, img_name):
     img_name = img_name.split(".jpg")[0]
 
-    cv2.imwrite(bottom_dd + img_name + ".jpg", bottom_img)
-    cv2.imwrite(side_dd + img_name + ".jpg", side_img)
+    cv2.imwrite(ventral_view_dd + img_name + ".jpg", ventral_view_img)
+    cv2.imwrite(up_side_view_dd + img_name + ".jpg", up_side_view_img)
+
 
 
 if __name__ == '__main__':
@@ -127,23 +108,28 @@ if __name__ == '__main__':
         if not data_dir.endswith("/"): data_dir += "/"
 
         imgs_dir_spl = data_dir.split("/")
-        post_bottom = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
-        post_side = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
+        post_ventral_view = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
+        post_up_side_view = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
 
-        bottom_dd = data_dir + "bottom_view" + post_bottom + "/"
-        side_dd = data_dir + "side_view" + post_side + "/"
-        fcrop_loc_name = "crop_location" + post_bottom + ".txt"
 
-        if not isdir(bottom_dd):
-            mkdir(bottom_dd)
-        if not isdir(side_dd):
-            mkdir(side_dd)
+        ventral_view_dd = data_dir + "ventral_view_view" + post_ventral_view + "/"
+        up_side_view_dd = data_dir + "up_side_view_view" + post_up_side_view + "/"
 
-        threshold = 45
+        fcrop_loc_name = "crop_location" + post_ventral_view + ".txt"
+
+        if not isdir(ventral_view_dd):
+            mkdir(ventral_view_dd)
+        if not isdir(up_side_view_dd):
+            mkdir(up_side_view_dd)
+
+        threshold = 20
         DIST_TH = 10
         border_width = 250
-        bbox_width = 500
-        horiz_crop = 440
+        bbox_width = 550
+        horiz_crop_bottom_1 = 388
+        horiz_crop_bottom_2 = 825
+        horiz_crop_up_1 = 30
+        horiz_crop_up_2 = 300
 
         print(f"\n[*] reading images name from {data_dir:s}")
         img_names = [f for f in listdir(data_dir) if isfile(join(data_dir, f)) and f.endswith(".tiff")]
@@ -152,15 +138,19 @@ if __name__ == '__main__':
         img_prev = None
         n_skip_dist = 0
         n_skip_out = 0
-        print(f"[*] splitting the images into bottom and side views\n")
-        print(bottom_dd, side_dd)
+        print(f"[*] splitting the images into up_side and ventral_view views\n")
 
         fcrop_loc = open(data_dir + fcrop_loc_name, 'w')
         print(fcrop_loc_name)
         fcrop_loc.write("border_width = " + str(border_width) + "\n" + \
                         "threshold = " + str(threshold) + "\n" + \
+                        "DIST_TH = " + str(DIST_TH) + "\n" + \
                         "bbox_width = " + str(bbox_width) + "\n" + \
-                        "horiz_crop = " + str(horiz_crop) + "\n")
+                        "horiz_crop_bottom_1 = " + str(horiz_crop_bottom_1) + "\n" + \
+                        "horiz_crop_bottom_2 = " + str(horiz_crop_bottom_1) + "\n" + \
+                        "horiz_crop_up_1 = " + str(horiz_crop_up_1) + "\n" + \
+                        "horiz_crop_up_2 = " + str(horiz_crop_up_2) + "\n")
+
         for counter in tqdm(range(imgs_len)):
             img_name = img_names[counter]
 
@@ -194,8 +184,10 @@ if __name__ == '__main__':
                 cv2.imshow("row", imS)
                 cv2.waitKey(1000)
 
-            bottom_img, side_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
-            if bottom_img.shape[1] != bbox_width or side_img.shape[1] != bbox_width:
+            # bottom_img, ventral_view_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
+            ventral_view_img, up_side_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
+
+            if ventral_view_img.shape[1] != bbox_width or up_side_view_img.shape[1] != bbox_width:
                 if DEBUG:
                     imS = cv2.resize(img, (1920 // 2, 1200 // 2))
                     cv2.imshow("outlier", imS)
@@ -207,14 +199,17 @@ if __name__ == '__main__':
             # if orientation == None : continue
             orientation = None
             if DEBUG:
-                imS = cv2.resize(side_img, (1920 // 2, 1200 // 2))
-                cv2.imshow("side", imS)
+                imS = cv2.resize(ventral_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("ventral_view", imS)
+                cv2.waitKey(1000)
+                imS = cv2.resize(up_side_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("up_side_view", imS)
                 cv2.waitKey(1000)
 
             if not DEBUG:
                 fcrop_loc.write(
                     img_name + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
-                _save_bottom_side_images(bottom_img, side_img, orientation, data_dir, img_name)
+                _save_images(ventral_view_img, up_side_view_img, orientation, data_dir, img_name)
 
         fcrop_loc.close()
         print(
