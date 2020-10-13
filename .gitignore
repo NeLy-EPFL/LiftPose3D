@@ -4,3 +4,6 @@ __pycache__
 *.png
 .DS_Store
 *.mp4
+
+.idea/
+.gitignore/
