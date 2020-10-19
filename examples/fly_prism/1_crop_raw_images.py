@@ -10,6 +10,8 @@ from math import atan2
 from skimage.filters.rank import median
 from skimage.morphology import disk
 
+from skimage.exposure import equalize_adapthist
+from skimage.util import img_as_ubyte
 
 def _remove_borders(img, bwidth):
     img = img[:, bwidth:-bwidth]
@@ -20,7 +22,7 @@ def _remove_borders(img, bwidth):
 def _separate_flies_vertically(img, th):
     # denoise with median filter
     # _img = median(img, disk(1))
-    _img = img[horiz_crop_bottom_1:horiz_crop_bottom_2, :]
+    _img = img[horiz_crop_middle_1:horiz_crop_middle_2, :]
     fl_img = np.mean(_img, axis=0)
 
     if DEBUG:
@@ -40,8 +42,9 @@ def _separate_flies_vertically(img, th):
     right_bbox_pad = int(np.ceil(mean_bbox_pad))
     print(left_bbox_pad)
 
-    return img[horiz_crop_bottom_1:horiz_crop_bottom_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
-           img[horiz_crop_up_1:horiz_crop_up_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
+    return img[horiz_crop_middle_1:horiz_crop_middle_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
+           img[horiz_crop_right_1:horiz_crop_right_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
+           img[horiz_crop_left_1:horiz_crop_left_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
            left_vert_crop - left_bbox_pad, \
            right_vert_crop + right_bbox_pad
 
@@ -80,24 +83,27 @@ def _find_orientation(img):
     if DEBUG:
         img_debug = img.copy()
         cv2.drawContours(img_debug, contours, i, (255, 0, 0), 2)
-        cv2.putText(img_debug, "%.2f degree" % angle, (10, horiz_crop_bottom_1 - 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(img_debug, "%.2f degree" % angle, (10, horiz_crop_middle_1 - 50), cv2.FONT_HERSHEY_SIMPLEX,
                     0.8, (255, 0, 0), 1, cv2.LINE_AA)
         cv2.imshow("bottom", img_debug)
-        cv2.waitKey(1000)
+        cv2.waitKey(500)
     return angle
 
 
-def _save_images(ventral_view_img, up_side_view_img, orientation, dd, img_name):
-    img_name = img_name.split(".jpg")[0]
-
-    cv2.imwrite(ventral_view_dd + img_name + ".jpg", ventral_view_img)
-    cv2.imwrite(up_side_view_dd + img_name + ".jpg", up_side_view_img)
+def _save_images(ventral_view_img, right_view_img, left_view_img, orientation, dd, name_counter, fly_number, behaviour, behaviour_subfolder_name):
+    # ventral_view = VV, Right View = RV, Left View = LV
+    cv2.imwrite(ventral_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_'  + "%05d"%name_counter + ".tiff", ventral_view_img)
+    cv2.imwrite(right_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_'  + 'RV' + '_'  + "%05d"%name_counter + ".tiff", right_view_img)
+    cv2.imwrite(left_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_'  + 'LV' + '_'  + "%05d"%name_counter + ".tiff", left_view_img)
 
 
 
 if __name__ == '__main__':
 
-    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/forward_walking/1'
+    # str at position -14 at each side should be fly number
+    # -4:-2 should be two letters
+    # -1 should be behaviour_subfolder_name
+    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1'
                ]
 
     DEBUG = False
@@ -105,31 +111,49 @@ if __name__ == '__main__':
 
     for data_dir in folders:
 
+        fly_number = data_dir[-14]
+        behaviour = data_dir[-4:-2]  # Forward Walking = FW, Proboscis Expansion = PE, Anterior Grooming = AG, Posterior Grooming = PG
+        behaviour_subfolder_name = data_dir[-1]
+
+        if fly_number=='2':
+            threshold = 20
+            DIST_TH = 10
+            border_width = 250
+            bbox_width = 550
+            horiz_crop_right_1 = 32
+            horiz_crop_right_2 = 290
+            horiz_crop_middle_1 = 392
+            horiz_crop_middle_2 = 830
+            horiz_crop_left_1 = 950
+            horiz_crop_left_2 = 1182
+        elif fly_number=='3':
+            threshold = 20
+            DIST_TH = 10
+            border_width = 250
+            bbox_width = 550
+            horiz_crop_right_1 = 32
+            horiz_crop_right_2 = 290
+            horiz_crop_middle_1 = 392
+            horiz_crop_middle_2 = 830
+            horiz_crop_left_1 = 950
+            horiz_crop_left_2 = 1182
+        else:
+            IOError('fly number properties not defined!')
+
         if not data_dir.endswith("/"): data_dir += "/"
 
-        imgs_dir_spl = data_dir.split("/")
-        post_ventral_view = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
-        post_up_side_view = "_" + imgs_dir_spl[4] + "_" + imgs_dir_spl[5] + "_" + imgs_dir_spl[6]
+        ventral_view_dd = data_dir + "VV" + "/"
+        right_view_dd = data_dir + "RV" + "/"
+        left_view_dd = data_dir + "LV" + "/"
 
-
-        ventral_view_dd = data_dir + "ventral_view_view" + post_ventral_view + "/"
-        up_side_view_dd = data_dir + "up_side_view_view" + post_up_side_view + "/"
-
-        fcrop_loc_name = "crop_location" + post_ventral_view + ".txt"
+        fcrop_loc_name = "crop_location" + ".txt"
 
         if not isdir(ventral_view_dd):
             mkdir(ventral_view_dd)
-        if not isdir(up_side_view_dd):
-            mkdir(up_side_view_dd)
-
-        threshold = 20
-        DIST_TH = 10
-        border_width = 250
-        bbox_width = 550
-        horiz_crop_bottom_1 = 388
-        horiz_crop_bottom_2 = 825
-        horiz_crop_up_1 = 30
-        horiz_crop_up_2 = 300
+        if not isdir(right_view_dd):
+            mkdir(right_view_dd)
+        if not isdir(left_view_dd):
+            mkdir(left_view_dd)
 
         print(f"\n[*] reading images name from {data_dir:s}")
         img_names = [f for f in listdir(data_dir) if isfile(join(data_dir, f)) and f.endswith(".tiff")]
@@ -138,7 +162,7 @@ if __name__ == '__main__':
         img_prev = None
         n_skip_dist = 0
         n_skip_out = 0
-        print(f"[*] splitting the images into up_side and ventral_view views\n")
+        print(f"[*] splitting the images into right_view and ventral_view views\n")
 
         fcrop_loc = open(data_dir + fcrop_loc_name, 'w')
         print(fcrop_loc_name)
@@ -146,11 +170,11 @@ if __name__ == '__main__':
                         "threshold = " + str(threshold) + "\n" + \
                         "DIST_TH = " + str(DIST_TH) + "\n" + \
                         "bbox_width = " + str(bbox_width) + "\n" + \
-                        "horiz_crop_bottom_1 = " + str(horiz_crop_bottom_1) + "\n" + \
-                        "horiz_crop_bottom_2 = " + str(horiz_crop_bottom_1) + "\n" + \
-                        "horiz_crop_up_1 = " + str(horiz_crop_up_1) + "\n" + \
-                        "horiz_crop_up_2 = " + str(horiz_crop_up_2) + "\n")
-
+                        "horiz_crop_middle_1 = " + str(horiz_crop_middle_1) + "\n" + \
+                        "horiz_crop_middle_2 = " + str(horiz_crop_middle_1) + "\n" + \
+                        "horiz_crop_right_1 = " + str(horiz_crop_right_1) + "\n" + \
+                        "horiz_crop_right_2 = " + str(horiz_crop_right_2) + "\n")
+        name_counter = 0
         for counter in tqdm(range(imgs_len)):
             img_name = img_names[counter]
 
@@ -161,6 +185,10 @@ if __name__ == '__main__':
 
             # Remove border with very bright light
             img = _remove_borders(img, border_width)
+
+            # enhance contrast
+            img = equalize_adapthist(img, kernel_size=tuple([img.shape[0]//8, img.shape[1]//8]), clip_limit=0.006, nbins=256)
+            img = img_as_ubyte(img)
 
             img_dist = np.copy(img)
             # img_dist[img_dist < 60] = 0
@@ -181,17 +209,18 @@ if __name__ == '__main__':
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 1, cv2.LINE_AA)
 
                 imS = cv2.resize(img_dist, (1920 // 2, 1200 // 2))
-                cv2.imshow("row", imS)
-                cv2.waitKey(1000)
+                cv2.imshow("removed borders and enhanced contrast", imS)
+
+                cv2.waitKey(100)
 
             # bottom_img, ventral_view_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
-            ventral_view_img, up_side_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
+            ventral_view_img, right_view_img, left_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
 
-            if ventral_view_img.shape[1] != bbox_width or up_side_view_img.shape[1] != bbox_width:
+            if ventral_view_img.shape[1] != bbox_width or right_view_img.shape[1] != bbox_width or left_view_img.shape[1] != bbox_width:
                 if DEBUG:
                     imS = cv2.resize(img, (1920 // 2, 1200 // 2))
                     cv2.imshow("outlier", imS)
-                    cv2.waitKey(1000)
+                    cv2.waitKey(500)
                 n_skip_out += 1
                 continue
 
@@ -201,15 +230,18 @@ if __name__ == '__main__':
             if DEBUG:
                 imS = cv2.resize(ventral_view_img, (1920 // 2, 1200 // 2))
                 cv2.imshow("ventral_view", imS)
-                cv2.waitKey(1000)
-                imS = cv2.resize(up_side_view_img, (1920 // 2, 1200 // 2))
-                cv2.imshow("up_side_view", imS)
-                cv2.waitKey(1000)
+                cv2.waitKey(500)
+                imS = cv2.resize(right_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("right_view", imS)
+                imS = cv2.resize(left_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("left_view", imS)
+                cv2.waitKey(500)
 
             if not DEBUG:
+                name_counter += 1
                 fcrop_loc.write(
-                    img_name + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
-                _save_images(ventral_view_img, up_side_view_img, orientation, data_dir, img_name)
+                    img_name + " " + "new name = %05d"%name_counter + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
+                _save_images(ventral_view_img, right_view_img, left_view_img, orientation, data_dir, name_counter = name_counter, fly_number= fly_number, behaviour=behaviour, behaviour_subfolder_name=behaviour_subfolder_name)
 
         fcrop_loc.close()
         print(
