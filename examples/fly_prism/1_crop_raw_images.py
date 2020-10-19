@@ -1,6 +1,7 @@
 from os import listdir
 from os.path import isfile, isdir, join
 from os import mkdir
+import shutil
 # import sys
 from tqdm import tqdm
 import cv2
@@ -12,6 +13,12 @@ from skimage.morphology import disk
 
 from skimage.exposure import equalize_adapthist
 from skimage.util import img_as_ubyte
+
+from scipy import ndimage
+from skimage.util import pad
+
+import os
+import subprocess
 
 def _remove_borders(img, bwidth):
     img = img[:, bwidth:-bwidth]
@@ -41,6 +48,22 @@ def _separate_flies_vertically(img, th):
     left_bbox_pad = int(np.floor(mean_bbox_pad))
     right_bbox_pad = int(np.ceil(mean_bbox_pad))
     print(left_bbox_pad)
+
+    # corrections when the fly is near both ends
+    if (left_vert_crop - left_bbox_pad)<0:
+        img = pad(img, pad_width=((0, 0), (-(left_vert_crop - left_bbox_pad), 0)), mode='constant')
+        return img[horiz_crop_middle_1:horiz_crop_middle_2, 0: right_vert_crop + right_bbox_pad - (left_vert_crop - left_bbox_pad)], \
+               img[horiz_crop_right_1:horiz_crop_right_2, 0: right_vert_crop + right_bbox_pad - (left_vert_crop - left_bbox_pad)], \
+               img[horiz_crop_left_1:horiz_crop_left_2, 0: right_vert_crop + right_bbox_pad - (left_vert_crop - left_bbox_pad)], \
+               0, \
+               right_vert_crop + right_bbox_pad
+    elif (right_vert_crop + right_bbox_pad)>img.shape[1]:
+        img = pad(img, pad_width=((0, 0), (0, (right_vert_crop + right_bbox_pad)-img.shape[1])), mode='constant')
+        return img[horiz_crop_middle_1:horiz_crop_middle_2, left_vert_crop - left_bbox_pad: img.shape[1]], \
+               img[horiz_crop_right_1:horiz_crop_right_2, left_vert_crop - left_bbox_pad: img.shape[1]], \
+               img[horiz_crop_left_1:horiz_crop_left_2, left_vert_crop - left_bbox_pad: img.shape[1]], \
+               left_vert_crop - left_bbox_pad, \
+               img.shape[1]
 
     return img[horiz_crop_middle_1:horiz_crop_middle_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
            img[horiz_crop_right_1:horiz_crop_right_2, left_vert_crop - left_bbox_pad: right_vert_crop + right_bbox_pad], \
@@ -90,11 +113,62 @@ def _find_orientation(img):
     return angle
 
 
-def _save_images(ventral_view_img, right_view_img, left_view_img, orientation, dd, name_counter, fly_number, behaviour, behaviour_subfolder_name):
+def _save_images(ventral_view_img, right_view_img, left_view_img, fly_number, behaviour, behaviour_subfolder_name):
     # ventral_view = VV, Right View = RV, Left View = LV
     cv2.imwrite(ventral_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_'  + "%05d"%name_counter + ".tiff", ventral_view_img)
     cv2.imwrite(right_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_'  + 'RV' + '_'  + "%05d"%name_counter + ".tiff", right_view_img)
     cv2.imwrite(left_view_dd + str(fly_number)+ '_' + behaviour + '_' + behaviour_subfolder_name + '_'  + 'LV' + '_'  + "%05d"%name_counter + ".tiff", left_view_img)
+
+
+def get_largest_conncomp(img):
+    '''
+    In a binary image, compute the biggest component (with connected components analysis)
+    Input:
+        img: binary image
+    Output:
+        biggestComponent: binary image of biggest component in img
+    '''
+    output = cv2.connectedComponentsWithStats(img, 4, cv2.CV_32S)
+    stats = np.transpose(output[2])
+    sizes = stats[4]
+    labelMax = np.where(sizes == np.amax(sizes[1:]))
+    biggestComponent = np.zeros_like(img)
+    biggestComponent[np.where(output[1] == labelMax[0])] = 255
+
+    return biggestComponent
+
+def orientation(img, th=10, k=30):
+    img_th = img.copy()
+
+    # threshold
+    _, img_thresh = cv2.threshold(img_th, th, 255, cv2.THRESH_BINARY)
+    if DEBUG:
+        imS = cv2.resize(img_thresh, (img_thresh.shape[0] // 2, img_thresh.shape[1] // 2))
+        cv2.imshow("threshold", imS)
+        cv2.waitKey(3000)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    flybody = get_largest_conncomp(img_thresh)  # mask of fly
+    flybody = cv2.morphologyEx(flybody, cv2.MORPH_OPEN, kernel)  # chop legs off with kernel
+
+    if DEBUG:
+        imS = cv2.resize(flybody, (img_thresh.shape[0] // 2, img_thresh.shape[1] // 2))
+        cv2.imshow("openning", imS)
+        cv2.waitKey(3000)
+
+    contour, _ = cv2.findContours(flybody, 1, 2)
+    contour = max(contour, key=cv2.contourArea)
+
+    ellipse = cv2.fitEllipse(contour)
+    cx, cy = int(ellipse[0][0]), int(ellipse[0][1])
+    angle = ellipse[2] + 90
+
+    h, w = img.shape
+    M_tr = np.float32([[1, 0, w / 2 - cx], [0, 1, h / 2 - cy]])
+    img = cv2.warpAffine(img, M_tr, (w, h))
+    img = ndimage.rotate(img, angle, reshape=False)
+
+    return angle, cx, cy, img
 
 
 
@@ -103,7 +177,54 @@ if __name__ == '__main__':
     # str at position -14 at each side should be fly number
     # -4:-2 should be two letters
     # -1 should be behaviour_subfolder_name
-    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1'
+    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/4',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/4',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/3',
+
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/4',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/5',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/6',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/7',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/8',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/4',
+
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/1',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/2',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/3',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/4',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/5',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/6',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/7',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/8',
+               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/9'
                ]
 
     DEBUG = False
@@ -116,16 +237,16 @@ if __name__ == '__main__':
         behaviour_subfolder_name = data_dir[-1]
 
         if fly_number=='2':
-            threshold = 20
+            threshold = 25
             DIST_TH = 10
             border_width = 250
             bbox_width = 550
-            horiz_crop_right_1 = 32
-            horiz_crop_right_2 = 290
-            horiz_crop_middle_1 = 392
-            horiz_crop_middle_2 = 830
-            horiz_crop_left_1 = 950
-            horiz_crop_left_2 = 1182
+            horiz_crop_right_1 = 20
+            horiz_crop_right_2 = 286
+            horiz_crop_middle_1 = 386
+            horiz_crop_middle_2 = 858
+            horiz_crop_left_1 = 926
+            horiz_crop_left_2 = 1186
         elif fly_number=='3':
             threshold = 20
             DIST_TH = 10
@@ -137,6 +258,17 @@ if __name__ == '__main__':
             horiz_crop_middle_2 = 830
             horiz_crop_left_1 = 950
             horiz_crop_left_2 = 1182
+        if fly_number=='4':
+            threshold = 20
+            DIST_TH = 10
+            border_width = 250
+            bbox_width = 550
+            horiz_crop_right_1 = 20
+            horiz_crop_right_2 = 280
+            horiz_crop_middle_1 = 398
+            horiz_crop_middle_2 = 824
+            horiz_crop_left_1 = 908
+            horiz_crop_left_2 = 1166
         else:
             IOError('fly number properties not defined!')
 
@@ -146,14 +278,18 @@ if __name__ == '__main__':
         right_view_dd = data_dir + "RV" + "/"
         left_view_dd = data_dir + "LV" + "/"
 
-        fcrop_loc_name = "crop_location" + ".txt"
 
-        if not isdir(ventral_view_dd):
-            mkdir(ventral_view_dd)
-        if not isdir(right_view_dd):
-            mkdir(right_view_dd)
-        if not isdir(left_view_dd):
-            mkdir(left_view_dd)
+        fcrop_loc_name = "crop_info" + ".txt"
+
+        if isdir(ventral_view_dd):
+            shutil.rmtree(ventral_view_dd)
+        if isdir(right_view_dd):
+            shutil.rmtree(right_view_dd)
+        if isdir(left_view_dd):
+            shutil.rmtree(left_view_dd)
+        mkdir(ventral_view_dd)
+        mkdir(right_view_dd)
+        mkdir(left_view_dd)
 
         print(f"\n[*] reading images name from {data_dir:s}")
         img_names = [f for f in listdir(data_dir) if isfile(join(data_dir, f)) and f.endswith(".tiff")]
@@ -165,6 +301,16 @@ if __name__ == '__main__':
         print(f"[*] splitting the images into right_view and ventral_view views\n")
 
         fcrop_loc = open(data_dir + fcrop_loc_name, 'w')
+
+        orientation_info_file = ventral_view_dd + 'orientation_info.txt'
+        VV_orientation = open(orientation_info_file, 'w')
+
+        orientation_info_file = left_view_dd + 'orientation_info.txt'
+        LV_orientation = open(orientation_info_file, 'w')
+
+        orientation_info_file = right_view_dd + 'orientation_info.txt'
+        RV_orientation = open(orientation_info_file, 'w')
+
         print(fcrop_loc_name)
         fcrop_loc.write("border_width = " + str(border_width) + "\n" + \
                         "threshold = " + str(threshold) + "\n" + \
@@ -187,7 +333,7 @@ if __name__ == '__main__':
             img = _remove_borders(img, border_width)
 
             # enhance contrast
-            img = equalize_adapthist(img, kernel_size=tuple([img.shape[0]//8, img.shape[1]//8]), clip_limit=0.006, nbins=256)
+            img = equalize_adapthist(img, kernel_size=tuple([img.shape[0]//8, img.shape[1]//8]), clip_limit=0.0062, nbins=256)
             img = img_as_ubyte(img)
 
             img_dist = np.copy(img)
@@ -216,6 +362,18 @@ if __name__ == '__main__':
             # bottom_img, ventral_view_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
             ventral_view_img, right_view_img, left_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
 
+            # img = pad(img, pad_width=((0, 0), (-(left_vert_crop - left_bbox_pad), 0)), mode='constant')
+
+            # pad the height to constant value
+            bbox_height = 500
+            try:
+                right_view_img = pad(right_view_img, pad_width=(((bbox_height-right_view_img.shape[0])//2, (bbox_height-right_view_img.shape[0])//2), (0, 0)), mode='constant')
+                left_view_img = pad(left_view_img, pad_width=(((bbox_height-left_view_img.shape[0])//2, (bbox_height-left_view_img.shape[0])//2), (0, 0)), mode='constant')
+                ventral_view_img = pad(ventral_view_img, pad_width=(((bbox_height-ventral_view_img.shape[0])//2, (bbox_height-ventral_view_img.shape[0])//2), (0, 0)), mode='constant')
+            except:
+                continue
+
+
             if ventral_view_img.shape[1] != bbox_width or right_view_img.shape[1] != bbox_width or left_view_img.shape[1] != bbox_width:
                 if DEBUG:
                     imS = cv2.resize(img, (1920 // 2, 1200 // 2))
@@ -224,9 +382,6 @@ if __name__ == '__main__':
                 n_skip_out += 1
                 continue
 
-            # orientation = _find_orientation(bottom_img)
-            # if orientation == None : continue
-            orientation = None
             if DEBUG:
                 imS = cv2.resize(ventral_view_img, (1920 // 2, 1200 // 2))
                 cv2.imshow("ventral_view", imS)
@@ -236,14 +391,54 @@ if __name__ == '__main__':
                 imS = cv2.resize(left_view_img, (1920 // 2, 1200 // 2))
                 cv2.imshow("left_view", imS)
                 cv2.waitKey(500)
+            orientation_threshold = 30
+            orientation_k = 40
+            angle, cx, cy, oriented_ventral_view_img = orientation(ventral_view_img, th=orientation_threshold, k=orientation_k)
+            VV_orientation.write(ventral_view_dd + str(fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
+
+            angle, cx, cy, oriented_right_view_img = orientation(right_view_img, th=orientation_threshold, k=orientation_k)
+            RV_orientation.write(right_view_dd + str(
+                fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'RV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
+
+            angle, cx, cy, oriented_left_view_img = orientation(left_view_img, th=orientation_threshold, k=orientation_k)
+            LV_orientation.write(left_view_dd + str(
+                fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'LV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
+
+            if DEBUG:
+                imS = cv2.resize(oriented_ventral_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("oriented_ventral_view", imS)
+                cv2.waitKey(3000)
+                imS = cv2.resize(oriented_right_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("oriented_right_view", imS)
+                cv2.waitKey(3000)
+                imS = cv2.resize(oriented_left_view_img, (1920 // 2, 1200 // 2))
+                cv2.imshow("oriented_left_view", imS)
+                cv2.waitKey(3000)
 
             if not DEBUG:
                 name_counter += 1
                 fcrop_loc.write(
-                    img_name + " " + "new name = %05d"%name_counter + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
-                _save_images(ventral_view_img, right_view_img, left_view_img, orientation, data_dir, name_counter = name_counter, fly_number= fly_number, behaviour=behaviour, behaviour_subfolder_name=behaviour_subfolder_name)
+                    img_name + " " + "new name = %05d.tiff"%name_counter + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
+                _save_images(oriented_ventral_view_img, oriented_right_view_img, oriented_left_view_img, fly_number= fly_number, behaviour=behaviour, behaviour_subfolder_name=behaviour_subfolder_name)
+
+        # create video from images
+        os.chdir(ventral_view_dd)
+        subprocess.call(
+            'ffmpeg -r 150 -f image2 -i {}_{}_{}_VV_%05d.tiff  -vcodec libx264 -crf 0  -pix_fmt yuv420p {}_{}_{}_VV_video.mp4'.format(
+                fly_number, behaviour, behaviour_subfolder_name, fly_number, behaviour, behaviour_subfolder_name), shell=True)
+        os.chdir(right_view_dd)
+        subprocess.call(
+            'ffmpeg -r 150 -f image2 -i {}_{}_{}_RV_%05d.tiff  -vcodec libx264 -crf 0  -pix_fmt yuv420p {}_{}_{}_RV_video.mp4'.format(
+                fly_number, behaviour, behaviour_subfolder_name, fly_number, behaviour, behaviour_subfolder_name), shell=True)
+        os.chdir(left_view_dd)
+        subprocess.call(
+            'ffmpeg -r 150 -f image2 -i {}_{}_{}_LV_%05d.tiff  -vcodec libx264 -crf 0  -pix_fmt yuv420p {}_{}_{}_LV_video.mp4'.format(
+                fly_number, behaviour, behaviour_subfolder_name, fly_number, behaviour, behaviour_subfolder_name), shell=True)
 
         fcrop_loc.close()
+        VV_orientation.close()
+        LV_orientation.close()
+        RV_orientation.close()
         print(
             f"\n[*] skipped {n_skip_dist:n}, {n_skip_out:n} frames because the fly was doing nothing or because it was an outlier")
         print("\n[+] done\n")
