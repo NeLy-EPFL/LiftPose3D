@@ -177,11 +177,56 @@ if __name__ == '__main__':
     # str at position -14 at each side should be fly number
     # -4:-2 should be two letters
     # -1 should be behaviour_subfolder_name
-    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/1',
-               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/2',
-               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/3',
-               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/4',
-               '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1',
+    # folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/4',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/4',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/3',
+    #
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/4',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/5',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/6',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/7',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/8',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/4',
+    #
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/1',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/2',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/3',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/4',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/5',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/6',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/7',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/8',
+    #            '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/9'
+    #            ]
+    folders = ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1',
                '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/2',
                '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/3',
                '/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/4',
@@ -391,16 +436,38 @@ if __name__ == '__main__':
                 imS = cv2.resize(left_view_img, (1920 // 2, 1200 // 2))
                 cv2.imshow("left_view", imS)
                 cv2.waitKey(500)
-            orientation_threshold = 30
-            orientation_k = 40
-            angle, cx, cy, oriented_ventral_view_img = orientation(ventral_view_img, th=orientation_threshold, k=orientation_k)
+
+            try:
+                orientation_threshold = 30
+                orientation_k = 40
+                angle, cx, cy, oriented_ventral_view_img = orientation(ventral_view_img, th=orientation_threshold, k=orientation_k)
+            except:
+                angle = 'None'
+                cx = 'None'
+                cy = 'None'
+                oriented_ventral_view_img = ventral_view_img
+
             VV_orientation.write(ventral_view_dd + str(fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
 
-            angle, cx, cy, oriented_right_view_img = orientation(right_view_img, th=orientation_threshold, k=orientation_k)
+            try:
+                angle, cx, cy, oriented_right_view_img = orientation(right_view_img, th=orientation_threshold, k=orientation_k)
+            except:
+                angle = 'None'
+                cx = 'None'
+                cy = 'None'
+                oriented_right_view_img = right_view_img
+
             RV_orientation.write(right_view_dd + str(
                 fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'RV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
 
-            angle, cx, cy, oriented_left_view_img = orientation(left_view_img, th=orientation_threshold, k=orientation_k)
+            try:
+                angle, cx, cy, oriented_left_view_img = orientation(left_view_img, th=orientation_threshold, k=orientation_k)
+            except:
+                angle = 'None'
+                cx = 'None'
+                cy = 'None'
+                oriented_left_view_img = left_view_img
+
             LV_orientation.write(left_view_dd + str(
                 fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'LV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + str(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
 
