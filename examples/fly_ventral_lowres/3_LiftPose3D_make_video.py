@@ -10,6 +10,7 @@ from skeleton import skeleton
 import pickle
 from tqdm import tqdm
 import src.utils as utils
+import src.stat as stats
 import yaml
 import sys
 
@@ -30,18 +31,18 @@ out_offset, inp_offset = pickle.load(open('joint_locations.pkl','rb'))
 targets_1d = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['targets_1d']
 out_mean = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['mean']
 out_std = torch.load(par['data_dir'] + '/stat_3d.pth.tar')['std']
-out = utils.unNormalizeData(data['output'], out_mean[targets_1d], out_std[targets_1d])
+out = utils.unNormalize(data['output'], out_mean[targets_1d], out_std[targets_1d])
 
 #inputs
 targets_2d = torch.load(par['template_dir'] + '/stat_2d.pth.tar')['targets_2d']    
 inp_mean = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['mean']
 inp_std = torch.load(par['template_dir'] + 'stat_2d.pth.tar')['std']
-inp = utils.unNormalizeData(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
+inp = utils.unNormalize(data['input'], inp_mean[targets_2d], inp_std[targets_2d])
 
 targets_1d = torch.load(par['template_dir'] + '/stat_3d.pth.tar')['targets_1d'] 
 targets_2d = torch.load(par['template_dir'] + '/stat_2d.pth.tar')['targets_2d'] 
-out = utils.expand(out,targets_1d,len(out_mean))
-inp = utils.expand(inp,targets_2d,len(inp_mean))
+out = utils.add_roots(out,targets_1d,len(out_mean))
+inp = utils.add_roots(inp,targets_2d,len(inp_mean))
 
 out += out_offset
 inp += inp_offset
