@@ -72,10 +72,10 @@ with writer.saving(fig, "LiftPose3D_prediction.mp4", 100):
         pos_pred = np.array(pos_pred)
         
         #plot skeleton
-        utils.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge) 
+        plotting.plot_3d_graph(G, pos_pred[:,:,-1], ax, color_edge=color_edge) 
             
         #plot trailing points
-        utils.plot_trailing_points(pos_pred[legtips,:,:],thist,ax)
+        plotting.plot_trailing_points(pos_pred[legtips,:,:],min(thist,t+1),ax)
         
         if xlim is None:
             xlim = ax.get_xlim()
