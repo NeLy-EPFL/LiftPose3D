@@ -66,6 +66,6 @@ def abs_error(tar, out, dim):
     n_pts = out.shape[1]//dim
     distance = np.zeros_like(abserr)
     for k in range(n_pts):
-        distance[:, k] = np.sqrt(np.sum(abserr[:, dim*k:dim*(k + 1)], axis=1))
+        distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
         
     return distance
