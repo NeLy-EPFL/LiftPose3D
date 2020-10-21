@@ -58,3 +58,14 @@ def unNormalize(data_norm, mean, std):
     data_norm += mean
     
     return data_norm
+
+
+def abs_error(tar, out, dim):
+    abserr = np.abs(out - tar)
+            
+    n_pts = out.shape[1]//dim
+    distance = np.zeros_like(abserr)
+    for k in range(n_pts):
+        distance[:, k] = np.mean(abserr[:, dim*k:dim*(k + 1)], axis=1)
+        
+    return distance
