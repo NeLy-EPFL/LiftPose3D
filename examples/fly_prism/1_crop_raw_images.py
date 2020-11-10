@@ -226,7 +226,77 @@ if __name__ == '__main__':
     #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/8', False],
     #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/9', False]
     #            ]
-    folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/1', False]]
+
+
+    # video_id = 4
+
+    # # # import imageio
+    # # # from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+    # # # ffmpeg_extract_subclip("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/{}.mp4".format(video_id), 0.473, 2.220, targetname="/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/raw_fly_1/clipped_{}.mp4".format(video_id))
+    # #
+    # # uncomment to convert video to images
+    # import cv2
+    # vidcap = cv2.VideoCapture("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/{}.mp4".format(video_id))
+    # success, image = vidcap.read()
+    # count = 0
+    # while success:
+    #     cv2.imwrite("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/tmp/frame%d.tiff" % count, image)  # save frame as JPEG file
+    #     success, image = vidcap.read()
+    #     print('Read a new frame: ', success)
+    #     count += 1
+
+
+
+
+    # folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/1', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/2', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/3', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/1', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/2', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/3', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/4', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/5', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/6', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/7', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/8', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/9', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/10', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/11', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/12', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/13', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/14', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/1', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/2', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/3', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/4', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/5', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/1', True],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/2', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/3', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/4', False],
+    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/5', True],
+    #            ]
+
+    folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/FW/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/FW/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/FW/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PE/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PE/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/4', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/5', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/6', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/7', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/8', True],
+               ]
+
+
     DEBUG = False
     IMG_PREV = None
 
@@ -236,7 +306,19 @@ if __name__ == '__main__':
         behaviour = data_dir[-4:-2]  # Forward Walking = FW, Proboscis Expansion = PE, Anterior Grooming = AG, Posterior Grooming = PG
         behaviour_subfolder_name = data_dir[-1]
 
-        if fly_number=='2':
+        if fly_number=='1':
+            threshold = 30
+            DIST_TH = 10
+            border_width_1 = 120
+            border_width_2 = 228
+            bbox_width = 620
+            horiz_crop_right_1 = 8
+            horiz_crop_right_2 = 266
+            horiz_crop_middle_1 = 348
+            horiz_crop_middle_2 = 798
+            horiz_crop_left_1 = 888
+            horiz_crop_left_2 = 1162
+        elif fly_number=='2':
             threshold = 30 # for mean value on column
             DIST_TH = 10
             border_width_1 = 200
@@ -260,7 +342,7 @@ if __name__ == '__main__':
             horiz_crop_middle_2 = 830
             horiz_crop_left_1 = 950
             horiz_crop_left_2 = 1182
-        if fly_number=='4':
+        elif fly_number=='4':
             threshold = 30
             DIST_TH = 10
             border_width_1 = 172
@@ -272,6 +354,18 @@ if __name__ == '__main__':
             horiz_crop_middle_2 = 824
             horiz_crop_left_1 = 908
             horiz_crop_left_2 = 1166
+        if fly_number=='5':
+            threshold = 30
+            DIST_TH = 10
+            border_width_1 = 122
+            border_width_2 = 202
+            bbox_width = 620
+            horiz_crop_right_1 = 18
+            horiz_crop_right_2 = 286
+            horiz_crop_middle_1 = 370
+            horiz_crop_middle_2 = 826
+            horiz_crop_left_1 = 916
+            horiz_crop_left_2 = 1182
         else:
             IOError('fly number properties not defined!')
 
@@ -358,7 +452,7 @@ if __name__ == '__main__':
             if np.any(IMG_PREV == None):
                 IMG_PREV = img_dist
                 dist = 999
-            else:
+            elif img_dist.shape == IMG_PREV.shape:
                 dist = np.mean((img_dist - IMG_PREV) ** 2)
                 if dist < DIST_TH:
                     n_skip_dist += 1
