@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from src.utils import read_crop_pos
+# from src.utils import read_crop_pos
 import os
 from scipy import ndimage
 

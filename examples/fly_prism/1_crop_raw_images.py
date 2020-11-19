@@ -177,107 +177,84 @@ if __name__ == '__main__':
     # str at position -14 at each side should be fly number
     # -4:-2 should be two letters
     # -1 should be behaviour_subfolder_name
-    # folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/3', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/3', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/3', True],
-    #
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/5', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/6', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/7', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/8', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/4', True],
-    #
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/5', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/6', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/7', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/8', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/9', False]
-    #            ]
+    folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/AG/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/FW/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PE/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_2_clipped/PG/3', True],
 
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/5', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/6', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/7', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/FW/8', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PE/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_3_clipped/PG/4', True],
 
-    # video_id = 4
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/AG/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/FW/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PE/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/5', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/6', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/7', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/8', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_4_clipped/PG/9', False],
 
-    # # # import imageio
-    # # # from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-    # # # ffmpeg_extract_subclip("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/{}.mp4".format(video_id), 0.473, 2.220, targetname="/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/raw_fly_1/clipped_{}.mp4".format(video_id))
-    # #
-    # # uncomment to convert video to images
-    # import cv2
-    # vidcap = cv2.VideoCapture("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/{}.mp4".format(video_id))
-    # success, image = vidcap.read()
-    # count = 0
-    # while success:
-    #     cv2.imwrite("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/tmp/frame%d.tiff" % count, image)  # save frame as JPEG file
-    #     success, image = vidcap.read()
-    #     print('Read a new frame: ', success)
-    #     count += 1
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/5', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/6', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/7', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/8', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/9', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/10', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/11', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/12', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/13', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/14', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/4', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/5', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/2', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/3', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/4', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/5', True],
 
-
-
-
-    # folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/AG/3', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/2', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/5', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/6', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/7', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/8', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/9', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/10', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/11', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/12', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/13', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/14', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/1', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/3', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/4', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/5', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/1', True],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/2', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/3', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/4', False],
-    #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/5', True],
-    #            ]
-
-    folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/1', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/2', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/3', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/AG/4', False],
@@ -294,7 +271,44 @@ if __name__ == '__main__':
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/6', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/7', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_5_clipped/PG/8', True],
+
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/AG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/AG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/AG/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/AG/4', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/FW/1', False],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/FW/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/FW/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PE/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PE/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PE/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PE/4', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/1', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/2', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/3', True],
+               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/4', True]
                ]
+
+
+    # video_id = 1
+    #
+    # # # # import imageio
+    # # # # from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+    # # # # ffmpeg_extract_subclip("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/{}.mp4".format(video_id), 0.473, 2.220, targetname="/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/raw_fly_1/clipped_{}.mp4".format(video_id))
+    # # #
+    # # uncomment to convert video to images
+    # import cv2
+    # vidcap = cv2.VideoCapture("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/{}.mp4".format(video_id))
+    # success, image = vidcap.read()
+    # count = 0
+    # while success:
+    #     cv2.imwrite("/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/tmp/frame%d.tiff" % count, image)  # save frame as JPEG file
+    #     success, image = vidcap.read()
+    #     print('Read a new frame: ', success)
+    #     count += 1
+
+
+    # folders = [['/home/mahdi/Pictures/fly_1_clipped/AG/1', True]]
 
 
     DEBUG = False
@@ -354,7 +368,7 @@ if __name__ == '__main__':
             horiz_crop_middle_2 = 824
             horiz_crop_left_1 = 908
             horiz_crop_left_2 = 1166
-        if fly_number=='5':
+        elif fly_number=='5':
             threshold = 30
             DIST_TH = 10
             border_width_1 = 122
@@ -366,6 +380,18 @@ if __name__ == '__main__':
             horiz_crop_middle_2 = 826
             horiz_crop_left_1 = 916
             horiz_crop_left_2 = 1182
+        elif fly_number=='6':
+            threshold = 25
+            DIST_TH = 10
+            border_width_1 = 154
+            border_width_2 = 224
+            bbox_width = 620
+            horiz_crop_right_1 = 26
+            horiz_crop_right_2 = 284
+            horiz_crop_middle_1 = 376
+            horiz_crop_middle_2 = 824
+            horiz_crop_left_1 = 908
+            horiz_crop_left_2 = 1184
         else:
             IOError('fly number properties not defined!')
 
@@ -511,21 +537,6 @@ if __name__ == '__main__':
                 cv2.imshow("left_view", imS)
                 cv2.waitKey(500)
 
-            try:
-                orientation_threshold = 30
-                orientation_k = 40
-                angle, cx, cy, oriented_ventral_view_img = orientation(ventral_view_img, th=orientation_threshold, k=orientation_k)
-                VV_orientation.write(ventral_view_dd + str(
-                    fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(
-                    angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + ' height_pad = ' + str(height_pad) + ' width_pad = ' + str(width_pad) + "\n")
-            except:
-                angle = 0
-                cx = 0
-                cy = 0
-                oriented_ventral_view_img = ventral_view_img
-                VV_orientation.write(ventral_view_dd + str(
-                    fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(
-                    angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
 
 
             # try:
@@ -539,10 +550,6 @@ if __name__ == '__main__':
             #     fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'RV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(
             #     angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
 
-            angle = 0
-            cx = 0
-            cy = 0
-            oriented_right_view_img = right_view_img
 
 
             # try:
@@ -553,13 +560,46 @@ if __name__ == '__main__':
             #     cy = 'None'
             #     oriented_left_view_img = left_view_img
 
-            angle = 0
-            cx = 0
-            cy = 0
-            oriented_left_view_img = left_view_img
 
             # LV_orientation.write(left_view_dd + str(
             #     fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'LV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
+
+            if not DEBUG:
+                name_counter += 1
+                try:
+                    orientation_threshold = 30
+                    orientation_k = 40
+                    angle, cx, cy, oriented_ventral_view_img = orientation(ventral_view_img, th=orientation_threshold,
+                                                                           k=orientation_k)
+                    VV_orientation.write(ventral_view_dd + str(
+                        fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(
+                        angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + ' height_pad = ' + str(
+                        height_pad) + ' width_pad = ' + str(width_pad) + "\n")
+                except:
+                    angle = 0
+                    cx = 0
+                    cy = 0
+                    oriented_ventral_view_img = ventral_view_img
+                    VV_orientation.write(ventral_view_dd + str(
+                        fly_number) + '_' + behaviour + '_' + behaviour_subfolder_name + '_' + 'VV' + '_' + "%05d" % name_counter + ".tiff" + ' angle = ' + '{:06.3f}'.format(
+                        angle) + ' cx = ' + str(cx) + ' cy = ' + str(cy) + "\n")
+
+                angle = 0
+                cx = 0
+                cy = 0
+                oriented_right_view_img = right_view_img
+
+                # TODO
+                # flip vertically the right vie to be the same as left view!!
+                oriented_right_view_img = cv2.flip(oriented_right_view_img, 0)
+
+                angle = 0
+                cx = 0
+                cy = 0
+                oriented_left_view_img = left_view_img
+                fcrop_loc.write(
+                    img_name + " " + "new name = %05d.tiff"%name_counter + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
+                _save_images(oriented_ventral_view_img, oriented_right_view_img, oriented_left_view_img, fly_number= fly_number, behaviour=behaviour, behaviour_subfolder_name=behaviour_subfolder_name)
 
             if DEBUG:
                 imS = cv2.resize(oriented_ventral_view_img, (1920 // 2, 1200 // 2))
@@ -571,13 +611,6 @@ if __name__ == '__main__':
                 imS = cv2.resize(oriented_left_view_img, (1920 // 2, 1200 // 2))
                 cv2.imshow("oriented_left_view", imS)
                 cv2.waitKey(3000)
-
-            if not DEBUG:
-                name_counter += 1
-                fcrop_loc.write(
-                    img_name + " " + "new name = %05d.tiff"%name_counter + " " + str(left_vert_crop) + " " + str(right_vert_crop) + " " + str(orientation) + "\n")
-                _save_images(oriented_ventral_view_img, oriented_right_view_img, oriented_left_view_img, fly_number= fly_number, behaviour=behaviour, behaviour_subfolder_name=behaviour_subfolder_name)
-
         # create video from images
         os.chdir(ventral_view_dd)
         subprocess.call(
