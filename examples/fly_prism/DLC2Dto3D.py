@@ -13,7 +13,9 @@ import src.utils as utils
 home_dir = '/home/mahdi/Pictures/fly_1'
 data_dir = '/home/mahdi/Pictures/fly_1/AG/1'
 scorer_bottom = '1_AG_2_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
-scorer_side = '1_AG_2_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+scorer_side_LV = '1_AG_2_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+scorer_side_RV = '1_AG_2_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+
 
 # joints
 leg_tips = ['LF_tarsal_claw', 'LM_tarsal_claw', 'LH_tarsal_claw',
@@ -46,14 +48,14 @@ for idx, item in enumerate(LV_bodyparts):
         pass
 
 # # lateral images of enclosure
-# images_side = ['191125_PR/Fly1/001_prism/behData/images/side_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/002_prism/behData/images/side_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/003_prism/behData/images/side_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/004_prism/behData/images/side_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly2/001_prism/behData/images/side_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/002_prism/behData/images/side_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/003_prism/behData/images/side_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/004_prism/behData/images/side_view_prism_data_191125_PR_Fly2/']
+# images_side_LV = ['191125_PR/Fly1/001_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
+#                '191125_PR/Fly1/002_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
+#                '191125_PR/Fly1/003_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
+#                '191125_PR/Fly1/004_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
+#                '191125_PR/Fly2/001_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
+#                '191125_PR/Fly2/002_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
+#                '191125_PR/Fly2/003_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
+#                '191125_PR/Fly2/004_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/']
 
 # # ventral images of enclosure
 # images_bottom = ['191125_PR/Fly1/001_prism/behData/images/bottom_view_prism_data_191125_PR_Fly1/',
@@ -76,13 +78,16 @@ for idx, item in enumerate(LV_bodyparts):
 #                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_004_prism.txt']
 
 # lateral cropped video of moving fly
-videos_side = ['/AG/2/LV/']
+videos_side_LV = ['/AG/2/LV/']
+videos_side_RV = ['/AG/2/RV/']
 
 # ventral cropped video of moving fly
 videos_bottom = ['/AG/2/VV/']
 
 
-assert len(videos_side) == len(videos_bottom), 'Number of video files must be the same from side and bottom!'
+assert len(videos_side_LV) == len(videos_bottom), 'Number of video files must be the same from side_LV and bottom!'
+assert len(videos_side_RV) == len(videos_bottom), 'Number of video files must be the same from side_RV and bottom!'
+
 
 # %% md
 
@@ -105,7 +110,7 @@ if mode == 'prediction':
     nice_frames = 0
     register_floor = 1
 if mode == 'DLC_video':
-    th1 = 0.5  # confidence threshold
+    th1 = 0.1  # confidence threshold
     th2 = 15  # max L-R discrepancy in x coordinate
     align = 0
     nice_frames = 0
@@ -132,23 +137,23 @@ if mode == 'DLC_video':
 
 # %%
 
-def select_best_data(bottom, side, th1, th2, leg_tips):
+def select_best_data(bottom, side_LV, th1, th2, leg_tips):
     # select those frames with high confidence ventral view if all the tarsal_claw liklihood is larger than th1
     bottom_lk = bottom.loc[:, (leg_tips, 'likelihood')]
     mask = (bottom_lk > th1).sum(1) == 6
     bottom = bottom[mask].dropna()
-    side = side[mask].dropna()
+    side_LV = side_LV[mask].dropna()
 
     # find high confidence and low discrepancy keypoints in each frame
-    likelihood = side.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'likelihood')]
-    discrepancy = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - side.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
+    likelihood = side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'likelihood')]
+    discrepancy = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - side_LV.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
     # find good keypoints corresponding to np.asarray(LV_bodyparts)[arg_LV_common_bodypart]
     good_keypts = (likelihood > th1) & (discrepancy < th2)
     good_keypts = good_keypts.droplevel(1, axis=1)
 
-    assert side.shape[0] == bottom.shape[0], 'Number of rows(=number of data) must match in filtered data!'
+    assert side_LV.shape[0] == bottom.shape[0], 'Number of rows(=number of data) must match in filtered data!'
 
-    return bottom, side, good_keypts
+    return bottom, side_LV, good_keypts
 
 
 def flip_LR(data):
@@ -161,13 +166,13 @@ def flip_LR(data):
     return data
 
 
-for i in range(len(videos_side)):
-    print(home_dir + videos_side[i])
+for i in range(len(videos_side_LV)):
+    print(home_dir + videos_side_LV[i])
 
-    # load data of side and bottom view
-    _side = pd.read_hdf(home_dir + videos_side[i] + scorer_side + '.h5')
+    # load data of side_LV and bottom view
+    _side_LV = pd.read_hdf(home_dir + videos_side_LV[i] + scorer_side_LV + '.h5')
     _bottom = pd.read_hdf(home_dir + videos_bottom[i] + scorer_bottom + '.h5')
-    _side = _side.droplevel('scorer', axis=1)
+    _side_LV = _side_LV.droplevel('scorer', axis=1)
     _bottom = _bottom.droplevel('scorer', axis=1)
 
     orientation_info = np.loadtxt(home_dir + videos_bottom[0] + 'orientation_info.txt', dtype=str)
@@ -194,12 +199,13 @@ for i in range(len(videos_side)):
         Rotate a point counterclockwise by a given angle around a given origin.
         The angle should be given in radians.
         """
-        ox, oy = origin
+        angle = angle*np.pi/180
+        ox, oy = w/2, h/2
         px = point[:,::2]
         py = point[:,1::2]
 
-        qx = ox.reshape(ox.size,1) + np.cos(angle).reshape(angle.size,1) * np.subtract(px,ox.reshape(ox.size,1)) - np.sin(angle).reshape(angle.size,1) * np.subtract(py,oy.reshape(oy.size,1))
-        qy = oy.reshape(oy.size,1) + np.sin(angle).reshape(angle.size,1) * np.subtract(px,ox.reshape(ox.size,1)) + np.cos(angle).reshape(angle.size,1) * np.subtract(py,oy.reshape(oy.size,1))
+        qx = ox + np.cos(angle).reshape(angle.size,1) * np.subtract(px,ox) - np.sin(angle).reshape(angle.size,1) * np.subtract(py,oy) - (w / 2 - origin[0].reshape(origin[0].size,1))
+        qy = oy + np.sin(angle).reshape(angle.size,1) * np.subtract(px,ox) + np.cos(angle).reshape(angle.size,1) * np.subtract(py,oy) - (h / 2 - origin[1].reshape(origin[1].size,1))
         return qx, qy
 
 
@@ -220,23 +226,25 @@ for i in range(len(videos_side)):
         qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
         return qx, qy
 
-    # # flip left and right side due to prism reflection
-    # _side = flip_LR(_side)
+    # # flip left and right side_LV due to prism reflection
+    # _side_LV = flip_LR(_side_LV)
 
     # rotate back the VV image
     import cv2
     from scipy import ndimage
     import matplotlib.image as mpimg
-
     img = mpimg.imread(orientation_info[1,0])
     h, w = img.shape
-    M_tr = np.float32([[1, 0, w / 2 - cx.astype(float)[0]], [0, 1, h / 2 - cy.astype(float)[0]]])
-    img = cv2.warpAffine(img, M_tr, (w, h))
+    M_tr = np.float32([[1, 0, -(w / 2 - cx.astype(float)[0])], [0, 1, -(h / 2 - cy.astype(float)[0])]])
     img = ndimage.rotate(img, -angle.astype(float)[0], reshape=False)
+    img = cv2.warpAffine(img, M_tr, (w, h))
+
 
     # rotate back the VV joints
-    # qx, qy =rotate((cx.astype(float), cy.astype(float)), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), 180-angle.astype(float))
-    qx, qy =rotate2((cx.astype(float)[0], cy.astype(float)[0]), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), angle.astype(float)[0])
+    qx, qy =rotate((cx.astype(float), cy.astype(float)), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), angle.astype(float))
+    # qx, qy =rotate2((cx.astype(float)[0], cy.astype(float)[0]), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), angle.astype(float)[0])
+    _bottom.loc[:, (slice(None), ['x'])] = qx
+    _bottom.loc[:, (slice(None), ['y'])] = qy
 
 
 
@@ -253,22 +261,22 @@ for i in range(len(videos_side)):
     #############################
 
     # select for high confidence datapoints
-    _bottom, _side, good_keypts = select_best_data(_bottom, _side, th1, th2, leg_tips)
+    _bottom, _side_LV, good_keypts = select_best_data(_bottom, _side_LV, th1, th2, leg_tips)
 
-    # take only those frames where all keypoints on at least one side are correct
+    # take only those frames where all keypoints on at least one side_LV are correct
     if nice_frames:  # 1 for training, 0 for prediction
         print('nice frames')
         # mask if only 2 keypoints of leg_tips are with likelihood 1.0
         mask = (good_keypts.loc[:, leg_tips[:3]].sum(1) == 2)
 
-        _side = _side[mask].dropna()
+        _side_LV = _side_LV[mask].dropna()
         _bottom = _bottom[mask].dropna()
         good_keypts = good_keypts.loc[mask, :]
 
     # frame indices
     index = _bottom.index.values
     _bottom = _bottom.reset_index()
-    _side = _side.reset_index()
+    _side_LV = _side_LV.reset_index()
 
     # align horizontally
     # if align:  # 1 for training and prediction, 0 for making of DLC video
@@ -280,29 +288,30 @@ for i in range(len(videos_side)):
     #         _bottom.loc[:, (slice(None), ['x', 'y'])].apply(
     #             lambda x: procrustes.center_and_align(x, np.radians(angle), np.array(shape), np.array(c)), axis=1)
 
-    # we find the floor of side view as the confident predicted maximum trasal_claw per each image andsubtract it from the y channel
+    # we find the floor of side_LV view as the confident predicted maximum trasal_claw per each image andsubtract it from the y channel
     if register_floor:
         print('align with x-y plane')
         floor = 0
-        for ind in _side.index:
+        for ind in _side_LV.index:
             try:
-                good_tips = _side.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
+                good_tips = _side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
                     ind, (leg_tips, 'y')]
                 floor_new = np.max(good_tips.to_numpy())
                 if ~np.isnan(floor_new):
                     floor = floor_new
-                _side.loc[ind, (slice(None), 'y')] = _side.loc[ind, (slice(None), 'y')] - floor
+                _side_LV.loc[ind, (slice(None), 'y')] = _side_LV.loc[ind, (slice(None), 'y')] - floor
             except:
                 continue
 
     # convert & save to DF3D format
-    side_np = _side.loc[:, (slice(None), ['x', 'y'])].to_numpy()
-    z = _side.loc[:, (slice(None), 'y')].to_numpy()
-    side_np = np.stack((side_np[:, ::2], side_np[:, 1::2]), axis=2)
+    side_LV_np = _side_LV.loc[:, (slice(None), ['x', 'y'])].to_numpy()
+    z_LV = _side_LV.loc[:, (slice(None), 'y')].to_numpy()
+    
+    side_LV_np = np.stack((side_LV_np[:, ::2], side_LV_np[:, 1::2]), axis=2)
 
     bottom_np = _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy()
     bottom_np = np.stack((bottom_np[:, ::2], bottom_np[:, 1::2]), axis=2)
-    points2d = np.stack((bottom_np, side_np), axis=0)
+    points2d = np.stack((bottom_np, side_LV_np), axis=0)
     points3d = np.concatenate((bottom_np, -z[:, :, None]), axis=2)
     good_keypts = np.array(good_keypts)
 
@@ -322,7 +331,7 @@ for i in range(len(videos_side)):
              'good_keypts': good_keypts
              }
 
-    pickle.dump(poses, open(home_dir + videos_side[i].split('/')[-1][6:] + '.pkl', 'wb'))
+    pickle.dump(poses, open(home_dir + videos_side_LV[i].split('/')[-1][6:] + '.pkl', 'wb'))
 
 # %%
 
