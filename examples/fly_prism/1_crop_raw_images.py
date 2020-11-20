@@ -245,9 +245,6 @@ if __name__ == '__main__':
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/FW/14', False],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/1', False],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/2', False],
-               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/3', True],
-               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/4', True],
-               ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PE/5', False],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/1', True],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/2', False],
                ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_1_clipped/PG/3', False],
@@ -508,7 +505,7 @@ if __name__ == '__main__':
             # except:
             #     continue
 
-            # pad the width and height to compensate the orientation
+            # pad the width and height to compensate the orientation(rotation)
             height_pad = 25
             width_pad = 25
             try:
