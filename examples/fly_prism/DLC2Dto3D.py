@@ -10,11 +10,11 @@ import src.utils as utils
 
 #
 
-home_dir = '/home/mahdi/Pictures/fly_1'
-data_dir = '/home/mahdi/Pictures/fly_1/AG/1'
-scorer_bottom = '1_AG_2_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
-scorer_side_LV = '1_AG_2_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
-scorer_side_RV = '1_AG_2_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped'
+data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4'
+scorer_bottom = '3_PG_4_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
+scorer_side_LV = '3_PG_4_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+scorer_side_RV = '3_PG_4_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
 
 
 # joints
@@ -78,11 +78,11 @@ for idx, item in enumerate(LV_bodyparts):
 #                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_004_prism.txt']
 
 # lateral cropped video of moving fly
-videos_side_LV = ['/AG/2/LV/']
-videos_side_RV = ['/AG/2/RV/']
+videos_side_LV = ['/PG/4/LV/']
+videos_side_RV = ['/PG/4/RV/']
 
 # ventral cropped video of moving fly
-videos_bottom = ['/AG/2/VV/']
+videos_bottom = ['/PG/4/VV/']
 
 
 assert len(videos_side_LV) == len(videos_bottom), 'Number of video files must be the same from side_LV and bottom!'
