@@ -298,7 +298,7 @@ for i in range(len(videos_side_LV)):
     #         _bottom.loc[:, (slice(None), ['x', 'y'])].apply(
     #             lambda x: procrustes.center_and_align(x, np.radians(angle), np.array(shape), np.array(c)), axis=1)
 
-    # we find the floor of side_LV view as the confident predicted maximum trasal_claw per each image andsubtract it from the y channel
+    # we find the floor of side_LV view as the confident predicted maximum tarsal_claw per each image and subtract it from the y channel
     if register_floor:
         print('align with x-y plane')
         floor = 0

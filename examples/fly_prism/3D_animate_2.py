@@ -46,7 +46,8 @@ idx_proboscis = 38
 idx_neck = 39
 idx_genitalia = 40
 
-points3d = np.load('/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/VV/points3d.npy')
+home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/VV'
+points3d = np.load('{}/points3d.npy'.format(home_dir))
 
 x = points3d[:,:,0]
 y= points3d[:,:,1]
@@ -84,7 +85,7 @@ def update_graph(num):
     graph_back.set_data(np.hstack((x[num,idx_L_wing],x[num,idx_L_haltere],x[num,idx_R_haltere],x[num,idx_R_wing])), np.hstack((y[num,idx_L_wing],y[num,idx_L_haltere],y[num,idx_R_haltere],y[num,idx_R_wing])))
     graph_back.set_3d_properties(np.hstack((z[num,idx_L_wing],z[num,idx_L_haltere],z[num,idx_R_haltere],z[num,idx_R_wing])))
 
-    # title.set_text('3D Test, frame={}'.format(num))
+    title.set_text('points3d, frame={}'.format(num+1))
     return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead
 
 fig = plt.figure()
@@ -108,10 +109,15 @@ graph_back, = ax.plot(np.hstack((x[0,idx_L_wing],x[0,idx_L_haltere],x[0,idx_R_ha
 
 # graph_Rhead, = ax.plot(np.hstack((x[0,38:40],[x[0,32]])), np.hstack((y[0,38:40],[y[0,32]])), np.hstack((z[0,38:40],[z[0,32]])), linestyle="-", marker="o", color='g')
 
-ani = matplotlib.animation.FuncAnimation(fig, update_graph, x.size,
-                               interval=500, blit=False)
+ani = matplotlib.animation.FuncAnimation(fig, update_graph, x.shape[0]-1,
+                               interval=1, blit=False)
 ax.set_xlim(x.min(),x.max())
 ax.set_ylim(y.min(),y.max())
 ax.set_zlim(z.min(),z.max())
 
 plt.show()
+
+# Set up formatting for the movie files
+Writer = matplotlib.animation.writers['ffmpeg']
+writer = Writer(fps=2, metadata=dict(artist='Me'))
+ani.save('{}/points3d_animation.mp4'.format(home_dir), writer=writer)
