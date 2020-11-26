@@ -21,9 +21,6 @@ scorer_side_RV = '3_PG_4_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
 leg_tips = ['LF_tarsal_claw', 'LM_tarsal_claw', 'LH_tarsal_claw',
             'RF_tarsal_claw', 'RM_tarsal_claw', 'RH_tarsal_claw']
 
-coxa_femurs = ['coxa-femur front L', 'coxa-femur mid L', 'coxa-femur back L',
-               'coxa-femur front R', 'coxa-femur mid R', 'coxa-femur back R']
-
 VV_bodyparts = ['LF_body_coxa', 'LF_coxa_femur', 'LF_femur_tibia', 'LF_tibia_tarsus', 'LF_tarsal_claw', 'LM_body_coxa',
                 'LM_coxa_femur', 'LM_femur_tibia', 'LM_tibia_tarsus', 'LM_tarsal_claw', 'LH_body_coxa', 'LH_coxa_femur',
                 'LH_femur_tibia', 'LH_tibia_tarsus', 'LH_tarsal_claw', 'RF_body_coxa', 'RF_coxa_femur',
@@ -47,40 +44,9 @@ for idx, item in enumerate(LV_bodyparts):
     except:
         pass
 
-# # lateral images of enclosure
-# images_side_LV = ['191125_PR/Fly1/001_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/002_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/003_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly1/004_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly1/',
-#                '191125_PR/Fly2/001_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/002_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/003_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/',
-#                '191125_PR/Fly2/004_prism/behData/images/side_LV_view_prism_data_191125_PR_Fly2/']
-
-# # ventral images of enclosure
-# images_bottom = ['191125_PR/Fly1/001_prism/behData/images/bottom_view_prism_data_191125_PR_Fly1/',
-#                  '191125_PR/Fly1/002_prism/behData/images/bottom_view_prism_data_191125_PR_Fly1/',
-#                  '191125_PR/Fly1/003_prism/behData/images/bottom_view_prism_data_191125_PR_Fly1/',
-#                  '191125_PR/Fly1/004_prism/behData/images/bottom_view_prism_data_191125_PR_Fly1/',
-#                  '191125_PR/Fly2/001_prism/behData/images/bottom_view_prism_data_191125_PR_Fly2/',
-#                  '191125_PR/Fly2/002_prism/behData/images/bottom_view_prism_data_191125_PR_Fly2/',
-#                  '191125_PR/Fly2/003_prism/behData/images/bottom_view_prism_data_191125_PR_Fly2/',
-#                  '191125_PR/Fly2/004_prism/behData/images/bottom_view_prism_data_191125_PR_Fly2/']
-#
-# # position of crop around moving fly
-# crop_positions = ['/bottom_view/videos/crop_loc_191125_PR_Fly1_001_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly1_002_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly1_003_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly1_004_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_001_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_002_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_003_prism.txt',
-#                   '/bottom_view/videos/crop_loc_191125_PR_Fly2_004_prism.txt']
-
 # lateral cropped video of moving fly
 videos_side_LV = ['/PG/4/LV/']
 videos_side_RV = ['/PG/4/RV/']
-
 # ventral cropped video of moving fly
 videos_bottom = ['/PG/4/VV/']
 
@@ -114,7 +80,7 @@ if mode == 'DLC_video':
     th2 = 15  # max L-R discrepancy in x coordinate
     align = 0
     nice_frames = 0
-    register_floor = 1
+    register_floor = 0
 
 
 # %% md
@@ -152,12 +118,12 @@ def select_best_data(bottom, side_LV, side_RV, th1, th2, leg_tips):
     discrepancy_LV = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - pad_width - side_LV.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
     discrepancy_RV = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - pad_width - side_RV.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
     # find good keypoints corresponding to np.asarray(LV_bodyparts)[arg_LV_common_bodypart] for both LV and RV
-    good_keypts = (likelihood_LV > th1) & (likelihood_RV > th1) & (discrepancy_LV < th2)
+    good_keypts = (likelihood_LV > th1) & (likelihood_RV > th1) & (discrepancy_LV < th2) & (discrepancy_RV < th2)
     good_keypts = good_keypts.droplevel(1, axis=1)
 
     assert side_LV.shape[0] == bottom.shape[0], 'Number of rows(=number of data) must match in filtered data!'
 
-    return bottom, side_LV, side_RV, good_keypts
+    return bottom, side_LV, side_RV, good_keypts, mask
 
 
 def flip_LR(data):
@@ -177,6 +143,8 @@ for i in range(len(videos_side_LV)):
     _side_LV = pd.read_hdf(home_dir + videos_side_LV[i] + scorer_side_LV + '.h5')
     _side_RV = pd.read_hdf(home_dir + videos_side_RV[i] + scorer_side_RV + '.h5')
     _bottom = pd.read_hdf(home_dir + videos_bottom[i] + scorer_bottom + '.h5')
+
+    initial_number_frames = _bottom.shape[0]
     _side_LV = _side_LV.droplevel('scorer', axis=1)
     _side_RV = _side_RV.droplevel('scorer', axis=1)
     _bottom = _bottom.droplevel('scorer', axis=1)
@@ -268,7 +236,7 @@ for i in range(len(videos_side_LV)):
     # #############################
 
     # select for high confidence datapoints
-    _bottom, _side_LV, _side_RV, good_keypts = select_best_data(_bottom, _side_LV, _side_RV, th1, th2, leg_tips)
+    _bottom, _side_LV, _side_RV, good_keypts, mask_kept_data = select_best_data(_bottom, _side_LV, _side_RV, th1, th2, leg_tips)
 
     # take only those frames where all keypoints on at least one side_LV are correct
     if nice_frames:  # 1 for training, 0 for prediction
@@ -302,31 +270,70 @@ for i in range(len(videos_side_LV)):
     if register_floor:
         print('align with x-y plane')
         floor = 0
+        floor_RV = 0
+        unreliable_tips_mask_idx = []
         for ind in _side_LV.index:
+        # for ind in range(58,60):
             try:
                 good_tips = _side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
                     ind, (leg_tips, 'y')]
-                floor_new = np.max(good_tips.to_numpy())
-                if ~np.isnan(floor_new):
-                    floor = floor_new
+                floor_new_LV = np.max(good_tips.to_numpy())
+                if ~np.isnan(floor_new_LV):
+                    floor = floor_new_LV
                 _side_LV.loc[ind, (slice(None), 'y')] = floor - _side_LV.loc[ind, (slice(None), 'y')]
-            except:
-                continue
 
-        for ind in _side_RV.index:
-            try:
-                good_tips = _side_RV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
+                good_tips_RV = _side_RV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
                     ind, (leg_tips, 'y')]
-                floor_new = np.max(good_tips.to_numpy())
-                if ~np.isnan(floor_new):
-                    floor = floor_new
-                _side_RV.loc[ind, (slice(None), 'y')] = floor - _side_RV.loc[ind, (slice(None), 'y')]
+                floor_new_RV = np.max(good_tips_RV.to_numpy())
+                if ~np.isnan(floor_new_RV):
+                    floor_RV = floor_new_RV
+                _side_RV.loc[ind, (slice(None), 'y')] = floor_RV - _side_RV.loc[ind, (slice(None), 'y')]
             except:
+                unreliable_tips_mask_idx.append(ind)
                 continue
 
-    # convert & save to DF3D format
+        # remove the frames with not good tips for any of 3 tarsal claws in each side view (if good_tips is empty)
+        unreliable_tips_mask = np.ones(_side_LV.shape[0])
+        unreliable_tips_mask[unreliable_tips_mask_idx] = 0
+        unreliable_tips_mask = pd.Series(unreliable_tips_mask>0)
+        _bottom = _bottom[unreliable_tips_mask].dropna()
+        _side_LV = _side_LV[unreliable_tips_mask].dropna()
+        _side_RV = _side_RV[unreliable_tips_mask].dropna()
+        # frame indices
+        index = _bottom.index.values
+        _bottom = _bottom.reset_index()
+        _side_LV = _side_LV.reset_index()
+        _side_RV = _side_RV.reset_index()
+    
+    else:
+        fly_number = '3'
+        floor = 0
+        floor_RV = 0
+        if fly_number=='3':
+            horiz_crop_right_1 = 32
+            horiz_crop_right_2 = 290
+            horiz_crop_middle_1 = 392
+            horiz_crop_middle_2 = 830
+            horiz_crop_left_1 = 950
+            horiz_crop_left_2 = 1182
+        else:
+            IOError('fly number properties not defined!')
+        
+        floor_new_LV = horiz_crop_left_2 - horiz_crop_left_1
+        if ~np.isnan(floor_new_LV):
+            floor = floor_new_LV
+        _side_LV.loc[:, (slice(None), 'y')] = floor - _side_LV.loc[:, (slice(None), 'y')]
+
+
+        floor_new_RV = horiz_crop_right_2 - horiz_crop_right_1
+        if ~np.isnan(floor_new_RV):
+            floor_RV = floor_new_RV
+        _side_RV.loc[:, (slice(None), 'y')] = floor_RV - _side_RV.loc[:, (slice(None), 'y')]
+
+
+        # convert & save to DF3D format
     side_LV_np = _side_LV.loc[:, (slice(None), ['x', 'y'])].to_numpy()
-    z_LV = _side_LV.loc[:, (slice(None), 'y')].to_numpy()
+    # z_LV = _side_LV.loc[:, (slice(None), 'y')].to_numpy()
     z_LV_uncommon = _side_LV.loc[:, (slice(None), 'y')].to_numpy()[:,arg_LV_common_bodypart][:,:-3]
     z_RV_uncommon = _side_RV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, :-3]
     z_LRV_common = (_side_RV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, -3:]+_side_LV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, -3:])/2
@@ -354,111 +361,7 @@ for i in range(len(videos_side_LV)):
     bottom_np = np.stack((bottom_np[:, ::2], bottom_np[:, 1::2]), axis=2)
     points3d = np.concatenate((bottom_np, z[:, :, None]), axis=2)
 
+    name_id_kept_frames = np.arange(0, initial_number_frames)[mask_kept_data] + 1
+    np.save(home_dir + videos_bottom[i] + 'points3d_names_id.npy', name_id_kept_frames)
     np.save(home_dir + videos_bottom[i] + 'points3d.npy', points3d)
 
-#     points2d = np.stack((bottom_np, side_LV_np), axis=0)
-#     good_keypts = np.array(good_keypts)
-#
-#     # # remove some bad frames manually
-#     # for b_frame in bad_frames[i]:
-#     #     points2d = np.delete(points2d, b_frame, 1)
-#     #     points3d = np.delete(points3d, b_frame, 0)
-#     #     index = np.delete(index, b_frame, 0)
-#     #     good_keypts = np.delete(good_keypts, b_frame, 0)
-#
-#     if np.isnan(z).any():
-#         print('NaNs found, something went wrong...')
-#
-#     poses = {'points2d': points2d,
-#              'points3d': points3d,
-#              'index': index,
-#              'good_keypts': good_keypts
-#              }
-#
-#     pickle.dump(poses, open(home_dir + videos_side_LV[i].split('/')[-1][6:] + '.pkl', 'wb'))
-#
-# # %%
-#
-# import matplotlib.pyplot as plt
-# from matplotlib.animation import FFMpegWriter
-#
-# fig = plt.figure(figsize=(10, 10))
-# plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-# # plt.xlim([100,800])
-# # plt.ylim([100,800])
-#
-# # bottom = _bottom.loc[0,(slice(None),['x','y'])]#
-# # bottom_np = pts2d.to_numpy()[None,:]
-# # bottom_np = _bottom.loc[:,(slice(None),['x','y'])].to_numpy()
-# # bottom_np = np.stack((bottom_np[:,::2], bottom_np[:,1::2]), axis=2)
-#
-# from skeleton import skeleton
-#
-# G, color_edge = skeleton()
-# writer = FFMpegWriter(fps=10)
-# with writer.saving(fig, "cropped.mp4", 100):
-#     for frame_idx in tqdm(range(1500)):
-#         plt.cla()
-#
-#         # plt.imshow(img_rot[frame_idx], cmap='gray')
-#         # plt.imshow(imgs[frame_idx], cmap='gray')
-#
-#         utils.plot_skeleton(G, bottom_np[frame_idx, :, 0], bottom_np[frame_idx, :, 1], color_edge)
-#         plt.xlim([0, 400])
-#         plt.ylim([100, 400])
-#
-#         # plt.text(120, 80, str(frame_idx), fontsize=20, color='white')
-#
-#         # plt.axis('off')
-#         writer.grab_frame()
-#
-#     # %%
-#
-#
-#
-# import matplotlib.pyplot as plt
-#
-#
-# def plot_skeleton(x, y, color_edge, ax=None, good_keypts=None):
-#     for i, j in enumerate(G.edges()):
-#         if good_keypts is not None:
-#             if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
-#                 continue
-#
-#         u = np.array((x[j[0]], x[j[1]]))
-#         v = np.array((y[j[0]], y[j[1]]))
-#         if ax is not None:
-#             ax.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth=2)
-#         else:
-#             plt.plot(u, v, c=color_edge[j[0]], alpha=1.0, linewidth=2)
-#
-#
-# from skeleton import skeleton
-#
-# G, color_edge = skeleton()
-# # cropped image
-# i = 0
-#
-# fig = plt.figure(figsize=(6, 6))
-#
-# bottom = _bottom.loc[:, (slice(None), ['x', 'y'])]
-#
-# tmp = procrustes.center_and_align(x, angle[0], np.array(shape), np.array(c[0]), img_rot[0])
-#
-# bottom_x = bottom[:, 0]
-# bottom_y = bottom[:, 1]
-#
-# plt.imshow(img_rot[0])
-# plot_skeleton(bottom_x, bottom_y, color_edge)
-#
-# # i = 50
-#
-# # bottom_2 = poses['points2d'][0,i,:,:].copy()
-#
-# # bottom_x = bottom_2[:,0]
-# # bottom_y = bottom_2[:,1]
-#
-# # plot_skeleton(bottom_x, bottom_y, color_edge)
-#
-#
-# # %%

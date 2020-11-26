@@ -3,6 +3,9 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation
 import pandas as pd
+import cv2
+import matplotlib.image as mpimg
+
 
 idx_LF_body_coxa = 0
 idx_LF_coxa_femur = 1
@@ -48,6 +51,8 @@ idx_genitalia = 40
 
 home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/VV'
 points3d = np.load('{}/points3d.npy'.format(home_dir))
+points3d_names_id = np.load('{}/points3d_names_id.npy'.format(home_dir))
+
 
 x = points3d[:,:,0]
 y= points3d[:,:,1]
@@ -86,10 +91,33 @@ def update_graph(num):
     graph_back.set_3d_properties(np.hstack((z[num,idx_L_wing],z[num,idx_L_haltere],z[num,idx_R_haltere],z[num,idx_R_wing])))
 
     title.set_text('points3d, frame={}'.format(num+1))
-    return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+    try:
+        img_name_LV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/LV/3_PG_4_LV_{:05d}.tiff'.format(points3d_names_id[num])
+        title_LV.set_text('LV, frame={}'.format(num + 1))
+        img_LV = mpimg.imread(img_name_LV)
+        im_LV.set_array(img_LV)
+
+        img_name_RV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/RV/3_PG_4_RV_{:05d}.tiff'.format(points3d_names_id[num])
+        title_RV.set_text('RV, frame={}'.format(num + 1))
+        img_RV = mpimg.imread(img_name_RV)
+        im_RV.set_array(img_RV)
+
+        img_name_VV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/VV/3_PG_4_VV_{:05d}.tiff'.format(points3d_names_id[num])
+        title_VV.set_text('VV, frame={}'.format(num + 1))
+        img_VV = mpimg.imread(img_name_VV)
+        im_VV.set_array(img_VV)
+    except:
+        pass
+
+    return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, im_LV, title_LV, im_RV, title_RV, im_VV, title_VV,
+
+fig = plt.figure(figsize=(16, 12))
+
+from matplotlib import gridspec
+gs = gridspec.GridSpec(3, 4)
+
+ax = fig.add_subplot(gs[:,0:3], projection='3d')
 title = ax.set_title('points3d')
 
 graph_FL, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="o", color='k')
@@ -109,11 +137,38 @@ graph_back, = ax.plot(np.hstack((x[0,idx_L_wing],x[0,idx_L_haltere],x[0,idx_R_ha
 
 # graph_Rhead, = ax.plot(np.hstack((x[0,38:40],[x[0,32]])), np.hstack((y[0,38:40],[y[0,32]])), np.hstack((z[0,38:40],[z[0,32]])), linestyle="-", marker="o", color='g')
 
+
+
+# ax_LV = fig.add_subplot(212)
+img_name_RV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/RV/3_PG_4_RV_{:05d}.tiff'.format(points3d_names_id[0])
+img_RV = mpimg.imread(img_name_RV)
+plt.subplot(gs[0,3:4])
+plt.imshow(img_RV, cmap='gray')
+title_RV = plt.title('RV')
+im_RV = plt.imshow(img_RV, animated=True)
+
+# ax_VV = fig.add_subplot(212)
+img_name_VV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/VV/3_PG_4_VV_{:05d}.tiff'.format(points3d_names_id[0])
+img_VV = mpimg.imread(img_name_VV)
+plt.subplot(gs[1,3:4])
+plt.imshow(img_VV, cmap='gray')
+title_VV = plt.title('VV')
+im_VV = plt.imshow(img_VV, animated=True)
+
+# ax_LV = fig.add_subplot(212)
+img_name_LV = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4/LV/3_PG_4_LV_{:05d}.tiff'.format(points3d_names_id[0])
+img_LV = mpimg.imread(img_name_LV)
+plt.subplot(gs[2,3:4])
+plt.imshow(img_LV, cmap='gray')
+title_LV = plt.title('LV')
+im_LV = plt.imshow(img_LV, animated=True)
+
 ani = matplotlib.animation.FuncAnimation(fig, update_graph, x.shape[0]-1,
                                interval=1, blit=False)
 ax.set_xlim(x.min(),x.max())
 ax.set_ylim(y.min(),y.max())
 ax.set_zlim(z.min(),z.max())
+
 
 plt.show()
 
