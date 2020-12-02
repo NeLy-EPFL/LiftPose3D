@@ -10,13 +10,16 @@ import src.utils as utils
 
 #
 
-home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped'
-data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_3_clipped/PG/4'
-scorer_bottom = '3_PG_4_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
-scorer_side_LV = '3_PG_4_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
-scorer_side_RV = '3_PG_4_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
-
-
+home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_6_clipped'
+data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_6_clipped/FW/1'
+scorer_bottom = '6_FW_1_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
+scorer_side_LV = '6_FW_1_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+scorer_side_RV = '6_FW_1_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+# lateral cropped video of moving fly
+videos_side_LV = ['/FW/1/LV/']
+videos_side_RV = ['/FW/1/RV/']
+# ventral cropped video of moving fly
+videos_bottom = ['/FW/1/VV/']
 # joints
 leg_tips = ['LF_tarsal_claw', 'LM_tarsal_claw', 'LH_tarsal_claw',
             'RF_tarsal_claw', 'RM_tarsal_claw', 'RH_tarsal_claw']
@@ -35,8 +38,8 @@ LV_bodyparts = ['LF_body_coxa', 'LF_coxa_femur', 'LF_femur_tibia', 'LF_tibia_tar
                 'proboscis', 'neck', 'genitalia', 'scutellum', 'A1A2', 'A3', 'A4', 'A5', 'A6']
 
 # find the arg of VV_bodyparts same as LV_bodyparts
-arg_VV_common_bodypart=[]
-arg_LV_common_bodypart=[]
+arg_VV_common_bodypart = []
+arg_LV_common_bodypart = []
 for idx, item in enumerate(LV_bodyparts):
     try:
         arg_VV_common_bodypart.append(np.where(np.asarray(VV_bodyparts) == item)[0][0])
@@ -44,16 +47,8 @@ for idx, item in enumerate(LV_bodyparts):
     except:
         pass
 
-# lateral cropped video of moving fly
-videos_side_LV = ['/PG/4/LV/']
-videos_side_RV = ['/PG/4/RV/']
-# ventral cropped video of moving fly
-videos_bottom = ['/PG/4/VV/']
-
-
 assert len(videos_side_LV) == len(videos_bottom), 'Number of video files must be the same from side_LV and bottom!'
 assert len(videos_side_RV) == len(videos_bottom), 'Number of video files must be the same from side_RV and bottom!'
-
 
 # %% md
 
@@ -114,9 +109,15 @@ def select_best_data(bottom, side_LV, side_RV, th1, th2, leg_tips):
     # find high confidence and low discrepancy keypoints in each frame
     likelihood_LV = side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'likelihood')]
     likelihood_RV = side_RV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'likelihood')]
-    pad_width = 25 #to compensate VV horizontal pad
-    discrepancy_LV = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - pad_width - side_LV.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
-    discrepancy_RV = np.abs(bottom.loc[:, (slice(None), 'x')].values[:,arg_VV_common_bodypart] - pad_width - side_RV.loc[:, (slice(None), 'x')].values[:,arg_LV_common_bodypart])
+    pad_width = 25  # to compensate VV horizontal pad
+    discrepancy_LV = np.abs(
+        bottom.loc[:, (slice(None), 'x')].values[:, arg_VV_common_bodypart] - pad_width - side_LV.loc[:,
+                                                                                          (slice(None), 'x')].values[:,
+                                                                                          arg_LV_common_bodypart])
+    discrepancy_RV = np.abs(
+        bottom.loc[:, (slice(None), 'x')].values[:, arg_VV_common_bodypart] - pad_width - side_RV.loc[:,
+                                                                                          (slice(None), 'x')].values[:,
+                                                                                          arg_LV_common_bodypart])
     # find good keypoints corresponding to np.asarray(LV_bodyparts)[arg_LV_common_bodypart] for both LV and RV
     good_keypts = (likelihood_LV > th1) & (likelihood_RV > th1) & (discrepancy_LV < th2) & (discrepancy_RV < th2)
     good_keypts = good_keypts.droplevel(1, axis=1)
@@ -154,6 +155,7 @@ for i in range(len(videos_side_LV)):
     cx = orientation_info[:, 6]
     cy = orientation_info[:, 9]
 
+
     # #############################
     # # plot fly and joints
     # import matplotlib.pyplot as plt
@@ -167,19 +169,22 @@ for i in range(len(videos_side_LV)):
     # plt.show()
     # #############################
 
-
     def rotate(origin, point, angle):
         """
         Rotate a point counterclockwise by a given angle around a given origin.
         The angle should be given in radians.
         """
-        angle = angle*np.pi/180
-        ox, oy = w/2, h/2
-        px = point[:,::2]
-        py = point[:,1::2]
+        angle = angle * np.pi / 180
+        ox, oy = w / 2, h / 2
+        px = point[:, ::2]
+        py = point[:, 1::2]
 
-        qx = ox + np.cos(angle).reshape(angle.size,1) * np.subtract(px,ox) - np.sin(angle).reshape(angle.size,1) * np.subtract(py,oy) - (w / 2 - origin[0].reshape(origin[0].size,1))
-        qy = oy + np.sin(angle).reshape(angle.size,1) * np.subtract(px,ox) + np.cos(angle).reshape(angle.size,1) * np.subtract(py,oy) - (h / 2 - origin[1].reshape(origin[1].size,1))
+        qx = ox + np.cos(angle).reshape(angle.size, 1) * np.subtract(px, ox) - np.sin(angle).reshape(angle.size,
+                                                                                                     1) * np.subtract(
+            py, oy) - (w / 2 - origin[0].reshape(origin[0].size, 1))
+        qy = oy + np.sin(angle).reshape(angle.size, 1) * np.subtract(px, ox) + np.cos(angle).reshape(angle.size,
+                                                                                                     1) * np.subtract(
+            py, oy) - (h / 2 - origin[1].reshape(origin[1].size, 1))
         return qx, qy
 
 
@@ -193,12 +198,13 @@ for i in range(len(videos_side_LV)):
         The angle should be given in radians.
         """
         angle = math.radians(angle)
-        ox, oy = w/2, h/2
+        ox, oy = w / 2, h / 2
         px = point[:, ::2] + (w / 2 - origin[0])
         py = point[:, 1::2] + (h / 2 - origin[1])
         qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
         qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
         return qx, qy
+
 
     # # flip left and right side_LV due to prism reflection
     # _side_LV = flip_LR(_side_LV)
@@ -207,11 +213,13 @@ for i in range(len(videos_side_LV)):
     import cv2
     from scipy import ndimage
     import matplotlib.image as mpimg
-    img = mpimg.imread(orientation_info[1,0])
+
+    img = mpimg.imread(orientation_info[1, 0])
     h, w = img.shape
 
     # rotate back the VV joints
-    qx, qy =rotate((cx.astype(float), cy.astype(float)), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), angle.astype(float))
+    qx, qy = rotate((cx.astype(float), cy.astype(float)), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(),
+                    angle.astype(float))
     # qx, qy =rotate2((cx.astype(float)[0], cy.astype(float)[0]), _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy(), angle.astype(float)[0])
     _bottom.loc[:, (slice(None), ['x'])] = qx
     _bottom.loc[:, (slice(None), ['y'])] = qy
@@ -236,7 +244,8 @@ for i in range(len(videos_side_LV)):
     # #############################
 
     # select for high confidence datapoints
-    _bottom, _side_LV, _side_RV, good_keypts, mask_kept_data = select_best_data(_bottom, _side_LV, _side_RV, th1, th2, leg_tips)
+    _bottom, _side_LV, _side_RV, good_keypts, mask_kept_data = select_best_data(_bottom, _side_LV, _side_RV, th1, th2,
+                                                                                leg_tips)
 
     # take only those frames where all keypoints on at least one side_LV are correct
     if nice_frames:  # 1 for training, 0 for prediction
@@ -255,7 +264,6 @@ for i in range(len(videos_side_LV)):
     _side_LV = _side_LV.reset_index()
     _side_RV = _side_RV.reset_index()
 
-
     # align horizontally
     # if align:  # 1 for training and prediction, 0 for making of DLC video
     #     print('align')
@@ -273,16 +281,18 @@ for i in range(len(videos_side_LV)):
         floor_RV = 0
         unreliable_tips_mask_idx = []
         for ind in _side_LV.index:
-        # for ind in range(58,60):
+            # for ind in range(58,60):
             try:
-                good_tips = _side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
+                good_tips = _side_LV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:,
+                            good_keypts.iloc[ind, :].to_numpy()].loc[
                     ind, (leg_tips, 'y')]
                 floor_new_LV = np.max(good_tips.to_numpy())
                 if ~np.isnan(floor_new_LV):
                     floor = floor_new_LV
                 _side_LV.loc[ind, (slice(None), 'y')] = floor - _side_LV.loc[ind, (slice(None), 'y')]
 
-                good_tips_RV = _side_RV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:, good_keypts.iloc[ind, :].to_numpy()].loc[
+                good_tips_RV = _side_RV.loc[:, (np.asarray(LV_bodyparts)[arg_LV_common_bodypart], 'y')].iloc[:,
+                               good_keypts.iloc[ind, :].to_numpy()].loc[
                     ind, (leg_tips, 'y')]
                 floor_new_RV = np.max(good_tips_RV.to_numpy())
                 if ~np.isnan(floor_new_RV):
@@ -295,7 +305,7 @@ for i in range(len(videos_side_LV)):
         # remove the frames with not good tips for any of 3 tarsal claws in each side view (if good_tips is empty)
         unreliable_tips_mask = np.ones(_side_LV.shape[0])
         unreliable_tips_mask[unreliable_tips_mask_idx] = 0
-        unreliable_tips_mask = pd.Series(unreliable_tips_mask>0)
+        unreliable_tips_mask = pd.Series(unreliable_tips_mask > 0)
         _bottom = _bottom[unreliable_tips_mask].dropna()
         _side_LV = _side_LV[unreliable_tips_mask].dropna()
         _side_RV = _side_RV[unreliable_tips_mask].dropna()
@@ -304,12 +314,12 @@ for i in range(len(videos_side_LV)):
         _bottom = _bottom.reset_index()
         _side_LV = _side_LV.reset_index()
         _side_RV = _side_RV.reset_index()
-    
+
     else:
         fly_number = '3'
         floor = 0
         floor_RV = 0
-        if fly_number=='3':
+        if fly_number == '3':
             horiz_crop_right_1 = 32
             horiz_crop_right_2 = 290
             horiz_crop_middle_1 = 392
@@ -318,25 +328,28 @@ for i in range(len(videos_side_LV)):
             horiz_crop_left_2 = 1182
         else:
             IOError('fly number properties not defined!')
-        
+
         floor_new_LV = horiz_crop_left_2 - horiz_crop_left_1
         if ~np.isnan(floor_new_LV):
             floor = floor_new_LV
         _side_LV.loc[:, (slice(None), 'y')] = floor - _side_LV.loc[:, (slice(None), 'y')]
-
 
         floor_new_RV = horiz_crop_right_2 - horiz_crop_right_1
         if ~np.isnan(floor_new_RV):
             floor_RV = floor_new_RV
         _side_RV.loc[:, (slice(None), 'y')] = floor_RV - _side_RV.loc[:, (slice(None), 'y')]
 
-
         # convert & save to DF3D format
     side_LV_np = _side_LV.loc[:, (slice(None), ['x', 'y'])].to_numpy()
     # z_LV = _side_LV.loc[:, (slice(None), 'y')].to_numpy()
-    z_LV_uncommon = _side_LV.loc[:, (slice(None), 'y')].to_numpy()[:,arg_LV_common_bodypart][:,:-3]
+    z_LV_uncommon = _side_LV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, :-3]
     z_RV_uncommon = _side_RV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, :-3]
-    z_LRV_common = (_side_RV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, -3:]+_side_LV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, -3:])/2
+    z_LRV_common = (_side_RV.loc[:, (slice(None), 'y')].to_numpy()[:, arg_LV_common_bodypart][:, -3:] + _side_LV.loc[:,
+                                                                                                        (slice(None),
+                                                                                                         'y')].to_numpy()[
+                                                                                                        :,
+                                                                                                        arg_LV_common_bodypart][
+                                                                                                        :, -3:]) / 2
 
     # build and order z values corresponding VV annotation
     _tmp_legs = np.concatenate((z_LV_uncommon[:, :15], z_RV_uncommon[:, :15]), axis=1)
@@ -353,7 +366,7 @@ for i in range(len(videos_side_LV)):
     _tmp_37 = np.concatenate((_tmp_36, z_LV_uncommon[:, 18].reshape(z_LV_uncommon[:, 18].size, 1)), axis=1)
     _tmp_38 = np.concatenate((_tmp_37, z_RV_uncommon[:, 18].reshape(z_RV_uncommon[:, 18].size, 1)), axis=1)
 
-    z = np.concatenate((_tmp_38, z_LRV_common), axis=1) # all
+    z = np.concatenate((_tmp_38, z_LRV_common), axis=1)  # all
 
     side_LV_np = np.stack((side_LV_np[:, ::2], side_LV_np[:, 1::2]), axis=2)
 
