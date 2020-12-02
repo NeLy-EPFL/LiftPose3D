@@ -9,17 +9,73 @@ import src.procrustes as procrustes
 import src.utils as utils
 
 #
+'''
+calculate points3d.npy given DLC 2d pose estimations
+points3d.shape=[#frames, #keypoints according to list bellow, 3 for (x,y,z)]
 
-home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_6_clipped'
-data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_6_clipped/FW/1'
-scorer_bottom = '6_FW_1_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'
-scorer_side_LV = '6_FW_1_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
-scorer_side_RV = '6_FW_1_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'
+0- LF_body_coxa
+1- LF_coxa_femur
+2- LF_femur_tibia
+3- LF_tibia_tarsus
+4- LF_tarsal_claw
+5- LM_body_coxa
+6- LM_coxa_femur
+7- LM_femur_tibia
+8- LM_tibia_tarsus
+9- LM_tarsal_claw
+10- LH_body_coxa
+11- LH_coxa_femur
+12- LH_femur_tibia
+13- LH_tibia_tarsus
+14- LH_tarsal_claw
+15- RF_body_coxa
+16- RF_coxa_femur
+17- RF_femur_tibia
+18- RF_tibia_tarsus
+19- RF_tarsal_claw
+20- RM_body_coxa
+21- RM_coxa_femur
+22- RM_femur_tibia
+23- RM_tibia_tarsus
+24- RM_tarsal_claw
+25- RH_body_coxa
+26- RH_coxa_femur
+27- RH_femur_tibia
+28- RH_tibia_tarsus
+29- RH_tarsal_claw
+30- L_antenna
+31- R_antenna
+32- L_eye
+33- R_eye
+34- L_haltere
+35- R_haltere
+36- L_wing
+37- R_wing
+38- proboscis
+39- neck
+40- genitalia
+41- scutellum
+42- A1A2
+43- A3
+44- A4
+45- A5
+46- A6
+'''
+# video sequence spec
+fly_number = '1'
+behaviour = 'AG'
+video_sequence_number = '1'
+
+home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped'.format(fly_number)
+data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped/{}/{}'.format(fly_number,behaviour,video_sequence_number)
+scorer_bottom = '{}_{}_{}_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'.format(fly_number,behaviour,video_sequence_number)
+scorer_side_LV = '{}_{}_{}_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number)
+scorer_side_RV = '{}_{}_{}_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number)
 # lateral cropped video of moving fly
-videos_side_LV = ['/FW/1/LV/']
-videos_side_RV = ['/FW/1/RV/']
+videos_side_LV = ['/{}/{}/LV/'.format(behaviour,video_sequence_number)]
+videos_side_RV = ['/{}/{}/RV/'.format(behaviour,video_sequence_number)]
 # ventral cropped video of moving fly
-videos_bottom = ['/FW/1/VV/']
+videos_bottom = ['/{}/{}/VV/'.format(behaviour,video_sequence_number)]
 # joints
 leg_tips = ['LF_tarsal_claw', 'LM_tarsal_claw', 'LH_tarsal_claw',
             'RF_tarsal_claw', 'RM_tarsal_claw', 'RH_tarsal_claw']
@@ -316,16 +372,51 @@ for i in range(len(videos_side_LV)):
         _side_RV = _side_RV.reset_index()
 
     else:
-        fly_number = '3'
         floor = 0
         floor_RV = 0
-        if fly_number == '3':
+        if fly_number == '1':
+            horiz_crop_right_1 = 8
+            horiz_crop_right_2 = 266
+            horiz_crop_middle_1 = 348
+            horiz_crop_middle_2 = 798
+            horiz_crop_left_1 = 888
+            horiz_crop_left_2 = 1162
+        elif fly_number == '2':
+            horiz_crop_right_1 = 20
+            horiz_crop_right_2 = 286
+            horiz_crop_middle_1 = 386
+            horiz_crop_middle_2 = 858
+            horiz_crop_left_1 = 926
+            horiz_crop_left_2 = 1186
+        elif fly_number == '3':
+            pad = 25
             horiz_crop_right_1 = 32
             horiz_crop_right_2 = 290
             horiz_crop_middle_1 = 392
             horiz_crop_middle_2 = 830
             horiz_crop_left_1 = 950
             horiz_crop_left_2 = 1182
+        elif fly_number == '4':
+            horiz_crop_right_1 = 20
+            horiz_crop_right_2 = 280
+            horiz_crop_middle_1 = 398
+            horiz_crop_middle_2 = 824
+            horiz_crop_left_1 = 908
+            horiz_crop_left_2 = 1166
+        elif fly_number == '5':
+            horiz_crop_right_1 = 18
+            horiz_crop_right_2 = 286
+            horiz_crop_middle_1 = 370
+            horiz_crop_middle_2 = 826
+            horiz_crop_left_1 = 916
+            horiz_crop_left_2 = 1182
+        elif fly_number == '6':
+            horiz_crop_right_1 = 26
+            horiz_crop_right_2 = 284
+            horiz_crop_middle_1 = 376
+            horiz_crop_middle_2 = 824
+            horiz_crop_left_1 = 908
+            horiz_crop_left_2 = 1184
         else:
             IOError('fly number properties not defined!')
 
@@ -351,6 +442,27 @@ for i in range(len(videos_side_LV)):
                                                                                                         arg_LV_common_bodypart][
                                                                                                         :, -3:]) / 2
 
+    # approximate 3D poses for the abdomen A keypoints and scutellum
+    z_scutellum = (_side_RV.loc[:, (slice(None), 'y')].to_numpy()[:,22] + _side_LV.loc[:, (slice(None), 'y')].to_numpy()[:,22])/2
+    z_abdomen_A = (_side_RV.loc[:, (slice(None), 'y')].to_numpy()[:,23:] + _side_LV.loc[:, (slice(None), 'y')].to_numpy()[:,23:])/2
+
+    x_scutellum = (_side_RV.loc[:, (slice(None), 'x')].to_numpy()[:, 22] + _side_LV.loc[:,
+                                                                           (slice(None), 'x')].to_numpy()[:, 22]) / 2
+    x_abdomen_A = (
+                _side_RV.loc[:, (slice(None), 'x')].to_numpy()[:, 23:] + _side_LV.loc[:, (slice(None), 'x')].to_numpy()[
+                                                                         :, 23:])/2
+
+    bottom_np = _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy()
+    bottom_np = np.stack((bottom_np[:, ::2], bottom_np[:, 1::2]), axis=2)
+
+    # y_scutellum and abdomens is approximated as the mean of 4 H and M coxa_body predictions
+    y_scutellum = np.mean(bottom_np[:, [5, 10, 20, 25], 1], axis=1)
+    y_abdomen_A = np.vstack((y_scutellum, y_scutellum, y_scutellum, y_scutellum, y_scutellum)).T
+
+    xyz_abdomen_A = np.concatenate((np.expand_dims(x_abdomen_A, axis=2),np.expand_dims(y_abdomen_A, axis=2),np.expand_dims(z_abdomen_A, axis=2)),axis=2)
+    xyz_scutellum = np.expand_dims(np.concatenate((np.expand_dims(x_scutellum, axis=1),np.expand_dims(y_scutellum, axis=1),np.expand_dims(z_scutellum, axis=1)),axis=1),axis=1)
+
+
     # build and order z values corresponding VV annotation
     _tmp_legs = np.concatenate((z_LV_uncommon[:, :15], z_RV_uncommon[:, :15]), axis=1)
 
@@ -368,11 +480,9 @@ for i in range(len(videos_side_LV)):
 
     z = np.concatenate((_tmp_38, z_LRV_common), axis=1)  # all
 
-    side_LV_np = np.stack((side_LV_np[:, ::2], side_LV_np[:, 1::2]), axis=2)
+    # side_LV_np = np.stack((side_LV_np[:, ::2], side_LV_np[:, 1::2]), axis=2)
 
-    bottom_np = _bottom.loc[:, (slice(None), ['x', 'y'])].to_numpy()
-    bottom_np = np.stack((bottom_np[:, ::2], bottom_np[:, 1::2]), axis=2)
-    points3d = np.concatenate((bottom_np, z[:, :, None]), axis=2)
+    points3d = np.concatenate((np.concatenate((bottom_np, z[:, :, None]), axis=2), xyz_scutellum, xyz_abdomen_A) , axis=1)
 
     name_id_kept_frames = np.arange(0, initial_number_frames)[mask_kept_data] + 1
     np.save(home_dir + videos_bottom[i] + 'points3d_names_id.npy', name_id_kept_frames)

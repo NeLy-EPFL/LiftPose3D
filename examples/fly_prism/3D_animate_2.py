@@ -12,12 +12,16 @@ VV_bodyparts = ['LF_body_coxa', 'LF_coxa_femur', 'LF_femur_tibia', 'LF_tibia_tar
                 'RF_femur_tibia', 'RF_tibia_tarsus', 'RF_tarsal_claw', 'RM_body_coxa', 'RM_coxa_femur',
                 'RM_femur_tibia', 'RM_tibia_tarsus', 'RM_tarsal_claw', 'RH_body_coxa', 'RH_coxa_femur',
                 'RH_femur_tibia', 'RH_tibia_tarsus', 'RH_tarsal_claw', 'L_antenna', 'R_antenna', 'L_eye', 'R_eye',
-                'L_haltere', 'R_haltere', 'L_wing', 'R_wing', 'proboscis', 'neck', 'genitalia']
+                'L_haltere', 'R_haltere', 'L_wing', 'R_wing', 'proboscis', 'neck', 'genitalia', 'scutellum', 'A1A2', 'A3', 'A4', 'A5', 'A6']
 
 LV_bodyparts = ['F_body_coxa', 'F_coxa_femur', 'F_femur_tibia', 'F_tibia_tarsus', 'F_tarsal_claw', 'M_body_coxa',
                 'M_coxa_femur', 'M_femur_tibia', 'M_tibia_tarsus', 'M_tarsal_claw', 'H_body_coxa', 'H_coxa_femur',
                 'H_femur_tibia', 'H_tibia_tarsus', 'H_tarsal_claw', 'antenna', 'eye', 'haltere', 'wing',
                 'proboscis', 'neck', 'genitalia', 'scutellum', 'A1A2', 'A3', 'A4', 'A5', 'A6']
+# video sequence spec
+fly_number = '5'
+behaviour = 'FW'
+video_sequence_number = '3'
 
 idx_LF_body_coxa = 0
 idx_LF_coxa_femur = 1
@@ -60,8 +64,14 @@ idx_R_wing = 37
 idx_proboscis = 38
 idx_neck = 39
 idx_genitalia = 40
+idx_scutellum = 41
+idx_A1A2 = 42
+idx_A3 = 43
+idx_A4 = 44
+idx_A5 = 45
+idx_A6 = 46
 
-home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_6_clipped/FW/1'
+home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped/{}/{}'.format(fly_number,behaviour,video_sequence_number)
 points3d = np.load('{}/VV/points3d.npy'.format(home_dir))
 points3d_names_id = np.load('{}/VV/points3d_names_id.npy'.format(home_dir))
 
@@ -71,9 +81,9 @@ y= points3d[:,:,1]
 z= points3d[:,:,2]
 
 # load data of side_LV and bottom view
-_side_LV = pd.read_hdf(home_dir + '/LV' + '/6_FW_1_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000' + '.h5')
-_side_RV = pd.read_hdf(home_dir + '/RV' + '/6_FW_1_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000' + '.h5')
-_bottom = pd.read_hdf(home_dir + '/VV' + '/6_FW_1_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000' + '.h5')
+_side_LV = pd.read_hdf(home_dir + '/LV' + '/{}_{}_{}_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number) + '.h5')
+_side_RV = pd.read_hdf(home_dir + '/RV' + '/{}_{}_{}_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number) + '.h5')
+_bottom = pd.read_hdf(home_dir + '/VV' + '/{}_{}_{}_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'.format(fly_number,behaviour,video_sequence_number) + '.h5')
 
 initial_number_frames = _bottom.shape[0]
 _side_LV = _side_LV.droplevel('scorer', axis=1)
@@ -93,10 +103,23 @@ register_floor= False
 if register_floor:
     pass
 else:
-    fly_number = '3'
     floor = 0
     floor_RV = 0
-    if fly_number == '3':
+    if fly_number == '1':
+        horiz_crop_right_1 = 8
+        horiz_crop_right_2 = 266
+        horiz_crop_middle_1 = 348
+        horiz_crop_middle_2 = 798
+        horiz_crop_left_1 = 888
+        horiz_crop_left_2 = 1162
+    elif fly_number == '2':
+        horiz_crop_right_1 = 20
+        horiz_crop_right_2 = 286
+        horiz_crop_middle_1 = 386
+        horiz_crop_middle_2 = 858
+        horiz_crop_left_1 = 926
+        horiz_crop_left_2 = 1186
+    elif fly_number == '3':
         pad = 25
         horiz_crop_right_1 = 32
         horiz_crop_right_2 = 290
@@ -104,6 +127,28 @@ else:
         horiz_crop_middle_2 = 830
         horiz_crop_left_1 = 950
         horiz_crop_left_2 = 1182
+    elif fly_number == '4':
+        horiz_crop_right_1 = 20
+        horiz_crop_right_2 = 280
+        horiz_crop_middle_1 = 398
+        horiz_crop_middle_2 = 824
+        horiz_crop_left_1 = 908
+        horiz_crop_left_2 = 1166
+    elif fly_number == '5':
+        horiz_crop_right_1 = 18
+        horiz_crop_right_2 = 286
+        horiz_crop_middle_1 = 370
+        horiz_crop_middle_2 = 826
+        horiz_crop_left_1 = 916
+        horiz_crop_left_2 = 1182
+    elif fly_number == '6':
+        horiz_crop_right_1 = 26
+        horiz_crop_right_2 = 284
+        horiz_crop_middle_1 = 376
+        horiz_crop_middle_2 = 824
+        horiz_crop_left_1 = 908
+        horiz_crop_left_2 = 1184
+
     else:
         IOError('fly number properties not defined!')
 
@@ -130,17 +175,23 @@ def update_graph(num):
     graph_HR.set_data(x[num, 25:30], y[num, 25:30])
     graph_HR.set_3d_properties(z[num, 25:30])
 
-    graph_Lhead.set_data(np.hstack((x[num,38:40],x[num,32],x[num,30])), np.hstack((y[num,38:40],y[num,32],y[num,30])))
-    graph_Lhead.set_3d_properties(np.hstack((z[num,38:40],z[num,32],z[num,30])))
+    graph_Lhead.set_data(np.hstack((x[num,idx_neck],x[num,idx_L_eye],x[num,idx_L_antenna])), np.hstack((y[num,idx_neck],y[num,idx_L_eye],y[num,idx_L_antenna])))
+    graph_Lhead.set_3d_properties(np.hstack((z[num,idx_neck],z[num,idx_L_eye],z[num,idx_L_antenna])))
 
-    graph_Rhead.set_data(np.hstack((x[num,38:40],x[num,33],x[num,31])), np.hstack((y[num,38:40],y[num,33],y[num,31])))
-    graph_Rhead.set_3d_properties(np.hstack((z[num,38:40],z[num,33],z[num,31])))
+    graph_Rhead.set_data(np.hstack((x[num,idx_neck],x[num,idx_R_eye],x[num,idx_R_antenna])), np.hstack((y[num,idx_neck],y[num,idx_R_eye],y[num,idx_R_antenna])))
+    graph_Rhead.set_3d_properties(np.hstack((z[num,idx_neck],z[num,idx_R_eye],z[num,idx_R_antenna])))
 
-    graph_back_L.set_data(np.hstack((x[num,idx_L_wing],x[num,idx_L_haltere])), np.hstack((y[num,idx_L_wing],y[num,idx_L_haltere])))
-    graph_back_L.set_3d_properties(np.hstack((z[num,idx_L_wing],z[num,idx_L_haltere])))
+    graph_neck_proboscis.set_data(np.hstack((x[num,idx_neck],x[num,idx_proboscis])), np.hstack((y[num,idx_neck],y[num,idx_proboscis])))
+    graph_neck_proboscis.set_3d_properties(np.hstack((z[num,idx_neck],z[num,idx_proboscis])))
 
-    graph_back_R.set_data(np.hstack((x[num,idx_R_wing],x[num,idx_R_haltere])), np.hstack((y[num,idx_R_wing],y[num,idx_R_haltere])))
-    graph_back_R.set_3d_properties(np.hstack((z[num,idx_R_wing],z[num,idx_R_haltere])))
+    graph_back_L.set_data(np.hstack((x[num,idx_L_wing],x[num,idx_scutellum],x[num,idx_L_haltere])), np.hstack((y[num,idx_L_wing],y[num,idx_scutellum],y[num,idx_L_haltere])))
+    graph_back_L.set_3d_properties(np.hstack((z[num,idx_L_wing],z[num,idx_scutellum],z[num,idx_L_haltere])))
+
+    graph_back_R.set_data(np.hstack((x[num,idx_R_wing],x[num,idx_scutellum],x[num,idx_R_haltere])), np.hstack((y[num,idx_R_wing],y[num,idx_scutellum],y[num,idx_R_haltere])))
+    graph_back_R.set_3d_properties(np.hstack((z[num,idx_R_wing],z[num,idx_scutellum],z[num,idx_R_haltere])))
+
+    graph_abdomen.set_data(np.hstack((x[num,idx_A1A2],x[num,idx_A3],x[num,idx_A4],x[num,idx_A5],x[num,idx_A6],x[num,idx_genitalia])), np.hstack((y[num,idx_A1A2],y[num,idx_A3],y[num,idx_A4],y[num,idx_A5],y[num,idx_A6],y[num,idx_genitalia])))
+    graph_abdomen.set_3d_properties(np.hstack((z[num,idx_A1A2],z[num,idx_A3],z[num,idx_A4],z[num,idx_A5],z[num,idx_A6],z[num,idx_genitalia])))
 
     # graph_back_R_scatter.set_data(np.hstack((x[num,idx_R_wing],x[num,idx_R_haltere])), np.hstack((y[num,idx_R_wing],y[num,idx_R_haltere])))
     # graph_back_R_scatter.set_3d_properties(np.hstack((z[num,idx_R_wing],z[num,idx_R_haltere])))
@@ -158,17 +209,17 @@ def update_graph(num):
 
 
     try:
-        img_name_LV = home_dir+'/LV/6_FW_1_LV_{:05d}.tiff'.format(points3d_names_id[num])
+        img_name_LV = home_dir+'/LV/{}_{}_{}_LV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
         title_LV.set_text('LV, frame={}'.format(num + 1))
         img_LV = mpimg.imread(img_name_LV)
         im_LV.set_array(img_LV)
 
-        img_name_RV = home_dir+'/RV/6_FW_1_RV_{:05d}.tiff'.format(points3d_names_id[num])
+        img_name_RV = home_dir+'/RV/{}_{}_{}_RV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
         title_RV.set_text('RV, frame={}'.format(num + 1))
         img_RV = mpimg.imread(img_name_RV)
         im_RV.set_array(img_RV)
 
-        img_name_VV = home_dir+'/VV/6_FW_1_VV_{:05d}.tiff'.format(points3d_names_id[num])
+        img_name_VV = home_dir+'/VV/{}_{}_{}_VV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
         title_VV.set_text('VV, frame={}'.format(num + 1))
         img_VV = mpimg.imread(img_name_VV)
         im_VV.set_array(img_VV)
@@ -177,14 +228,17 @@ def update_graph(num):
     except:
         pass
 
-    return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, graph_back_L, graph_back_R,  im_LV, title_LV, im_RV, title_RV, im_VV, title_VV, graph_keypoints_scatter, im_LV_predictions, im_RV_predictions, im_VV_predictions
+    return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, graph_back_L, graph_back_R,  im_LV, title_LV, im_RV, title_RV, im_VV, title_VV, graph_keypoints_scatter, im_LV_predictions, im_RV_predictions, im_VV_predictions, graph_abdomen, graph_neck_proboscis
 
 fig = plt.figure(figsize=(16, 12))
 
 from matplotlib import gridspec
 gs = gridspec.GridSpec(3, 4)
 
-ax = fig.add_subplot(gs[:,1:4], projection='3d')
+ax = fig.add_subplot(gs[:,1:4], projection='3d', aspect='equal')
+ax.set_xlabel('x')
+ax.set_zlabel('z')
+ax.set_ylabel('y')
 title = ax.set_title('points3d')
 
 graph_FL, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='gray')
@@ -195,12 +249,17 @@ graph_FR, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='
 graph_MR, = ax.plot(x[0,5:10], y[0,5:10], z[0,5:10], linestyle="-", marker="", color='k')
 graph_HR, = ax.plot(x[0,10:15], y[0,10:15], z[0,10:15], linestyle="-", marker="", color='k')
 
-graph_Lhead, = ax.plot(np.hstack((x[0,38:40],x[0,32],x[0,30])), np.hstack((y[0,38:40],y[0,32],y[0,30])), np.hstack((z[0,38:40],z[0,32],z[0,30])), linestyle="-", marker="", color='gray')
-graph_Rhead, = ax.plot(np.hstack((x[0,38:40],x[0,33],x[0,31])), np.hstack((y[0,38:40],y[0,33],y[0,31])), np.hstack((z[0,38:40],z[0,33],z[0,31])), linestyle="-", marker="", color='k')
+graph_Lhead, = ax.plot(np.hstack((x[0,idx_neck],x[0,idx_L_eye],x[0,idx_L_antenna])), np.hstack((y[0,idx_neck],y[0,idx_L_eye],y[0,idx_L_antenna])), np.hstack((z[0,idx_neck],z[0,idx_L_eye],z[0,idx_L_antenna])), linestyle="-", marker="", color='gray')
+graph_Rhead, = ax.plot(np.hstack((x[0,idx_neck],x[0,idx_R_eye],x[0,idx_R_antenna])), np.hstack((y[0,idx_neck],y[0,idx_R_eye],y[0,idx_R_antenna])), np.hstack((z[0,idx_neck],z[0,idx_R_eye],z[0,idx_R_antenna])), linestyle="-", marker="", color='k')
 
-graph_back_L, = ax.plot(np.hstack((x[0,idx_L_wing],x[0,idx_L_haltere])), np.hstack((y[0,idx_L_wing],y[0,idx_L_haltere])), np.hstack((z[0,idx_L_wing],z[0,idx_L_haltere])), linestyle="-", marker="", color='gray')
+graph_neck_proboscis, = ax.plot(np.hstack((x[0,idx_neck],x[0,idx_proboscis])), np.hstack((y[0,idx_neck],y[0,idx_proboscis])), np.hstack((z[0,idx_neck],z[0,idx_proboscis])), linestyle="-", marker="", color='b')
 
-graph_back_R, = ax.plot(np.hstack((x[0,idx_R_haltere],x[0,idx_R_wing])), np.hstack((y[0,idx_R_haltere],y[0,idx_R_wing])), np.hstack((z[0,idx_R_haltere],z[0,idx_R_wing])), linestyle="-", marker="", color='k')
+graph_back_L, = ax.plot(np.hstack((x[0,idx_L_wing],x[0,idx_scutellum],x[0,idx_L_haltere])), np.hstack((y[0,idx_L_wing],y[0,idx_scutellum],y[0,idx_L_haltere])), np.hstack((z[0,idx_L_wing],z[0,idx_scutellum],z[0,idx_L_haltere])), linestyle="-", marker="", color='gray')
+
+graph_back_R, = ax.plot(np.hstack((x[0,idx_R_wing],x[0,idx_scutellum],x[0,idx_R_haltere])), np.hstack((y[0,idx_R_wing],y[0,idx_scutellum],y[0,idx_R_haltere])), np.hstack((z[0,idx_R_wing],z[0,idx_scutellum],z[0,idx_R_haltere])), linestyle="-", marker="", color='k')
+
+graph_abdomen, = ax.plot(np.hstack((x[0,idx_A1A2],x[0,idx_A3],x[0,idx_A4],x[0,idx_A5],x[0,idx_A6],x[0,idx_genitalia])), np.hstack((y[0,idx_A1A2],y[0,idx_A3],y[0,idx_A4],y[0,idx_A5],y[0,idx_A6],y[0,idx_genitalia])), np.hstack((z[0,idx_A1A2],z[0,idx_A3],z[0,idx_A4],z[0,idx_A5],z[0,idx_A6],z[0,idx_genitalia])), linestyle="-", marker="", color='b')
+
 
 # graph_back_R_color, = ax.plot(x[0,idx_R_haltere], y[0,idx_R_haltere], z[0,idx_R_haltere], linestyle="", marker="", color='k', markerfacecolor='r')
 
@@ -213,9 +272,9 @@ graph_keypoints_scatter = ax.scatter(x[0,:], y[0,:], z[0,:], marker='o', zorder=
 cbar = fig.colorbar(graph_keypoints_scatter, ax=ax, spacing="proportional", ticks=np.arange(len(VV_bodyparts)))
 cbar.set_ticklabels(VV_bodyparts)
 
-# graph_Rhead, = ax.plot(np.hstack((x[0,38:40],[x[0,33]],[x[0,31]])), np.hstack((y[0,38:40],[y[0,33]],[y[0,31]])), np.hstack((z[0,38:40],[z[0,33]],[z[0,31]])), linestyle="-", marker="", color='g')
+# graph_Rhead, = ax.plot(np.hstack((x[0,idx_neck],[x[0,idx_R_eye]],[x[0,idx_R_antenna]])), np.hstack((y[0,idx_neck],[y[0,idx_R_eye]],[y[0,idx_R_antenna]])), np.hstack((z[0,idx_neck],[z[0,idx_R_eye]],[z[0,idx_R_antenna]])), linestyle="-", marker="", color='g')
 
-# graph_Rhead, = ax.plot(np.hstack((x[0,38:40],[x[0,32]])), np.hstack((y[0,38:40],[y[0,32]])), np.hstack((z[0,38:40],[z[0,32]])), linestyle="-", marker="", color='g')
+# graph_Rhead, = ax.plot(np.hstack((x[0,idx_neck],[x[0,idx_L_eye]])), np.hstack((y[0,idx_neck],[y[0,idx_L_eye]])), np.hstack((z[0,idx_neck],[z[0,idx_L_eye]])), linestyle="-", marker="", color='g')
 
 
 labels = ["LV", "RV"]
@@ -224,7 +283,7 @@ plt.legend(handles, labels)
 
 
 # ax_LV = fig.add_subplot(212)
-img_name_RV = home_dir+'/RV/6_FW_1_RV_{:05d}.tiff'.format(points3d_names_id[0])
+img_name_RV = home_dir+'/RV/{}_{}_{}_RV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number, points3d_names_id[0])
 img_RV = mpimg.imread(img_name_RV)
 # ax_RV = plt.subplot(gs[2,3:4])
 ax_RV = fig.add_subplot(gs[0,0:1])
@@ -236,7 +295,7 @@ im_RV_predictions = ax_RV.scatter(x_RV_2D[0, :], y_RV_2D[0, :], zorder=2, s=3, c
 
 
 # ax_VV = fig.add_subplot(212)
-img_name_VV = home_dir+'/VV/6_FW_1_VV_{:05d}.tiff'.format(points3d_names_id[0])
+img_name_VV = home_dir+'/VV/{}_{}_{}_VV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number, points3d_names_id[0])
 img_VV = mpimg.imread(img_name_VV)
 # ax_VV = plt.subplot(gs[2,3:4])
 ax_VV = fig.add_subplot(gs[1,0:1])
@@ -248,7 +307,7 @@ im_VV_predictions = ax_VV.scatter(x_VV_2D[0, :], y_VV_2D[0, :], zorder=2, s=3, c
 
 
 # ax_LV = fig.add_subplot(212)
-img_name_LV = home_dir+'/LV/6_FW_1_LV_{:05d}.tiff'.format(points3d_names_id[0])
+img_name_LV = home_dir+'/LV/{}_{}_{}_LV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[0])
 img_LV = mpimg.imread(img_name_LV)
 # ax_LV = plt.subplot(gs[2,3:4])
 ax_LV = fig.add_subplot(gs[2,0:1])
