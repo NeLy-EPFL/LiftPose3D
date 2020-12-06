@@ -88,9 +88,9 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         _side_RV = pd.read_hdf(home_dir + '/RV' + '/{}_{}_{}_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number) + '.h5')
         _bottom = pd.read_hdf(home_dir + '/VV' + '/{}_{}_{}_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'.format(fly_number,behaviour,video_sequence_number) + '.h5')
     else:
-        _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_1/pose-2d/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-        _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_1/pose-2d/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-        _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/pose-2d/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+        _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_1/pose-2d-filtered/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+        _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_1/pose-2d-filtered/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+        _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/pose-2d-filtered/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
 
     initial_number_frames = _bottom.shape[0]
     _side_LV = _side_LV.droplevel('scorer', axis=1)
@@ -235,6 +235,10 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         except:
             pass
 
+        ax.set_xlim((100, 600))
+        ax.set_ylim((50, 500))
+        ax.set_zlim((-25, 150))
+
         return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, graph_back_L, graph_back_R,  im_LV, title_LV, im_RV, title_RV, im_VV, title_VV, graph_keypoints_scatter, im_LV_predictions, im_RV_predictions, im_VV_predictions, graph_abdomen, graph_neck_proboscis
 
     fig = plt.figure(figsize=(16, 12))
@@ -246,6 +250,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     ax.set_xlabel('x')
     ax.set_zlabel('z')
     ax.set_ylabel('y')
+
+
     title = ax.set_title('points3d')
 
     graph_FL, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='gray')
@@ -334,7 +340,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     ax.set_ylim(y.min(),y.max())
     ax.set_zlim(z.min(),z.max())
 
-    # plt.show()
+    plt.show()
 
     # Set up formatting for the movie files
     Writer = matplotlib.animation.writers['ffmpeg']

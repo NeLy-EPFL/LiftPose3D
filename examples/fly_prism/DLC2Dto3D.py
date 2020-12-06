@@ -200,9 +200,9 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False)
             _bottom = pd.read_hdf(home_dir + videos_bottom[i] + scorer_bottom + '.h5')
         else:
             # load data of side_LV and bottom view
-            _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_1/pose-2d/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-            _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_1/pose-2d/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-            _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/pose-2d/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_1/pose-2d-filtered/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_1/pose-2d-filtered/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/pose-2d-filtered/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
 
         initial_number_frames = _bottom.shape[0]
         _side_LV = _side_LV.droplevel('scorer', axis=1)
