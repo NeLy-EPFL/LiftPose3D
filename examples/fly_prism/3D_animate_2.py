@@ -159,8 +159,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         else:
             IOError('fly number properties not defined!')
 
-        floor_new_LV = horiz_crop_left_2 - horiz_crop_left_1
-        floor_new_RV = horiz_crop_right_2 - horiz_crop_right_1
+        # floor_new_LV = horiz_crop_left_2 - horiz_crop_left_1
+        # floor_new_RV = horiz_crop_right_2 - horiz_crop_right_1
 
 
     def update_graph(num):
@@ -362,9 +362,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = True
-    fly_number= [1]
-    behaviour=['FW']
-    video_sequence_number= [2]
+    fly_number= [2]
+    behaviour=['AG']
+    video_sequence_number= [4]
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):

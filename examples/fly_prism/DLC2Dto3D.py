@@ -498,6 +498,16 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False)
             np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
             print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy' + ' successfully saved.')
 
+        save_victor = True
+        if save_victor:
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                                  video_sequence_number) + 'AniPose_points3d_names_id.npy',
+                    name_id_kept_frames[1000:2000])
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                                  video_sequence_number) + 'AniPose_points3d.npy',
+                    points3d[1000:2000,:,:])
+
+
 
 if __name__ == "__main__":
     import traceback
@@ -506,9 +516,9 @@ if __name__ == "__main__":
     # behaviour=['AG','FW','PG','PE']
     # video_sequence_number=range(1,20+1,1)
 
-    fly_number= [1]
-    behaviour=['FW']
-    video_sequence_number= [2]
+    fly_number= [2]
+    behaviour=['AG']
+    video_sequence_number= [4]
     AniPose_filter_enable = True
 
 
