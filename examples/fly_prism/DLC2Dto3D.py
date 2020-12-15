@@ -62,12 +62,13 @@ points3d.shape=[#frames, #keypoints according to list bellow, 3 for (x,y,z)]
 46- A6
 '''
 
-def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False):
+def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False, VV_net_name=None, LV_net_name=None):
     home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped'.format(fly_number)
+
     data_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped/{}/{}'.format(fly_number,behaviour,video_sequence_number)
-    scorer_bottom = '{}_{}_{}_VV_videoDLC_resnet50_VV2DposeOct21shuffle1_390000'.format(fly_number,behaviour,video_sequence_number)
-    scorer_side_LV = '{}_{}_{}_LV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number)
-    scorer_side_RV = '{}_{}_{}_RV_videoDLC_resnet50_LV2DposeOct23shuffle1_405000'.format(fly_number,behaviour,video_sequence_number)
+    scorer_bottom = '{}_{}_{}_VV_videoDLC_{}'.format(fly_number,behaviour,video_sequence_number, VV_net_name)
+    scorer_side_LV = '{}_{}_{}_LV_videoDLC_{}'.format(fly_number,behaviour,video_sequence_number, LV_net_name)
+    scorer_side_RV = '{}_{}_{}_RV_videoDLC_{}'.format(fly_number,behaviour,video_sequence_number, LV_net_name)
     # lateral cropped video of moving fly
     videos_side_LV = ['/{}/{}/LV/'.format(behaviour,video_sequence_number)]
     videos_side_RV = ['/{}/{}/RV/'.format(behaviour,video_sequence_number)]
@@ -502,10 +503,10 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False)
         if save_victor:
             np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
                                                                                                   video_sequence_number) + 'AniPose_points3d_names_id.npy',
-                    name_id_kept_frames[1000:2000])
+                    name_id_kept_frames[5:])
             np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
                                                                                                   video_sequence_number) + 'AniPose_points3d.npy',
-                    points3d[1000:2000,:,:])
+                    points3d[5:,:,:])
 
 
 
@@ -516,17 +517,18 @@ if __name__ == "__main__":
     # behaviour=['AG','FW','PG','PE']
     # video_sequence_number=range(1,20+1,1)
 
-    fly_number= [2]
-    behaviour=['AG']
-    video_sequence_number= [4]
+    fly_number= [4]
+    behaviour=['FW']
+    video_sequence_number= [1]
     AniPose_filter_enable = True
-
+    VV_net_name = 'resnet50_VV2DposeOct21shuffle1_390000'
+    LV_net_name = 'resnet50_LV2DposeOct23shuffle1_405000'
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):
             for _video_sequence_number in zip(video_sequence_number):
                 try:
-                    main(str(_fly_number[0]), _behaviour[0], str(_video_sequence_number[0]),AniPose_filter_enable)
+                    main(str(_fly_number[0]), _behaviour[0], str(_video_sequence_number[0]),AniPose_filter_enable, VV_net_name, LV_net_name)
                 except:
                     traceback.print_exc()
                     continue

@@ -329,7 +329,7 @@ if __name__ == "__main__":
 
     AniPose_filter_enable = True
     fly_number= [2]
-    behaviour=['AG']
+    behaviour=['FW']
     video_sequence_number= [4]
 
     for _fly_number in zip(fly_number):
