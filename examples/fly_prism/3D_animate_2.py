@@ -19,7 +19,7 @@ LV_bodyparts = ['F_body_coxa', 'F_coxa_femur', 'F_femur_tibia', 'F_tibia_tarsus'
                 'H_femur_tibia', 'H_tibia_tarsus', 'H_tarsal_claw', 'antenna', 'eye', 'haltere', 'wing',
                 'proboscis', 'neck', 'genitalia', 'scutellum', 'A1A2', 'A3', 'A4', 'A5', 'A6']
 
-def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False):
+def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False, VV_net_name=None, LV_net_name=None):
     idx_LF_body_coxa = 0
     idx_LF_coxa_femur = 1
     idx_LF_femur_tibia = 2
@@ -71,10 +71,10 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped/{}/{}'.format(fly_number, behaviour,
                                                                                        video_sequence_number)
     if AniPose_filter_enable == False:
-        points3d = np.load('{}/VV/points3d.npy'.format(home_dir))
+        points3d = np.load('{}/VV/{}_points3d.npy'.format(home_dir, VV_net_name))
         points3d_names_id = np.load('{}/VV/points3d_names_id.npy'.format(home_dir))
     else:
-        points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy')
+        points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name))
         points3d_names_id = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
 
@@ -365,12 +365,14 @@ if __name__ == "__main__":
     fly_number= [4]
     behaviour=['FW']
     video_sequence_number= [1]
+    VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
+    LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):
             for _video_sequence_number in zip(video_sequence_number):
                 try:
-                    main(str(_fly_number[0]), _behaviour[0], str(_video_sequence_number[0]), AniPose_filter_enable)
+                    main(str(_fly_number[0]), _behaviour[0], str(_video_sequence_number[0]), AniPose_filter_enable, VV_net_name, LV_net_name)
                 except:
                     traceback.print_exc()
                     continue

@@ -495,17 +495,17 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
             print(home_dir + videos_bottom[i] + 'points3d.npy' + ' successfully saved.')
 
         else:
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy', name_id_kept_frames)
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
-            print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy' + ' successfully saved.')
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d_names_id.npy'.format(VV_net_name), name_id_kept_frames)
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name), points3d)
+            print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name) + ' successfully saved.')
 
-        save_victor = True
+        save_victor = False
         if save_victor:
             np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
-                                                                                                  video_sequence_number) + 'AniPose_points3d_names_id.npy',
+                                                                                                  video_sequence_number) + '{}_AniPose_points3d_names_id.npy'.format(VV_net_name),
                     name_id_kept_frames[5:])
             np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
-                                                                                                  video_sequence_number) + 'AniPose_points3d.npy',
+                                                                                                  video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name),
                     points3d[5:,:,:])
 
 
@@ -521,8 +521,8 @@ if __name__ == "__main__":
     behaviour=['FW']
     video_sequence_number= [1]
     AniPose_filter_enable = True
-    VV_net_name = 'resnet50_VV2DposeOct21shuffle1_390000'
-    LV_net_name = 'resnet50_LV2DposeOct23shuffle1_405000'
+    VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
+    LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):
