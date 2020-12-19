@@ -1,0 +1,14 @@
+data:
+  ndims: 38 # number of 2D/3D points for each time instance. number of joints tracked.
+  out_dim: 3 # 1 or 3.
+  dims_to_exclude: [15, 16, 17, 18, 34, 35, 36, 37] #dimensions to not consider during lifting.
+  roots: [0, 5, 10] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
+  targets: [[1, 2, 3, 4], [6, 7, 8, 9], [11, 12, 13, 14]]
+  bones: [[5,6],[6,7],[7,8],[8,9],
+          [10,11],[11,12],[12,13],[13,14],
+          [15,16],[16,17],[17,18],[18,19],
+          [20,21],[21,22],[22,23],[23,24],
+          [25,26],[26,27],[27,28],[28,29]] # only used for visualization.
+
+path:
+  out_path: "./out/"
