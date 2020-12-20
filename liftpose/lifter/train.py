@@ -27,7 +27,7 @@ def train(train_loader, model, criterion, optimizer,
         losses.update(loss.item(), inputs.size(0))
         loss.backward()
         if max_norm:
-            nn.utils.clip_grad_norm(model.parameters(), max_norm=1)
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
         optimizer.step()
 
     return glob_step, lr_now, losses.avg

@@ -46,5 +46,5 @@ def test(test_loader, model, criterion, stat):
     joint_err = np.nanmean(all_dist, axis=0)
     ttl_err = np.nanmean(joint_err)
 
-    print (">>> error: {} <<<".format(ttl_err))
+    print (">>> test error: {} <<<".format(ttl_err))
     return losses.avg, ttl_err, joint_err, all_dist, all_output, all_target, all_input

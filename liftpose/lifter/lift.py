@@ -5,12 +5,13 @@ import torch.nn as nn
 import torch.optim
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from src.test import test
-from src.train import train
-from src.opt import Options
-import src.log as log
-from src.model import LinearModel, weight_init
-from src.data_loader_fun import data_loader
+
+from liftpose.lifter.test import test
+from liftpose.lifter.train import train
+from liftpose.lifter.opt import Options
+import liftpose.lifter.log as log
+from liftpose.lifter.model import LinearModel, weight_init
+from liftpose.lifter.data_loader_fun import data_loader
 
 
 def network_main(opt):

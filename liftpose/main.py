@@ -3,7 +3,12 @@ import torch
 import os
 import logging
 import sys
+from pprint import pformat
+import glob
 
+
+from liftpose.lifter.opt import Options
+from liftpose.lifter.lift import network_main
 
 from liftpose.preprocess import preprocess_2d, preprocess_3d
 
@@ -111,8 +116,6 @@ def train(
 
     # Starting to train Martinez et. al model
     logger.info("Starting training model")
-    from liftpose.lifter.opt import Options
-    from liftpose.lifter.lift import network_main
 
     # TODO bit hacky, we should get inputs for the network from another yaml file
     # TODO also everything should be explicit function argument, instead of be hidden in dictionary
@@ -121,9 +124,17 @@ def train(
     option.out = os.path.abspath(out_dir)  # TODO do we need to set out?
     option.out_dir = os.path.abspath(out_dir)
 
-    from pprint import pformat
-
     logger.debug("\n==================Options=================")
     logger.debug(pformat(vars(option), indent=4))
     logger.debug("==========================================\n")
+    network_main(option)
+
+
+def test(out_dir: str):
+    option = Options().parse()
+    option.data_dir = os.path.abspath(out_dir)
+    option.out = os.path.abspath(out_dir)  # TODO do we need to set out?
+    option.out_dir = os.path.abspath(out_dir)
+    option.test = True
+    option.load = glob.glob(out_dir + "/ckpt_best.pth.tar")[0]
     network_main(option)
