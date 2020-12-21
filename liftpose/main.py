@@ -5,8 +5,6 @@ import logging
 import sys
 from pprint import pformat
 import glob
-
-
 from liftpose.lifter.opt import Options
 from liftpose.lifter.lift import network_main
 
@@ -16,6 +14,15 @@ from liftpose.preprocess import preprocess_2d, preprocess_3d
 # TODO check reprojection error, warn if large
 # TODO better docstring
 # TODO do we expect 2d or 3d arrays?
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.DEBUG,
+    format="[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
+    datefmt="%H:%M:%S",
+)
 
 
 def train(
@@ -43,12 +50,15 @@ def train(
     Returns
         None
     """
-    logger = logging.getLogger("lp3d")
+    """
+    logger = logging.getLogger(__name__)
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.DEBUG,
-        format="%(asctime)s:%(levelname)s:%(message)s",
+        format="%(asctime)s:[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
+        datefmt="%H:%M:%S",
     )
+    """
 
     # TODO do more sanity check on the data
     assert len(roots) == len(
@@ -131,6 +141,7 @@ def train(
 
 
 def test(out_dir: str):
+    logger.info('starting testing in path: {}'.format(out_dir))
     option = Options().parse()
     option.data_dir = os.path.abspath(out_dir)
     option.out = os.path.abspath(out_dir)  # TODO do we need to set out?

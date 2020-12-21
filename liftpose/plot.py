@@ -1,8 +1,19 @@
 import glob
-import matplotlib.pyplot as plt
 
-import numpy as np
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+
+
+def plot_pose_3d(ax, tar, pred, ndims, bones, limb_id, colors):
+    tar = tar.reshape(-1, 3)
+    pred = pred.reshape(-1, 3)
+    G = nx.Graph()
+    G.add_edges_from(bones)
+    G.add_nodes_from(np.arange(ndims))
+
+    plot_3d_graph(G, tar, ax, color_edge=colors)
+    plot_3d_graph(G, pred, ax, color_edge=colors, style="--")
 
 
 def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):

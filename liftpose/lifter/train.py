@@ -1,13 +1,32 @@
-import src.utils as utils
 from tqdm import tqdm
+import liftpose.lifter.utils as utils
 from torch.autograd import Variable
 import torch.nn as nn
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.DEBUG,
+    format="%(asctime)s:[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
+    datefmt="%H:%M:%S",
+)
 
 
-def train(train_loader, model, criterion, optimizer,
-          lr_init=None, lr_now=None, glob_step=None, lr_decay=None, gamma=None,
-          max_norm=True):
-    
+def train(
+    train_loader,
+    model,
+    criterion,
+    optimizer,
+    lr_init=None,
+    lr_now=None,
+    glob_step=None,
+    lr_decay=None,
+    gamma=None,
+    max_norm=True,
+):
+
     losses = utils.AverageMeter()
     model.train()
 
@@ -15,8 +34,8 @@ def train(train_loader, model, criterion, optimizer,
         glob_step += 1
         if glob_step % lr_decay == 0 or glob_step == 1:
             lr_now = utils.lr_decay(optimizer, glob_step, lr_init, lr_decay, gamma)
-            
-        #make prediction with model
+
+        # make prediction with model
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
         outputs = model(inputs)
