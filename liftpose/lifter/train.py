@@ -19,6 +19,8 @@ def train(
     model,
     criterion,
     optimizer,
+    epoch,
+    loss_test,
     lr_init=None,
     lr_now=None,
     glob_step=None,
@@ -29,8 +31,13 @@ def train(
 
     losses = utils.AverageMeter()
     model.train()
-
-    for i, (inps, tars) in enumerate(tqdm(train_loader)):
+    pbar = tqdm(train_loader)
+    for i, (inps, tars) in enumerate(pbar):
+        pbar.set_description(
+            "Epoch {} | Loss Test {:.5g} | Loss Train {:.5g}|".format(
+                epoch, 0 if loss_test is None else loss_test, losses.avg
+            )
+        )
         glob_step += 1
         if glob_step % lr_decay == 0 or glob_step == 1:
             lr_now = utils.lr_decay(optimizer, glob_step, lr_init, lr_decay, gamma)

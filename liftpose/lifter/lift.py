@@ -11,6 +11,7 @@ from liftpose.lifter.test import test
 from liftpose.lifter.train import train
 from liftpose.lifter.opt import Options
 import liftpose.lifter.log as log
+from liftpose.lifter.log import save_ckpt
 from liftpose.lifter.model import LinearModel, weight_init
 from liftpose.lifter.data_loader_fun import data_loader
 
@@ -35,8 +36,8 @@ def network_main(opt):
     input_size = stat_3d["input_size"]
     output_size = stat_3d["output_size"]
 
-    #logger.info("input dimension: {}".format(input_size))
-    #logger.info("output dimension: {}".format(output_size))
+    # logger.info("input dimension: {}".format(input_size))
+    # logger.info("output dimension: {}".format(output_size))
 
     # save options
     log.save_options(opt, opt.out_dir)
@@ -94,7 +95,11 @@ def network_main(opt):
             test_loader, model, criterion, stat_3d
         )
 
-        logger.info("Saving results: {}".format(os.path.join(opt.out_dir, "test_results.pth.tar")))
+        logger.info(
+            "Saving results: {}".format(
+                os.path.join(opt.out_dir, "test_results.pth.tar")
+            )
+        )
         torch.save(
             {
                 "loss": loss_test,
@@ -123,9 +128,10 @@ def network_main(opt):
 
         # loop through epochs
         cudnn.benchmark = True
+        loss_test = None
         for epoch in range(start_epoch, opt.epochs):
-            log.info("==========================")
-            log.info("epoch: {} | lr: {:.5f}".format(epoch + 1, lr_now))
+            # logger.info("==========================")
+            # logger.info("epoch: {} | lr: {:.5f}".format(epoch + 1, lr_now))
 
             # train
             glob_step, lr_now, loss_train = train(
@@ -133,6 +139,8 @@ def network_main(opt):
                 model,
                 criterion,
                 optimizer,
+                epoch=epoch,
+                loss_test=loss_test,
                 lr_init=opt.lr,
                 lr_now=lr_now,
                 glob_step=glob_step,
@@ -155,7 +163,7 @@ def network_main(opt):
             # save ckpt
             is_best = err_test < err_best
             err_best = min(err_test, err_best)
-            io.save_ckpt(
+            save_ckpt(
                 {
                     "epoch": epoch + 1,
                     "lr": lr_now,

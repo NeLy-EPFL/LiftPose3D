@@ -23,7 +23,7 @@ def test(test_loader, model, criterion, stat):
 
     all_dist, all_output, all_target, all_input = [], [], [], []
 
-    for i, (inps, tars) in enumerate(tqdm(test_loader)):
+    for i, (inps, tars) in enumerate(test_loader):
 
         # make prediction with model
         inputs = Variable(inps.cuda())
@@ -69,5 +69,5 @@ def test(test_loader, model, criterion, stat):
     joint_err = np.nanmean(all_dist, axis=0)
     ttl_err = np.nanmean(joint_err)
 
-    logger.info("test error: {}".format(ttl_err))
+    # logger.info("test error: {}".format(ttl_err))
     return losses.avg, ttl_err, joint_err, all_dist, all_output, all_target, all_input
