@@ -29,7 +29,7 @@ class data_loader(Dataset):
             self.train_2d = torch.load(os.path.join(data_path, "train_2d.pth.tar"))
             self.train_stat = torch.load(os.path.join(data_path, "stat_2d.pth.tar"))
             for key in self.train_2d.keys():
-                num_f, _ = self.train_2d[key].shape
+                num_f = self.train_2d[key].shape[0]
                 assert (
                     self.train_3d[key].shape[0] == self.train_2d[key].shape[0]
                 ), "(training) 3d & 2d shape not matched"
@@ -47,7 +47,8 @@ class data_loader(Dataset):
                 )
             self.test_2d = torch.load(os.path.join(data_path, "test_2d.pth.tar"))
             for key in self.test_2d.keys():
-                num_f, _ = self.test_2d[key].shape
+                #print(self.test_2d[key].shape)
+                num_f = self.test_2d[key].shape[0]
                 if not predict:
                     assert (
                         self.test_2d[key].shape[0] == self.test_3d[key].shape[0]

@@ -178,7 +178,7 @@ def remove_roots(data, targets, n_dim, vis=None):
         dim_to_use: list of dimensions in use for lifting
     """
 
-    dim_to_use = get_coords_in_dim(targets, n_dim)
+    dim_to_use = np.squeeze(get_coords_in_dim(targets, n_dim))
 
     for key in data.keys():
         if vis is not None:

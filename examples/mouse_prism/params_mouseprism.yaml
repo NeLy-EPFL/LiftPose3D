@@ -1,8 +1,0 @@
-data_dir: '/data/LiftPose3D/mouse_prism'
-in_dim: 2
-out_dim: 1
-train_subjects: ['G6AE1','G6AE2','G6AE3','G6AE5']
-test_subjects: ['G6AE6']
-actions: ['control'] #actions to load
-target_sets: [[ 0,1,2,3,4,5]]
-roots: [6]

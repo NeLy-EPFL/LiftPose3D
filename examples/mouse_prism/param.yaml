@@ -1,0 +1,12 @@
+data:
+  ndims: 2 # number of 2D/3D points for each time instance. number of joints tracked.
+  in_dim: 2
+  out_dim: 1 # 1 or 3.
+  dims_to_exclude: [] #dimensions to not consider during lifting.
+  roots: [6] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
+  targets: [[0, 1, 2, 3, 4, 5]]
+
+vis: # only used for visualization.
+  colors: [[186, 30, 49]]
+  bones: [[0, 1], [1, 2], [2, 3], [3, 4], [5, 6]]
+  limb_id: [0, 0, 0, 0, 0, 0]
