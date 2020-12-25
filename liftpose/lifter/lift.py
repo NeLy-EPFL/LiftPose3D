@@ -90,10 +90,16 @@ def network_main(opt):
 
     # test
     if opt.test | opt.predict:
-
-        loss_test, err_test, joint_err, all_err, outputs, targets, inputs = test(
-            test_loader, model, criterion, stat_3d
-        )
+        (
+            loss_test,
+            err_test,
+            joint_err,
+            all_err,
+            outputs,
+            targets,
+            inputs,
+            good_keypts,
+        ) = test(test_loader, model, criterion, stat_3d, predict=opt.predict)
 
         logger.info(
             "Saving results: {}".format(
@@ -109,6 +115,7 @@ def network_main(opt):
                 "output": outputs,
                 "target": targets,
                 "input": inputs,
+                "good_keypts": good_keypts,
             },
             open(os.path.join(opt.out_dir, "test_results.pth.tar"), "wb"),
         )
@@ -150,7 +157,7 @@ def network_main(opt):
             )
 
             # test
-            loss_test, err_test, _, _, _, _, _ = test(
+            loss_test, err_test, _, _, _, _, _, _ = test(
                 test_loader, model, criterion, stat_3d
             )
 

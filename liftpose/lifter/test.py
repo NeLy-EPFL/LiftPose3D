@@ -16,26 +16,30 @@ logging.basicConfig(
 )
 
 
-def test(test_loader, model, criterion, stat):
+def test(test_loader, model, criterion, stat, predict=False):
     losses = utils.AverageMeter()
-
     model.eval()
 
-    all_dist, all_output, all_target, all_input = [], [], [], []
+    all_dist, all_output, all_target, all_input, all_bool = [], [], [], [], []
 
-    for i, (inps, tars) in enumerate(test_loader):
+    for i, (inps, tars, good_keypts, keys) in enumerate(test_loader):
 
         # make prediction with model
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
         outputs = model(inputs)
+        all_output.append(outputs.data.cpu().numpy())
+        all_input.append(inputs.data.cpu().numpy())
 
         # calculate loss
         loss = criterion(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
 
+        outputs[~good_keypts] = 0
+        targets[~good_keypts] = 0
+
         # undo normalisation to calculate accuracy in real units
-        dim = 3
+        dim = stat["out_dim"]
         dimensions = stat["targets_3d"]
         tar = unNormalize(
             targets.data.cpu().numpy(),
@@ -48,21 +52,43 @@ def test(test_loader, model, criterion, stat):
             stat["std"][dimensions],
         )
 
+        abserr = np.abs(out - tar)
+
         # compute error
-        distance = utils.abs_error(tar, out, dim)
+        n_pts = len(dimensions) // dim
+        distance = np.zeros_like(abserr)
 
         # group and stack
+        """
         all_dist.append(distance)
         all_output.append(outputs.data.cpu().numpy())
         all_target.append(targets.data.cpu().numpy())
         all_input.append(inputs.data.cpu().numpy())
+        """
+        for k in range(n_pts):
+            distance[:, k] = np.sqrt(np.sum(abserr[:, dim * k : dim * (k + 1)], axis=1))
 
+        all_dist.append(distance)
+        all_target.append(targets.data.cpu().numpy())
+        all_bool.append(good_keypts)
+
+    """
     all_dist, all_output, all_target, all_input = (
         np.vstack(all_dist),
         np.vstack(all_output),
         np.vstack(all_target),
         np.vstack(all_input),
     )
+    """
+    all_input = np.vstack(all_input)
+    all_output = np.vstack(all_output)
+
+    if predict:
+        return None, None, None, None, all_output, None, all_input, None
+
+    all_target = np.vstack(all_target)
+    all_dist = np.vstack(all_dist)
+    all_bool = np.vstack(all_bool)
 
     # mean errors
     all_dist[all_dist == 0] = np.nan
@@ -70,4 +96,13 @@ def test(test_loader, model, criterion, stat):
     ttl_err = np.nanmean(joint_err)
 
     # logger.info("test error: {}".format(ttl_err))
-    return losses.avg, ttl_err, joint_err, all_dist, all_output, all_target, all_input
+    return (
+        losses.avg,
+        ttl_err,
+        joint_err,
+        all_dist,
+        all_output,
+        all_target,
+        all_input,
+        all_bool,
+    )

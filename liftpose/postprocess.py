@@ -9,8 +9,8 @@ def load_test_results(data_dir):
     tar_mean = torch.load(data_dir + "/stat_3d.pth.tar")["mean"]
     tar_std = torch.load(data_dir + "/stat_3d.pth.tar")["std"]
     targets_3d = torch.load(data_dir + "/stat_3d.pth.tar")["targets_3d"]
-    cam_par = torch.load(data_dir + "/stat_3d.pth.tar")["rcams"]
-    cam_par = list(cam_par.values())
+    #cam_par = torch.load(data_dir + "/stat_3d.pth.tar")["rcams"]
+    #cam_par = list(cam_par.values())
     offset = torch.load(data_dir + "/stat_3d.pth.tar")["offset"]
     offset = np.concatenate([v for k, v in offset.items()], 0)
 

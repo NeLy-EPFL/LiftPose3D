@@ -6,11 +6,11 @@ import networkx as nx
 import numpy as np
 
 
-def plot_pose_3d(ax, tar, pred, ndims, bones, limb_id, colors):
+def plot_pose_3d(ax, tar, pred, ndims, bones, limb_id, colors, good_keypts=None):
     tar = tar.reshape(-1, 3)
     pred = pred.reshape(-1, 3)
     tar_m = np.median(tar, axis=0)
-    
+
     tar -= tar_m
     pred -= tar_m
 
@@ -21,30 +21,27 @@ def plot_pose_3d(ax, tar, pred, ndims, bones, limb_id, colors):
     limb_id = [i for i in range(6) for j in range(5)]
     edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
-    plot_3d_graph(G, tar, ax, color_edge=edge_colors)
+    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=None)
     plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
 
     #### this bit is just to make special legend
     pts = np.array([0, 0])
     (p1,) = ax.plot(pts, pts, pts, "r-")
-    #(p2,) = ax.plot(pts, pts, pts, "b-")
+    # (p2,) = ax.plot(pts, pts, pts, "b-")
     (p3,) = ax.plot(pts, pts, pts, "r--", dashes=(2, 2))
-    #(p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
+    # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
     ax.legend(
         [(p1), (p3)],
-        [
-            "Triangulated 3D pose",
-            "LiftPose3D prediction",
-        ],
+        ["Triangulated 3D pose", "LiftPose3D prediction",],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
         frameon=False,
     )
     p1.remove()
-    #p2.remove()
+    # p2.remove()
     p3.remove()
-    #p4.remove()
+    # p4.remove()
     ####
 
 

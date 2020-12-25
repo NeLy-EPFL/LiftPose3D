@@ -32,7 +32,7 @@ def train(
     losses = utils.AverageMeter()
     model.train()
     pbar = tqdm(train_loader)
-    for i, (inps, tars) in enumerate(pbar):
+    for i, (inps, tars, good_keypts, keys) in enumerate(pbar):
         pbar.set_description(
             "Epoch {} | Loss Test {:.5g} | Loss Train {:.5g}|".format(
                 epoch, 0 if loss_test is None else loss_test, losses.avg
@@ -46,6 +46,10 @@ def train(
         inputs = Variable(inps.cuda())
         targets = Variable(tars.cuda(non_blocking=True))
         outputs = model(inputs)
+
+        # evaluate high confidence keypoints only
+        outputs[~good_keypts] = 0
+        targets[~good_keypts] = 0
 
         # calculate loss
         optimizer.zero_grad()

@@ -25,18 +25,27 @@ logging.basicConfig(
 )
 
 
+def init_keypts(train_3d):
+    return {
+        k: np.ones((v.shape[0], v.shape[1]*2), dtype=np.bool)
+        for (k, v) in train_3d.items()
+    }
+
+
 def train(
     train_2d: dict,
     test_2d: dict,
     train_3d: dict,
     test_3d: dict,
-    rcams_train: dict,
-    rcams_test: dict,
     roots: list,
     target_sets: list,
     in_dim: int,
     out_dim: int,
     out_dir: str,
+    train_keypts: dict = None,
+    test_keypts: dict = None,
+    rcams_train: dict = None,
+    rcams_test: dict = None,
 ) -> None:
     """
 
@@ -50,25 +59,21 @@ def train(
     Returns
         None
     """
-    """
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.DEBUG,
-        format="%(asctime)s:[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
-        datefmt="%H:%M:%S",
-    )
-    """
+
+    if train_keypts is None:
+        train_keypts = init_keypts(train_2d)
+    if test_keypts is None:
+        test_keypts = init_keypts(test_2d)
 
     # TODO do more sanity check on the data
     assert len(roots) == len(
         target_sets
     ), "number of elements in roots and target_sets does not match in params.yaml"
     assert (
-        train_3d.keys() == rcams_train.keys()
+        rcams_train is None or train_3d.keys() == rcams_train.keys()
     ), "keys do nt match between train_3d and rcams_train"
     assert (
-        test_3d.keys() == rcams_test.keys()
+        rcams_test is None or test_3d.keys() == rcams_test.keys()
     ), "keys do not match between test_3d and rcams_test"
 
     # create out_dir if it does not exists
@@ -77,7 +82,7 @@ def train(
         os.makedirs(out_dir)
 
     # preprocess 2d
-    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d = preprocess_2d(
+    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
         train_2d, test_2d, roots, target_sets, in_dim
     )
 
@@ -88,7 +93,7 @@ def train(
     torch.save(train_set_2d, out_dir + "/train_2d.pth.tar")
     torch.save(test_set_2d, out_dir + "/test_2d.pth.tar")
     torch.save(
-        {"mean": mean_2d, "std": std_2d, "targets_2d": targets_2d},
+        {"mean": mean_2d, "std": std_2d, "targets_2d": targets_2d, "offset": offset_2d},
         out_dir + "/stat_2d.pth.tar",
     )
 
@@ -109,17 +114,27 @@ def train(
     logger.info(
         f'Saving pre-processed 3D data at {os.path.abspath(out_dir + "/stat_3d.pth.tar.")}'
     )
-    torch.save(train_set_3d, out_dir + "/train_3d.pth.tar")
-    torch.save(test_set_3d, out_dir + "/test_3d.pth.tar")
+
+    for key in train_keypts.keys():
+        train_keypts[key] = train_keypts[key][:, targets_3d]
+    for key in test_keypts.keys():
+        test_keypts[key] = test_keypts[key][:, targets_3d]
+
+    torch.save([train_set_3d, train_keypts], out_dir + "/train_3d.pth.tar")
+    torch.save([test_set_3d, test_keypts], out_dir + "/test_3d.pth.tar")
     torch.save(
         {
             "mean": mean_3d,
             "std": std_3d,
             "targets_3d": targets_3d,
-            "rcams": rcams_test,
             "offset": offset,
-            "output_size": len(targets_3d),
+            "LR_train": train_keypts,
+            "LR_test": test_keypts,
+            "out_dim": out_dim,
             "input_size": len(targets_2d),
+            "output_size": len(targets_3d),
+            "rcams_train": rcams_train,
+            "rcams_test": rcams_test,
         },
         out_dir + "/stat_3d.pth.tar",
     )
@@ -141,7 +156,7 @@ def train(
 
 
 def test(out_dir: str):
-    logger.info('starting testing in path: {}'.format(out_dir))
+    logger.info("starting testing in path: {}".format(out_dir))
     option = Options().parse()
     option.data_dir = os.path.abspath(out_dir)
     option.out = os.path.abspath(out_dir)  # TODO do we need to set out?

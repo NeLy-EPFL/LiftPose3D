@@ -21,7 +21,7 @@ def preprocess_2d(
     train, _ = remove_roots(train, target_sets, in_dim)
     test, targets = remove_roots(test, target_sets, in_dim)
 
-    return train, test, mean, std, targets
+    return train, test, mean, std, targets, offset
 
 
 def preprocess_3d(
@@ -31,8 +31,9 @@ def preprocess_3d(
     Preprocess 3D data
     """
     # transform to camera coordinates
-    train = transform_frame(train, rcams_train)
-    test = transform_frame(test, rcams_test)
+    if rcams_train is not None and rcams_test is not None:
+        train = transform_frame(train, rcams_train)
+        test = transform_frame(test, rcams_test)
 
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
     train, _ = anchor_to_root(train, roots, target_sets, out_dim)
