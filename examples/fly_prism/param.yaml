@@ -1,31 +1,17 @@
-data_dir: "/data/LiftPose3D/fly_prism/data_oriented/training_data"
-out_dir: "./out/"
-in_dim: 2
-out_dim: 1
-ndims: 30
-train_subjects: ["001", "002", "003"]
-test_subjects: ["004"]
-actions: ["PR"] #actions to load
-targets:
-  [
-    [1, 2, 3, 4],
-    [6, 7, 8, 9],
-    [11, 12, 13, 14],
-    [16, 17, 18, 19],
-    [21, 22, 23, 24],
-    [26, 27, 28, 29],
-  ]
-roots: [0, 5, 10, 15, 20, 25]
-
-
-
 data:
-  ndims: 38 # number of 2D/3D points for each time instance. number of joints tracked.
+  ndims: 30 # number of 2D/3D points for each time instance. number of joints tracked.
+  in_dim: 2 
   out_dim: 1 # 1 or 3.
-  dims_to_exclude: [15, 16, 17, 18, 34, 35, 36, 37] #dimensions to not consider during lifting.
-  roots: [0, 5, 10] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
-  targets: [[1, 2, 3, 4], [6, 7, 8, 9], [11, 12, 13, 14]]
-
+  roots: [0, 5, 10, 15, 20, 25] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
+  targets:
+      [
+        [1, 2, 3, 4],
+        [6, 7, 8, 9],
+        [11, 12, 13, 14],
+        [16, 17, 18, 19],
+        [21, 22, 23, 24],
+        [26, 27, 28, 29],
+      ]
 
 vis: 
     colors: [[186,30,49], [201,86,79], [213,133,121], #RF, RM, RH

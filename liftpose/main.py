@@ -82,12 +82,9 @@ def train(
         os.makedirs(out_dir)
 
     # preprocess 2d
-    print(list(train_2d.values())[0].shape)
     train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
         train_2d, test_2d, roots, target_sets, in_dim
     )
-    print(mean_2d.shape)
-    print(list(train_set_2d.values())[0].shape)
 
     # save 2d data
     logger.info(

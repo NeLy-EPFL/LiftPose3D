@@ -1,5 +1,5 @@
 data:
-  ndims: 2 # number of 2D/3D points for each time instance. number of joints tracked.
+  ndims: 6 # number of 2D/3D points for each time instance. number of joints tracked.
   in_dim: 2
   out_dim: 1 # 1 or 3.
   dims_to_exclude: [] #dimensions to not consider during lifting.

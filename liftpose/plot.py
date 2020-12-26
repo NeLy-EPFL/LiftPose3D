@@ -6,22 +6,31 @@ import networkx as nx
 import numpy as np
 
 
-def plot_pose_3d(ax, tar, pred, ndims, bones, limb_id, colors, good_keypts=None):
-    tar = tar.reshape(-1, 3)
-    pred = pred.reshape(-1, 3)
-    tar_m = np.median(tar, axis=0)
+def plot_pose_3d(ax, tar, pred, inp, out_dim, bones, limb_id, colors, good_keypts=None):
+    inp = inp.reshape(-1, 2)
+    # in case we predicted a single dimension instead of whole 3 dimensions,
+    #   append the missing dimensions from the input
+    if out_dim == 1:
+        pred = np.concatenate([inp, pred[:, np.newaxis]], axis=1)
+        tar = np.concatenate([inp, tar[:, np.newaxis]], axis=1)
+    else:
+        pred = pred.reshape(-1, 3)
+        tar = tar.reshape(-1, 3)
 
+    print(tar.shape, inp.shape, pred.shape)
+    tar_m = np.median(tar, axis=0)
     tar -= tar_m
     pred -= tar_m
+    # inp -= tar_m
 
     G = nx.Graph()
     G.add_edges_from(bones)
-    G.add_nodes_from(np.arange(ndims))
+    G.add_nodes_from(np.arange(pred.shape[0]))
 
-    limb_id = [i for i in range(6) for j in range(5)]
+    # limb_id = [i for i in range(6) for j in range(5)]
     edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
-    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=None)
+    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts)
     plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
 
     #### this bit is just to make special legend
