@@ -25,16 +25,11 @@ def preprocess_2d(
 
 
 def preprocess_3d(
-    train, test, roots, target_sets, out_dim, rcams_train, rcams_test,
+    train, test, roots, target_sets, out_dim,
 ):
     """
     Preprocess 3D data
     """
-    # transform to camera coordinates
-    if rcams_train is not None and rcams_test is not None:
-        train = transform_frame(train, rcams_train)
-        test = transform_frame(test, rcams_test)
-
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
     train, _ = anchor_to_root(train, roots, target_sets, out_dim)
     test, offset = anchor_to_root(test, roots, target_sets, out_dim)
@@ -48,7 +43,7 @@ def preprocess_3d(
     train, _ = remove_roots(train, target_sets, out_dim)
     test, targets_3d = remove_roots(test, target_sets, out_dim)
 
-    return train, test, mean, std, targets_3d, rcams_test, offset
+    return train, test, mean, std, targets_3d, offset
 
 
 def normalization_stats(data):
@@ -166,7 +161,7 @@ def add_roots(data, dim_to_use, n_dim):
 
 def remove_roots(data, targets, n_dim, vis=None):
     """
-    Normalizes a dictionary of poses
+    # TODO 
   
     Args
         data: dictionary of experiments each with array of size n_frames x n_dimensions

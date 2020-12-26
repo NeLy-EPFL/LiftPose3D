@@ -15,17 +15,14 @@ def transform_frame(poses_world, cam_par, project=False):
     """
 
     poses_cam = {}
-    for s, a, f in poses_world.keys():
-        for c in list(cam_par[(s, a, f)].keys()):
-
-            rcams = cam_par[(s, a, f)][c]
-
-            Pcam = world_to_camera(poses_world[(s, a, f)], rcams)
-
+    for k in poses_world.keys():
+        for c in list(cam_par[k].keys()):
+            rcams = cam_par[k][c]
+            Pcam = world_to_camera(poses_world[k], rcams)
             if project:
                 Pcam = project_to_camera(Pcam, rcams["intr"])
 
-            poses_cam[(s, a, f + ".cam_" + str(c))] = Pcam
+            poses_cam[(k[0], k[1], k[2] + ".cam_" + str(c))] = Pcam
 
     # sort dictionary
     poses_cam = dict(sorted(poses_cam.items()))
@@ -33,7 +30,7 @@ def transform_frame(poses_world, cam_par, project=False):
     return poses_cam
 
 
-def world_to_camera(poses_world, cam_par):
+def world_to_camera(poses_world, cam_par, reshape=True):
     """
     Rotate/translate 3d poses from world to camera viewpoint
     
@@ -46,17 +43,15 @@ def world_to_camera(poses_world, cam_par):
     """
 
     if "vis" in cam_par.keys():
-        ids = [i for i in cam_par["vis"].astype(bool) for j in range(3)]
+        ids = [i for i in cam_par["vis"].astype(bool)]
         poses_world = poses_world[:, ids]
 
-    ndim = poses_world.shape[1]
+    s = poses_world.shape
     poses_world = np.reshape(poses_world, [-1, 3])
 
-    assert len(poses_world.shape) == 2
     assert poses_world.shape[1] == 3
-
     poses_cam = np.matmul(cam_par["R"], poses_world.T).T + cam_par["tvec"]
-    poses_cam = np.reshape(poses_cam, [-1, ndim])
+    poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam
 
@@ -118,12 +113,7 @@ def XY_coord(poses):
     poses_xy = {}
 
     for key in poses.keys():
-        t3d = poses[key]
-
-        ndim = t3d.shape[1]
-        XY = np.reshape(t3d, [-1, 3])
-        XY = XY[:, :2]
-        poses_xy[key] = np.reshape(XY, [-1, ndim // 3 * 2])
+        poses_xy[key] = poses[key][:, :, :2]
 
     return poses_xy
 
@@ -138,14 +128,9 @@ def Z_coord(poses):
     Returns
         poses_xy: poses projected to xy plane   
     """
+    poses_xy = {}
 
-    poses_z = {}
     for key in poses.keys():
-        t3d = poses[key]
+        poses_xy[key] = poses[key][:, :, [-1]]
 
-        ndim = t3d.shape[1]
-        Z = np.reshape(t3d, [-1, 3])
-        Z = Z[:, 2]
-        poses_z[key] = np.reshape(Z, [-1, ndim // 3])
-
-    return poses_z
+    return poses_xy

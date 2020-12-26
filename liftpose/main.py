@@ -10,11 +10,6 @@ from liftpose.lifter.lift import network_main
 
 from liftpose.preprocess import preprocess_2d, preprocess_3d
 
-# from liftpose.vision_3d import transform_frame
-# TODO check reprojection error, warn if large
-# TODO better docstring
-# TODO do we expect 2d or 3d arrays?
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -26,10 +21,17 @@ logging.basicConfig(
 
 
 def init_keypts(train_3d):
+    # TODO why hard-code 2?
     return {
         k: np.ones((v.shape[0], v.shape[1] * 2), dtype=np.bool)
         for (k, v) in train_3d.items()
     }
+
+
+def flatten_dict(d):
+    for (k, v) in d.items():
+        d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
+    return d
 
 
 def train(
@@ -39,16 +41,12 @@ def train(
     test_3d: dict,
     roots: list,
     target_sets: list,
-    in_dim: int,
-    out_dim: int,
     out_dir: str,
     train_keypts: dict = None,
     test_keypts: dict = None,
-    rcams_train: dict = None,
-    rcams_test: dict = None,
 ) -> None:
-    """
 
+    """
     Train LiftPose model
 
     Args
@@ -60,21 +58,21 @@ def train(
         None
     """
 
+    # init data
+    in_dim = list(train_2d.values())[0].shape[-1]
+    out_dim = list(train_3d.values())[0].shape[-1]
+    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
+    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
+
     if train_keypts is None:
         train_keypts = init_keypts(train_2d)
     if test_keypts is None:
         test_keypts = init_keypts(test_2d)
 
-    # TODO do more sanity check on the data
+    # TODO assert dimensionality is uniform in data
     assert len(roots) == len(
         target_sets
     ), "number of elements in roots and target_sets does not match in params.yaml"
-    assert (
-        rcams_train is None or train_3d.keys() == rcams_train.keys()
-    ), "keys do nt match between train_3d and rcams_train"
-    assert (
-        rcams_test is None or test_3d.keys() == rcams_test.keys()
-    ), "keys do not match between test_3d and rcams_test"
 
     # create out_dir if it does not exists
     if not os.path.exists(out_dir):
@@ -93,21 +91,19 @@ def train(
     torch.save(train_set_2d, out_dir + "/train_2d.pth.tar")
     torch.save(test_set_2d, out_dir + "/test_2d.pth.tar")
     torch.save(
-        {"mean": mean_2d, "std": std_2d, "targets_2d": targets_2d, "offset": offset_2d},
+        {
+            "mean": mean_2d,
+            "std": std_2d,
+            "in_dim": in_dim,
+            "targets_2d": targets_2d,
+            "offset": offset_2d,
+        },
         out_dir + "/stat_2d.pth.tar",
     )
 
     # preprocess 3d
-    (
-        train_set_3d,
-        test_set_3d,
-        mean_3d,
-        std_3d,
-        targets_3d,
-        rcams_test,
-        offset,
-    ) = preprocess_3d(
-        train_3d, test_3d, roots, target_sets, out_dim, rcams_train, rcams_test
+    (train_set_3d, test_set_3d, mean_3d, std_3d, targets_3d, offset,) = preprocess_3d(
+        train_3d, test_3d, roots, target_sets, out_dim
     )
 
     # save 3d data
@@ -115,6 +111,7 @@ def train(
         f'Saving pre-processed 3D data at {os.path.abspath(out_dir + "/stat_3d.pth.tar.")}'
     )
 
+    # TODO not clear what this does
     for key in train_keypts.keys():
         train_keypts[key] = train_keypts[key][:, targets_3d]
     for key in test_keypts.keys():
@@ -133,8 +130,6 @@ def train(
             "out_dim": out_dim,
             "input_size": len(targets_2d),
             "output_size": len(targets_3d),
-            "rcams_train": rcams_train,
-            "rcams_test": rcams_test,
         },
         out_dir + "/stat_3d.pth.tar",
     )
@@ -163,4 +158,5 @@ def test(out_dir: str):
     option.out_dir = os.path.abspath(out_dir)
     option.test = True
     option.load = glob.glob(out_dir + "/ckpt_best.pth.tar")[0]
+    option.predict = True
     network_main(option)

@@ -4,7 +4,7 @@ data:
   out_dim: 1 # 1 or 3.
   dims_to_exclude: [] #dimensions to not consider during lifting.
   roots: [6] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
-  targets: [[0, 1, 2, 3, 4, 5]]
+  target_sets: [[0, 1, 2, 3, 4, 5]]
 
 vis: # only used for visualization.
   colors: [[186, 30, 49]]

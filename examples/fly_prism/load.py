@@ -54,8 +54,8 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
                     poses3d = poses3d[:, dimensions,:]
                     
                 #reshape data
-                poses3d = np.reshape(poses3d, 
-                                    (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
+                #poses3d = np.reshape(poses3d, 
+                #                    (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
         
                 #collect data
                 seqname = os.path.basename( fname_ )  
@@ -123,8 +123,8 @@ def load_2D(path, par=None, cam_id=0, subjects='all', actions='all'):
                     
                 #reshape data
                 poses_cam = poses[cam_id,:,:,:]
-                poses_cam = np.reshape(poses_cam, 
-                        (poses.shape[1], poses.shape[2]*poses.shape[3]))    
+                #poses_cam = np.reshape(poses_cam, 
+                #        (poses.shape[1], poses.shape[2]*poses.shape[3]))    
         
                 #collect data
                 data[ (subject, action, seqname[:-4]) ] = poses_cam

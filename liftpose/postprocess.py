@@ -4,13 +4,7 @@ from liftpose.vision_3d import camera_to_world
 from liftpose.preprocess import unNormalize, add_roots
 
 
-def load_test_results(data_dir):
-    # load stats
-    data = torch.load(data_dir + "/test_results.pth.tar")
-    stat_2d, stat_3d = (
-        torch.load(data_dir + "/stat_2d.pth.tar"),
-        torch.load(data_dir + "/stat_3d.pth.tar"),
-    )
+def load_test_results(data, stat_2d, stat_3d):
     inp_mean = stat_2d["mean"]
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]
@@ -30,24 +24,36 @@ def load_test_results(data_dir):
             offset = np.hstack((offset[0, 15:], offset[0, 15:]))
 
     # load predictions
-    tar_ = data["target"]
-    out_ = data["output"]
-    inp_ = data["input"]
+    tar = data["target"]
+    out = data["output"]
+    inp = data["input"]
 
     # expand
-    tar_ = add_roots(tar_, targets_3d, len(tar_mean))
-    out_ = add_roots(out_, targets_3d, len(tar_mean))
-    inp_ = add_roots(inp_, targets_2d, len(inp_mean))
+    tar = add_roots(tar, targets_3d, len(tar_mean))
+    out = add_roots(out, targets_3d, len(tar_mean))
+    inp = add_roots(inp, targets_2d, len(inp_mean))
 
     # unnormalise
-    tar_ = unNormalize(tar_, tar_mean, tar_std)
-    out_ = unNormalize(out_, tar_mean, tar_std)
-    inp_ = unNormalize(inp_, inp_mean, inp_std)
+    tar = unNormalize(tar, tar_mean, tar_std)
+    out = unNormalize(out, tar_mean, tar_std)
+    inp = unNormalize(inp, inp_mean, inp_std)
 
     # translate legs back to their original places
-    tar_ += offset
-    out_ += offset
-    inp_ += inp_offset
+    tar += offset
+    out += offset
+    inp += inp_offset
 
-    return tar_, out_, inp_
+    assert stat_2d["in_dim"] == 2
+    inp = inp.reshape(inp.shape[0], -1, 2)
+
+    if stat_3d["out_dim"] == 1:
+        out = np.concatenate([inp, out[:, :, np.newaxis]], axis=2)
+        tar = np.concatenate([inp, tar[:, :, np.newaxis]], axis=2)
+    elif stat_3d["out_dim"] == 3:
+        out = out.reshape(out.shape[0], -1, 3)
+        tar = tar.reshape(tar.shape[0], -1, 3)
+    else:
+        raise NotImplementedError
+
+    return tar, out
 

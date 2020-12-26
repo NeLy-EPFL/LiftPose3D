@@ -32,7 +32,9 @@ def test(test_loader, model, criterion, stat, predict=False):
         all_input.append(inputs.data.cpu().numpy())
 
         # calculate loss
-        loss = criterion(outputs, targets)
+        # XXX HACK
+        loss = criterion(targets, outputs)
+        #loss = criterion(outputs, outputs)
         losses.update(loss.item(), inputs.size(0))
 
         outputs[~good_keypts] = 0
@@ -42,10 +44,11 @@ def test(test_loader, model, criterion, stat, predict=False):
         dim = stat["out_dim"]
         dimensions = stat["targets_3d"]
         tar = unNormalize(
-            targets.data.cpu().numpy(),
+            targets.data.cpu().numpy().astype(float),
             stat["mean"][dimensions],
             stat["std"][dimensions],
         )
+
         out = unNormalize(
             outputs.data.cpu().numpy(),
             stat["mean"][dimensions],

@@ -6,22 +6,13 @@ import networkx as nx
 import numpy as np
 
 
-def plot_pose_3d(ax, tar, pred, inp, out_dim, bones, limb_id, colors, good_keypts=None):
-    inp = inp.reshape(-1, 2)
-    # in case we predicted a single dimension instead of whole 3 dimensions,
-    #   append the missing dimensions from the input
-    if out_dim == 1:
-        pred = np.concatenate([inp, pred[:, np.newaxis]], axis=1)
-        tar = np.concatenate([inp, tar[:, np.newaxis]], axis=1)
-    else:
-        pred = pred.reshape(-1, 3)
-        tar = tar.reshape(-1, 3)
-
-    print(tar.shape, inp.shape, pred.shape)
+def plot_pose_3d(ax, tar, pred, bones, limb_id, colors, good_keypts=None):
     tar_m = np.median(tar, axis=0)
     tar -= tar_m
     pred -= tar_m
-    # inp -= tar_m
+
+    #tar = tar.reshape(-1)
+    #pred = pred.reshape(-1)
 
     G = nx.Graph()
     G.add_edges_from(bones)

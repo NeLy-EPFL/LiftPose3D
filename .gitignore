@@ -144,3 +144,7 @@ __pycache__
 .DS_Store
 *.mp4
 .vscode
+
+
+# output files
+out/

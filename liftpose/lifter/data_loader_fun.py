@@ -47,12 +47,12 @@ class data_loader(Dataset):
                 )
             self.test_2d = torch.load(os.path.join(data_path, "test_2d.pth.tar"))
             for key in self.test_2d.keys():
-                #print(self.test_2d[key].shape)
+                # print(self.test_2d[key].shape)
                 num_f = self.test_2d[key].shape[0]
-                if not predict:
-                    assert (
-                        self.test_2d[key].shape[0] == self.test_3d[key].shape[0]
-                    ), "(test) 3d & 2d shape not matched"
+                # if not predict:
+                #    assert (
+                #        self.test_2d[key].shape[0] == self.test_3d[key].shape[0]
+                #    ), "(test) 3d & 2d shape not matched"
                 for i in range(num_f):
                     self.test_inp.append(self.test_2d[key][i])
                     if not predict:
@@ -75,8 +75,9 @@ class data_loader(Dataset):
         else:
             inputs = torch.from_numpy(self.test_inp[index]).float()
             if self.predict:
-                outputs = torch.from_numpy(np.array(0))
-                good_keypts = torch.from_numpy(np.array(0))
+                #print(inputs.shape)
+                outputs = torch.from_numpy(np.zeros((36)))
+                good_keypts = torch.from_numpy(np.zeros((36)).astype(bool))
                 keys = torch.from_numpy(np.array(0))
             else:
                 outputs = torch.from_numpy(self.test_out[index]).float()

@@ -74,9 +74,11 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                     cam_par[(s, a, f)] = {c: poses[c] for c in cam_id}
 
                 # reshape data
+                '''
                 poses3d = np.reshape(
                     poses3d, (poses3d.shape[0], poses3d.shape[1] * poses3d.shape[2])
                 )
+                '''
                 data[(s, a, f)] = poses3d
 
     # sort
@@ -139,10 +141,14 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
 
                 if cam_id is None:
                     poses_cam = poses2d[0, :, :, :]
+                    '''
                     poses_cam = np.reshape(
                         poses_cam,
                         (poses2d.shape[1], poses2d.shape[2] * poses2d.shape[3]),
                     )
+                    '''
+
+                    
 
                     data[(subject, action, f[:-4])] = poses_cam
 
@@ -152,9 +158,11 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
                         ids = poses[c]["vis"][dimensions]
                         ids = np.array(ids).astype(bool)
                         poses_cam = poses_cam[:, ids, :]
+                        '''
                         poses_cam = np.reshape(
                             poses_cam, (poses2d.shape[1], sum(ids) * poses2d.shape[3])
                         )
+                        '''
 
                         data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses_cam
 
