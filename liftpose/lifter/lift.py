@@ -104,7 +104,7 @@ def network_main(opt):
             inputs,
             good_keypts,
         ) = test(test_loader, model, criterion, stat_3d, predict=opt.predict)
-
+            
         logger.info(
             "Saving results: {}".format(
                 os.path.join(opt.out_dir, "test_results.pth.tar")

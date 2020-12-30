@@ -89,13 +89,12 @@ def test(test_loader, model, criterion, stat, predict=False):
     """
     all_input = np.vstack(all_input)
     all_output = np.vstack(all_output)
-
-    if predict:
-        return None, None, None, None, all_output, None, all_input, None
-
+    all_bool = np.vstack(all_bool)
     all_target = np.vstack(all_target)
     all_dist = np.vstack(all_dist)
-    all_bool = np.vstack(all_bool)
+
+    if predict:
+        return None, None, None, None, all_output, None, all_input, all_bool
 
     # mean errors
     all_dist[all_dist == 0] = np.nan
