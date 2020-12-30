@@ -32,48 +32,49 @@ def test(test_loader, model, criterion, stat, predict=False):
         all_input.append(inputs.data.cpu().numpy())
 
         # calculate loss
-        # XXX HACK
-        loss = criterion(targets, outputs)
-        #loss = criterion(outputs, outputs)
-        losses.update(loss.item(), inputs.size(0))
+        if not predict:
+            loss = criterion(targets, outputs)
+            losses.update(loss.item(), inputs.size(0))
 
-        outputs[~good_keypts] = 0
-        targets[~good_keypts] = 0
+            outputs[~good_keypts] = 0
+            targets[~good_keypts] = 0
 
-        # undo normalisation to calculate accuracy in real units
-        dim = stat["out_dim"]
-        dimensions = stat["targets_3d"]
-        tar = unNormalize(
-            targets.data.cpu().numpy().astype(float),
-            stat["mean"][dimensions],
-            stat["std"][dimensions],
-        )
+            # undo normalisation to calculate accuracy in real units
+            dim = stat["out_dim"]
+            dimensions = stat["targets_3d"]
+            tar = unNormalize(
+                targets.data.cpu().numpy().astype(float),
+                stat["mean"][dimensions],
+                stat["std"][dimensions],
+            )
 
-        out = unNormalize(
-            outputs.data.cpu().numpy(),
-            stat["mean"][dimensions],
-            stat["std"][dimensions],
-        )
+            out = unNormalize(
+                outputs.data.cpu().numpy(),
+                stat["mean"][dimensions],
+                stat["std"][dimensions],
+            )
 
-        abserr = np.abs(out - tar)
+            abserr = np.abs(out - tar)
 
-        # compute error
-        n_pts = len(dimensions) // dim
-        distance = np.zeros_like(abserr)
+            # compute error
+            n_pts = len(dimensions) // dim
+            distance = np.zeros_like(abserr)
 
-        # group and stack
-        """
-        all_dist.append(distance)
-        all_output.append(outputs.data.cpu().numpy())
-        all_target.append(targets.data.cpu().numpy())
-        all_input.append(inputs.data.cpu().numpy())
-        """
-        for k in range(n_pts):
-            distance[:, k] = np.sqrt(np.sum(abserr[:, dim * k : dim * (k + 1)], axis=1))
+            # group and stack
+            """
+            all_dist.append(distance)
+            all_output.append(outputs.data.cpu().numpy())
+            all_target.append(targets.data.cpu().numpy())
+            all_input.append(inputs.data.cpu().numpy())
+            """
+            for k in range(n_pts):
+                distance[:, k] = np.sqrt(
+                    np.sum(abserr[:, dim * k : dim * (k + 1)], axis=1)
+                )
 
-        all_dist.append(distance)
-        all_target.append(targets.data.cpu().numpy())
-        all_bool.append(good_keypts)
+            all_dist.append(distance)
+            all_target.append(targets.data.cpu().numpy())
+            all_bool.append(good_keypts)
 
     """
     all_dist, all_output, all_target, all_input = (

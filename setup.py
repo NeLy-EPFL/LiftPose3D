@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -15,4 +12,13 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/NeLy-EPFL/LiftPose3D",
+    install_requires=[
+        "numpy",
+        "networkx",
+        "matplotlib",
+        "torchvision",
+        "tqdm",
+        "progress",
+        "scipy",
+    ],
 )

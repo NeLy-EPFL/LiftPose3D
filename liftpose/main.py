@@ -86,10 +86,10 @@ def train(
 
     # save 2d data
     logger.info(
-        f'Saving pre-processed 2D data at {os.path.abspath(out_dir + "/stat_2d.pth.tar.")}'
+        f'Saving pre-processed 2D data at {os.path.abspath(os.path.join(out_dir, "/stat_2d.pth.tar."))}'
     )
-    torch.save(train_set_2d, out_dir + "/train_2d.pth.tar")
-    torch.save(test_set_2d, out_dir + "/test_2d.pth.tar")
+    torch.save(train_set_2d, os.path.join(out_dir, "/train_2d.pth.tar"))
+    torch.save(test_set_2d, os.path.join(out_dir, "/test_2d.pth.tar"))
     torch.save(
         {
             "mean": mean_2d,
@@ -98,7 +98,7 @@ def train(
             "targets_2d": targets_2d,
             "offset": offset_2d,
         },
-        out_dir + "/stat_2d.pth.tar",
+        os.path.join(out_dir, "/stat_2d.pth.tar"),
     )
 
     # preprocess 3d
@@ -108,7 +108,7 @@ def train(
 
     # save 3d data
     logger.info(
-        f'Saving pre-processed 3D data at {os.path.abspath(out_dir + "/stat_3d.pth.tar.")}'
+        f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir + "/stat_3d.pth.tar."))}'
     )
 
     # TODO not clear what this does
@@ -117,8 +117,8 @@ def train(
     for key in test_keypts.keys():
         test_keypts[key] = test_keypts[key][:, targets_3d]
 
-    torch.save([train_set_3d, train_keypts], out_dir + "/train_3d.pth.tar")
-    torch.save([test_set_3d, test_keypts], out_dir + "/test_3d.pth.tar")
+    torch.save([train_set_3d, train_keypts], os.path.join(out_dir, "/train_3d.pth.tar"))
+    torch.save([test_set_3d, test_keypts], os.path.join(out_dir, "/test_3d.pth.tar"))
     torch.save(
         {
             "mean": mean_3d,
@@ -131,7 +131,7 @@ def train(
             "input_size": len(targets_2d),
             "output_size": len(targets_3d),
         },
-        out_dir + "/stat_3d.pth.tar",
+        os.path.join(out_dir, "/stat_3d.pth.tar"),
     )
 
     # Starting to train Martinez et. al model
@@ -157,6 +157,6 @@ def test(out_dir: str):
     option.out = os.path.abspath(out_dir)  # TODO do we need to set out?
     option.out_dir = os.path.abspath(out_dir)
     option.test = True
-    option.load = glob.glob(out_dir + "/ckpt_best.pth.tar")[0]
+    option.load = glob.glob(os.path.join(out_dir, "/ckpt_best.pth.tar"))[0]
     option.predict = True
     network_main(option)
