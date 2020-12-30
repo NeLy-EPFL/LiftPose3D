@@ -4,6 +4,7 @@ from torch.autograd import Variable
 import torch.nn as nn
 import logging
 import sys
+import torch
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -12,6 +13,9 @@ logging.basicConfig(
     format="%(asctime)s:[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
     datefmt="%H:%M:%S",
 )
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def train(
@@ -43,8 +47,8 @@ def train(
             lr_now = utils.lr_decay(optimizer, glob_step, lr_init, lr_decay, gamma)
 
         # make prediction with model
-        inputs = Variable(inps.cuda())
-        targets = Variable(tars.cuda(non_blocking=True))
+        inputs = Variable(inps.to(device))
+        targets = Variable(tars.to(device))
         outputs = model(inputs)
 
         # evaluate high confidence keypoints only

@@ -15,6 +15,8 @@ from liftpose.lifter.log import save_ckpt
 from liftpose.lifter.model import LinearModel, weight_init
 from liftpose.lifter.data_loader_fun import data_loader
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def network_main(opt):
     logger = logging.getLogger(__name__)
@@ -24,6 +26,8 @@ def network_main(opt):
         format="[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
         datefmt="%H:%M:%S",
     )
+
+    logging.info(f"Training on the device: {device}")
 
     start_epoch = 0
     err_best = 1000
@@ -44,9 +48,9 @@ def network_main(opt):
 
     # create and initialise model
     model = LinearModel(input_size=input_size, output_size=output_size)
-    model = model.cuda()
+    model = model.to(device)
     model.apply(weight_init)
-    criterion = nn.MSELoss(reduction="mean").cuda()
+    criterion = nn.MSELoss(reduction="mean").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr)
 
     logger.info(

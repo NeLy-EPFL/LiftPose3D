@@ -6,6 +6,7 @@ import numpy as np
 from liftpose.preprocess import normalize, unNormalize
 from torch.autograd import Variable
 from tqdm import tqdm
+import torch
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -14,6 +15,8 @@ logging.basicConfig(
     format="[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
     datefmt="%H:%M:%S",
 )
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def test(test_loader, model, criterion, stat, predict=False):
@@ -25,8 +28,8 @@ def test(test_loader, model, criterion, stat, predict=False):
     for i, (inps, tars, good_keypts, keys) in enumerate(test_loader):
 
         # make prediction with model
-        inputs = Variable(inps.cuda())
-        targets = Variable(tars.cuda(non_blocking=True))
+        inputs = Variable(inps.to(device))
+        targets = Variable(tars.to(device))
         outputs = model(inputs)
         all_output.append(outputs.data.cpu().numpy())
         all_input.append(inputs.data.cpu().numpy())
