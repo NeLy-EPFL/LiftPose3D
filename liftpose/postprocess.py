@@ -4,12 +4,23 @@ from liftpose.vision_3d import camera_to_world
 from liftpose.preprocess import unNormalize, add_roots
 
 
-def load_test_results(data, stat_2d, stat_3d):
+def load_test_results(data:dict, stat_2d:dict, stat_3d:dict) -> (np.array, np.array):
+    """Transforms vectorized and raw liftpose3d results into [T J 3] format.
+        In case out_dim=
+        Args:
+            data:   
+            stat_2d:
+            stat_3d:
+
+        Returns:
+
+
+    """
     inp_mean = stat_2d["mean"]
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]
     tar_std = stat_3d["std"]
-    targets_2d = stat_2d["targets_2d"]
+    targets_2d = stat_2d["targets_2d"]s
     targets_3d = stat_3d["targets_3d"]
     offset = stat_3d["offset"]
     offset = np.concatenate([v for k, v in offset.items()], 0)

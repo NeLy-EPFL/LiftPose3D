@@ -2,11 +2,40 @@ import numpy as np
 from liftpose.vision_3d import transform_frame
 
 
-def preprocess_2d(
-    train: np.array, test: np.array, roots: list, target_sets: list, in_dim: int
-):
-    """
-    Preprocess 2D data
+# TODO merge preprocess_2d and preprocess_3d functions
+def preprocess_2d(train: dict, test: dict, roots: list, target_sets: list, in_dim: int):
+    """ Preprocess 2D data
+        1. Center points in target_sets sets around roots
+        2. Normalizes data into zero mean and unit variance
+        3. Remove root joints
+        
+        Args:
+            train: Dict[Tuple:np.array[float]]
+                A dictionary where keys correspond to experiment names and 
+                values are numpy arrays in the shape of [T J], where T 
+                corresponds to time and J is number of joints times in_dim. 
+            test: Dict[Tuple:np.array[float]]
+                test data
+            roots: List[int]
+                Single depth list consisting of root joints. Corresponding
+                target set will predicted with respect to the root joint. 
+                Cannot be empty.
+            target_sets: List[List[Int]
+                Joints to be predicted with respect to roots.
+                if roots = [0, 1] and target_sets = [[2,3], [4,5]], then the
+                network will predict the relative location Joint 2 and 3 with respect to Joint 0.
+                Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
+                Cannot be empty.
+            in_dim: number of dimensions for the 2d data 
+                (should be 2 if predicting depth from 2d pose).
+
+        Return:
+            train:  Zero-mean and unit variance training data
+            test: Zero-mean and unit variance test data
+            mean: mean parameter for each dimension of train dadta
+            std: std parameter for eaach dimension of test data
+            targets_3d: TODO
+            offset: the root position for corresponding target_sets for each joint
     """
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
@@ -27,8 +56,31 @@ def preprocess_2d(
 def preprocess_3d(
     train, test, roots, target_sets, out_dim,
 ):
-    """
-    Preprocess 3D data
+    """ Preprocess 3D data
+        1. Center points in target_sets sets around roots
+        2. Normalizes data into zero mean and unit variance
+        3. Remove root joints
+        
+        Args:
+            train: Zero-mean and unit variance training data
+            test: Zero-mean and unit variance test data
+            roots: Single depth list consisting of root joints. Corresponding
+                target set will predicted with respect to the root joint. 
+                Cannot be empty.
+            target_sets: List[List[Int]
+                Joints to be predicted with respect to roots.
+                if roots = [0, 1] and target_sets = [[2,3], [4,5]], then the
+                network will predict the relative location Joint 2 and 3 with respect to Joint 0.
+                Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
+                Cannot be empty.
+
+        Return:
+            train:  Zero-mean and unit variance training data
+            test: Zero-mean and unit variance test data
+            mean: mean parameter for each dimension of train dadta
+            std: std parameter for eaach dimension of test data
+            targets_3d: TODO
+            offset: the root position for corresponding target_sets for each joint
     """
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
     train, _ = anchor_to_root(train, roots, target_sets, out_dim)
@@ -211,3 +263,19 @@ def get_coords_in_dim(targets, dim):
             np.hstack((dim_to_use * 3, dim_to_use * 3 + 1, dim_to_use * 3 + 2))
         )
     return dim_to_use
+
+
+def init_keypts(train_3d):
+    """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
+    # TODO why hard-code 2
+    return {
+        k: np.ones((v.shape[0], v.shape[1] * 2), dtype=np.bool)
+        for (k, v) in train_3d.items()
+    }
+
+
+def flatten_dict(d):
+    """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
+    for (k, v) in d.items():
+        d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
+    return d

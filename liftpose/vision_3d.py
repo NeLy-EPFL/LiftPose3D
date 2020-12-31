@@ -3,7 +3,7 @@ import numpy as np
 
 def transform_frame(poses_world, cam_par, project=False):
     """
-    Affine transform 3D cooridinates to camera frame
+    Affine transform 3D coordinates to camera frame
 
     Args
         poses_world: dictionary with 3d poses in world coordinates

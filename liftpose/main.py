@@ -1,16 +1,17 @@
-import numpy as np
-import torch
-import os
+import glob
 import logging
+import os
 import sys
 from pprint import pformat
-import glob
-from liftpose.lifter.opt import Options
+
+import numpy as np
+import torch
+
 from liftpose.lifter.lift import network_main
+from liftpose.lifter.opt import Options
+from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict
 
-from liftpose.preprocess import preprocess_2d, preprocess_3d
-
-# to make sure deterministic training
+# deterministic training
 torch.manual_seed(0)
 np.random.seed(0)
 
@@ -22,23 +23,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
-
-def init_keypts(train_3d):
-    """ """
-    # TODO why hard-code 2
-    return {
-        k: np.ones((v.shape[0], v.shape[1] * 2), dtype=np.bool)
-        for (k, v) in train_3d.items()
-    }
-
-
-def flatten_dict(d):
-    """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
-    for (k, v) in d.items():
-        d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
-    return d
-
-
+# TODO what is the key name dependency between 2d and 3d data
 def train(
     train_2d: dict,
     test_2d: dict,
@@ -52,24 +37,30 @@ def train(
 ) -> None:
 
     """Train LiftPose3D.
-        1. Training and testing data will be preprocessed to zero-mean and unit-std.
-            Root joints will be removed from the training.  
+        Training works in two steps:
+        1. Training and testing data will be preprocessed to zero-mean and unit-std. 
+            Root joints will be removed from the training and target_set will be subtracted from the root joints.  
             Corresponding normalization statistics will be written under stat_2d and stat_3d files.
-        2. A Martinez et. al network will be trained on the processed training data.
-        3. 
-
+            Normalized 2d and 3d data will written under train_2d and train_3d files.
+        2. Martinez et. al network will be trained on the processed training data using liftpose.lifter module.
 
     Args:
         train_2d: Dict[Tuple:np.array[float]]
-            A dictionary where keys correspond to experiment names and 
-            values are numpy arrays in the shape of [T J 2], where T 
-            corresponds to time and J is number of joints. 
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2]. 
+            T corresponds to time axis and J is number of joints. T can be arbitrary.
+            The last dimension 2 corresponds to the 2d pose. 
         test_2d: Dict[Tuple:np.array[float]]
-            dictionary with 2d pose
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2]. 
+            T corresponds to time axis and J is number of joints. T can be arbitrary.
+            The last dimension 2 corresponds to the 2d pose.  
         train_3d: Dict[Tuple:np.array[float]]
-            dictionary with 3d poses in camera coordinates
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim]. 
+            T corresponds to time axis and J is number of joints. T can be arbitrary.
+            out_dim can only be 1 or 3. 
         test_3d: Dict[Tuple:np.array[float]] 
-            dictionary with 3d poses in camera coordinates
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim]. 
+            T corresponds to time axis and J is number of joints. T can be arbitrary.
+            out_dim can only be 1 or 3. 
         roots: List[Int]
             Single depth list consisting of root joints. Corresponding
             target set will predicted with respect to the root joint. 
@@ -77,13 +68,17 @@ def train(
         target_sets: List[List[Int]]
             Joints to be predicted with respect to roots.
             if roots = [0, 1] and target_sets = [[2,3], [4,5]], then the
-            network will predict. Cannot be empty.
+            network will predict the relative location Joint 2 and 3 with respect to Joint 0.
+            Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
+            Cannot be empty.
         out_dir: String
             **relative** output path, will be created if does exist. 
         train_keypts: Dict[Tuple:np.array[bool]]
-            dictinary with same keys with train_3d. 
+            Dictionary with same keys as train_3d. Values should have the same shape as train_3d, however instead should be boolean arrays.
+            A point will not be used during training/testing in case corresponding boolean value is false.
         test_keypts: Dict[Tuple:np.array[bool]]
-            corresponding keypts dictionarty for test data
+            Dictionary with same keys as train_3d. Values should have the same shape as train_3d, however instead should be boolean arrays.
+            A point will not be used during training/testing in case corresponding boolean value is false.
 
     Returns:
         None
@@ -113,12 +108,23 @@ def train(
     if test_keypts is None:
         test_keypts = init_keypts(test_2d)
 
-    # TODO assert dimensionality is uniform in data
+    # TODO make sure key values make sense across 2d and 3d data
+    # make sure roots and target_sets are non-empty
     assert len(roots) != 0
     assert len(target_sets) != 0
+    # out_dim can only be 1 or 3
+    assert (
+        out_dim == 1 or out_dim == 3
+    ), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
+    # number of root joint and number of targer sets are equivalent
     assert len(roots) == len(
         target_sets
     ), "number of elements in roots and target_sets does not match in params.yaml"
+    # make sure in_dim and out_dim are consistent
+    assert len(set([v.shape[-1] for v in train_2d.values()])) == 1
+    assert len(set([v.shape[-1] for v in train_3d.values()])) == 1
+    assert len(set([v.shape[-1] for v in test_2d.values()])) == 1
+    assert len(set([v.shape[-1] for v in test_3d.values()])) == 1
 
     # create out_dir if it does not exists
     if not os.path.exists(out_dir):
@@ -196,7 +202,24 @@ def train(
     network_main(option)
 
 
-def test(out_dir: str):
+def test(out_dir: str) -> None:
+    """Test LiftPose3D.
+        Runs pre-trained liftpose3d model (saved as ckpt_best.pth.tar, using the liftpose.main.train function.)
+            on the test data (saved as test_2d.ckpt.tar and test_3d.ckpt.tar).
+        Train function must be called with the same out_dir before calling liftpose.main.test. Assumes out_dir existss.
+        Saves test_results.pth.tar under out_dir folder.
+
+        Args:
+            out_dir: the same folder used during training (liftpose.main.train) 
+        
+        Returns:
+            Nones
+    """
+
+    assert os.path.isdir(
+        out_dir
+    ), "{out_dir} does not exists. please call liftpose.main.train function first with the same path."
+
     logger.info("starting testing in path: {}".format(out_dir))
     option = Options().parse()
     option.data_dir = os.path.abspath(out_dir)
