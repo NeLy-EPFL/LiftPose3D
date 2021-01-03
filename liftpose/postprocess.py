@@ -20,7 +20,7 @@ def load_test_results(data:dict, stat_2d:dict, stat_3d:dict) -> (np.array, np.ar
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]
     tar_std = stat_3d["std"]
-    targets_2d = stat_2d["targets_2d"]s
+    targets_2d = stat_2d["targets_2d"]
     targets_3d = stat_3d["targets_3d"]
     offset = stat_3d["offset"]
     offset = np.concatenate([v for k, v in offset.items()], 0)

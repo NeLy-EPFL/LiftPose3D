@@ -23,6 +23,28 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
+
+def train_np(
+    train_2d: np.ndarray,
+    test_2d: np.ndarray,
+    train_3d: np.ndarray,
+    test_3d: np.ndarray,
+    out_dir: str,
+    root: int = 0,
+) -> None:
+    # (1, 'all', 'pose_result__data_paper_180918_MDN_CsCh_Fly1_001_SG1_behData_images.cam_2')
+    n_joints = train_2d.shape[1]
+    train_2d = {(1, "", ""): train_2d}
+    train_3d = {(1, "", ""): train_3d}
+    test_2d = {(1, "", ""): test_2d}
+    test_3d = {(1, "", ""): test_3d}
+
+    roots = [root]
+    target_sets = list(set(range(n_joints)) - set(roots))  # every point except the root
+
+    train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, out_dir)
+
+
 # TODO what is the key name dependency between 2d and 3d data
 def train(
     train_2d: dict,
