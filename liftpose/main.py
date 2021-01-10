@@ -209,7 +209,7 @@ def train(
     )
 
     # Starting to train Martinez et. al model
-    logger.info("Starting training model")
+    logger.info("Starting training model.")
 
     # TODO bit hacky, we should get inputs for the network from another yaml file
     # TODO also everything should be explicit function argument, instead of be hidden in dictionary

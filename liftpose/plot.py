@@ -32,7 +32,7 @@ def plot_pose_3d(ax, tar, pred, bones, limb_id, colors, good_keypts=None):
     # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
     ax.legend(
         [(p1), (p3)],
-        ["Triangulated 3D pose", "LiftPose3D prediction",],
+        ["LiftPose3D prediction", "Triangulated 3D pose"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),

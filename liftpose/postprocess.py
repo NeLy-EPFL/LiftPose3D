@@ -4,7 +4,7 @@ from liftpose.vision_3d import camera_to_world
 from liftpose.preprocess import unNormalize, add_roots
 
 
-def load_test_results(data:dict, stat_2d:dict, stat_3d:dict) -> (np.array, np.array):
+def load_test_results(data: dict, stat_2d: dict, stat_3d: dict) -> (np.array, np.array):
     """Transforms vectorized and raw liftpose3d results into [T J 3] format.
         In case out_dim=
         Args:

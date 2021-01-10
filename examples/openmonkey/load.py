@@ -13,24 +13,21 @@ import cv2
 # cameras = {c: {} for c in batch_w_3d}
 
 
-def load_data(data_folder):
+def load_data(data_folder, batches):
     data = loadmat(data_folder + "Data.mat")
     name = data["T"][0][0]["name"]
     label = data["T"][0][0]["data"]
-    batch_w_3d = ["7"]  # ["7", "9", "9a", "9b", "10", "11"]
-    cameras = load_cameras(data_folder, batch_w_3d)
+    batch_w_3d = batches  # ["7"]  #["7", "9", "9a", "9b", "10", "11"]
+    cameras, cameras_copy = load_cameras(data_folder, batch_w_3d)
 
     cam_list = np.unique(
         np.concatenate([list(cameras[btch].keys()) for btch in batch_w_3d])
     ).tolist()
-    pose_result = load_points(data_folder, batch_w_3d, name, cameras, cam_list, label)
+    pose_result = load_points(data_folder, batch_w_3d, name, cameras, cam_list, label)    
     pose_result = {k: linear(v, k) for (k, v) in pose_result.items()}
-    pose_result = {
-        k: bone_length_normalize(template=list(pose_result.values())[0], d=v)
-        for (k, v) in pose_result.items()
-    }
+    
 
-    return cameras, pose_result
+    return cameras_copy, pose_result
 
 
 edges = [
@@ -54,16 +51,16 @@ parents = [1, 2, 7, 2, 3, 2, 5, -1, 7, 8, 7, 10, 7]
 
 
 def bone_length_normalize(template, d):
-    pts3d = np.array(template["points3d"])
+    pts3d = np.array(template)
     bone_length = np.zeros((len(edges)))
     for idx, edge in enumerate(edges):
         bone_length[idx] = np.linalg.norm(
             pts3d[:, edge[0]] - pts3d[:, edge[1]], axis=1
         ).mean()
 
-    for idx, pts3d in enumerate(d["points3d"]):
-        d["points3d"][idx] = normalize_bone_length(
-            d["points3d"][idx], edges, bone_length, parents, leaves
+    for idx, pts3d in enumerate(d):
+        d[idx] = normalize_bone_length(
+            d[idx], edges, bone_length, parents, leaves
         )
 
     return d
@@ -83,7 +80,7 @@ def linear(d, btch):
             if np.any(d["points2d"][cam_id, img_id] != 0) and np.any(
                 d["points3d"][img_id] != 0
             ):
-                d_linear["points2d"].append(d["points2d"][cam_id, img_id])
+                d_linear["points2d"].append(d["points2d"][cam_id, img_id])                
                 d_linear["points3d"].append(d["points3d"][img_id])
                 d_linear["cam_id"].append(cam_id)
                 d_linear["img_id"].append(img_id)
@@ -93,6 +90,8 @@ def linear(d, btch):
 
 
 def get_projection(cameras, cam, coords_3d):
+    '''transforms 3d coordinates into 2d coordinates, using camera parameters inside cameras. 
+    '''
     P = cameras[cam]["P"]
     u = P @ np.append(coords_3d, [1])
     u = u[0:2] / u[2]
@@ -190,7 +189,7 @@ def load_points(data_folder, batch_w_3d, name, cameras, cam_list, label):
         annotations = loadmat(data_folder + "Batch{}/coords_3D.mat".format(btch))
         parameters = loadmat(data_folder + "Batch{}/crop_para.mat".format(btch))
 
-        print("annotations", annotations["coords"].shape)
+        #print("annotations", annotations["coords"].shape)
         max_num_images = get_max_n_images(name, btch)
 
         points2d = np.zeros(((len(cam_list)), max_num_images, n_joints, 2))
@@ -311,7 +310,7 @@ def load_cameras(data_folder, batch_w_3d):
                 np.arange(13),
             ]
 
-    return cameras
+    return cameras, cameras_copy
 
 
 def get_pts2d(i, n, label):
