@@ -6,7 +6,7 @@
 The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
 
 For the theoretical background and for more details on the following examples have a look at our paper:
-[LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/)
+[LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
 
 
 Don't forget to cite us if you find our work useful:
