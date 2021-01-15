@@ -74,7 +74,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         points3d = np.load('{}/VV/{}_points3d.npy'.format(home_dir, VV_net_name))
         points3d_names_id = np.load('{}/VV/points3d_names_id.npy'.format(home_dir))
     else:
-        points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name))
+        points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy'.format(VV_net_name))
         points3d_names_id = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
 

@@ -469,9 +469,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = True
-    fly_number= [1]
+    fly_number= [4]
     behaviour=['FW']
-    video_sequence_number= [2]
+    video_sequence_number= [1]
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):
