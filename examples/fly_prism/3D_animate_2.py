@@ -362,9 +362,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = True
-    fly_number= [4]
+    fly_number= [1]
     behaviour=['FW']
-    video_sequence_number= [1]
+    video_sequence_number= [2]
     VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 
