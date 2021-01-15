@@ -350,8 +350,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         print('{}/VV/points3d_animation.mp4'.format(home_dir) + ' successfully saved.')
 
     else:
-        ani.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4', writer=writer)
-        print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4' + ' successfully saved.')
+        ani.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4', writer=writer)
+        print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4' + ' successfully saved.')
 
 
 if __name__ == "__main__":

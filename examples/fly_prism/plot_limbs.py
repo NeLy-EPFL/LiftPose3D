@@ -71,11 +71,26 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     home_dir = '/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_{}_clipped/{}/{}'.format(fly_number, behaviour,
                                                                                        video_sequence_number)
 
-    points3d = np.load('{}/VV/points3d.npy'.format(home_dir))
-    points3d_names_id = np.load('{}/VV/points3d_names_id.npy'.format(home_dir))
-    points3d_filtered = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy')
-    points3d_names_id_filtered = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
+    # points3d = np.load('{}/VV/points3d.npy'.format(home_dir))
+    # points3d_names_id = np.load('{}/VV/points3d_names_id.npy'.format(home_dir))
+    points3d = np.load(
+        '/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                      video_sequence_number) + 'AniPose_points3d.npy')
+    points3d_names_id = np.load(
+        '/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                      video_sequence_number) + 'AniPose_points3d_names_id.npy')
+    points3d_filtered = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_3/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy')
+    points3d_names_id_filtered = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_3/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
+    points3d_filtered_2 = np.load(
+        '/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                      video_sequence_number) + 'AniPose_points3d.npy')
+    points3d_names_id_filtered_2 = np.load(
+        '/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour,
+                                                                                      video_sequence_number) + 'AniPose_points3d_names_id.npy')
+    # labels = ["Resnet-152", "Resnet-50"]
+    # labels = ["Resnet-50-without-filter","Resnet-50-with_median-filter"]
+    labels = ["Resnet-152-median", "Resnet-152-viterbi", "Resnet-152-autoencoder"]
 
     x = points3d[:,:,0]
     y= points3d[:,:,1]
@@ -149,15 +164,55 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     RH_tarsus_filtered = np.linalg.norm((points3d_filtered[:, idx_RH_tibia_tarsus, :] - points3d_filtered[:, idx_RH_tarsal_claw, :]),
                        axis=1)
 
+    # limb_lengths
+    LF_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:,idx_LF_body_coxa,:] - points3d_filtered_2[:,idx_LF_coxa_femur,:]),axis=1)
+    LF_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LF_coxa_femur, :] - points3d_filtered_2[:, idx_LF_femur_tibia, :]), axis=1)
+    LF_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LF_femur_tibia, :] - points3d_filtered_2[:, idx_LF_tibia_tarsus, :]), axis=1)
+    LF_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LF_tibia_tarsus, :] - points3d_filtered_2[:, idx_LF_tarsal_claw, :]), axis=1)
+    RF_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:,idx_RF_body_coxa,:] - points3d_filtered_2[:,idx_RF_coxa_femur,:]),axis=1)
+    RF_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RF_coxa_femur, :] - points3d_filtered_2[:, idx_RF_femur_tibia, :]), axis=1)
+    RF_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RF_femur_tibia, :] - points3d_filtered_2[:, idx_RF_tibia_tarsus, :]), axis=1)
+    RF_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RF_tibia_tarsus, :] - points3d_filtered_2[:, idx_RF_tarsal_claw, :]), axis=1)
+
+    LM_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LM_body_coxa, :] - points3d_filtered_2[:, idx_LM_coxa_femur, :]), axis=1)
+    LM_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LM_coxa_femur, :] - points3d_filtered_2[:, idx_LM_femur_tibia, :]),
+                       axis=1)
+    LM_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LM_femur_tibia, :] - points3d_filtered_2[:, idx_LM_tibia_tarsus, :]),
+                       axis=1)
+    LM_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LM_tibia_tarsus, :] - points3d_filtered_2[:, idx_LM_tarsal_claw, :]),
+                       axis=1)
+    RM_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RM_body_coxa, :] - points3d_filtered_2[:, idx_RM_coxa_femur, :]), axis=1)
+    RM_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RM_coxa_femur, :] - points3d_filtered_2[:, idx_RM_femur_tibia, :]),
+                       axis=1)
+    RM_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RM_femur_tibia, :] - points3d_filtered_2[:, idx_RM_tibia_tarsus, :]),
+                       axis=1)
+    RM_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RM_tibia_tarsus, :] - points3d_filtered_2[:, idx_RM_tarsal_claw, :]),
+                       axis=1)
+
+    LH_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LH_body_coxa, :] - points3d_filtered_2[:, idx_LH_coxa_femur, :]), axis=1)
+    LH_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LH_coxa_femur, :] - points3d_filtered_2[:, idx_LH_femur_tibia, :]),
+                       axis=1)
+    LH_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LH_femur_tibia, :] - points3d_filtered_2[:, idx_LH_tibia_tarsus, :]),
+                       axis=1)
+    LH_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_LH_tibia_tarsus, :] - points3d_filtered_2[:, idx_LH_tarsal_claw, :]),
+                       axis=1)
+    RH_coxa_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RH_body_coxa, :] - points3d_filtered_2[:, idx_RH_coxa_femur, :]), axis=1)
+    RH_femur_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RH_coxa_femur, :] - points3d_filtered_2[:, idx_RH_femur_tibia, :]),
+                       axis=1)
+    RH_tibia_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RH_femur_tibia, :] - points3d_filtered_2[:, idx_RH_tibia_tarsus, :]),
+                       axis=1)
+    RH_tarsus_filtered_2 = np.linalg.norm((points3d_filtered_2[:, idx_RH_tibia_tarsus, :] - points3d_filtered_2[:, idx_RH_tarsal_claw, :]),
+                       axis=1)
+
     import matplotlib.pyplot as plt
 
     fig, axs = plt.subplots(4, 6)
+    # axs.title('after AniPose MedianFilter')
     frame_idx = np.arange(LF_tarsus.shape[0])+1
     axs[0,0].plot(frame_idx, LF_coxa, LF_coxa_filtered)
     axs[0,0].set_xlabel('Frame')
     axs[0,0].set_ylabel('Limb Length')
     axs[0,0].grid(True)
-    labels = ["without AniPose Median Filtered", "with AniPose Median Filtered"]
     fig.legend(labels,loc='upper center')
     # axs[0,0].legend(labels)
     axs[0,0].set_title('LF_coxa')
@@ -166,7 +221,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # axs[0,1].set_xlabel('Frame')
     # axs[0,1].set_ylabel('Limb Length')
     axs[0,1].grid(True)
-    labels = ["without AniPose Median Filtered", "with AniPose Median Filtered"]
+    # labels = ["Resnet-152", "Resnet-50"]
     # axs[0,1].legend(labels)
     axs[0,1].set_title('RF_coxa')
     axs[0,1].set_ylim(0,200)
@@ -318,6 +373,91 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
 
 
     fig.tight_layout(pad=1.5,w_pad=-2,h_pad=-2)
+
+    # plot std
+    bar_labels = ['LF_coxa', 'LF_femur', 'LF_tibia', 'LF_tarsus',
+                 'LM_coxa', 'LM_femur', 'LM_tibia', 'LM_tarsus',
+                 'LH_coxa', 'LH_femur', 'LH_tibia', 'LH_tarsus',
+                 'RF_coxa', 'RF_femur', 'RF_tibia', 'RF_tarsus',
+                 'RM_coxa', 'RM_femur', 'RM_tibia', 'RM_tarsus',
+                 'RH_coxa', 'RH_femur', 'RH_tibia', 'RH_tarsus'
+                 ]
+    means_filtered = [LF_coxa_filtered.mean(), LF_femur_filtered.mean(), LF_tibia_filtered.mean(), LF_tarsus_filtered.mean(),
+                 LM_coxa_filtered.mean(), LM_femur_filtered.mean(), LM_tibia_filtered.mean(), LM_tarsus_filtered.mean(),
+                 LH_coxa_filtered.mean(), LH_femur_filtered.mean(), LH_tibia_filtered.mean(), LH_tarsus_filtered.mean(),
+                 RF_coxa_filtered.mean(), RF_femur_filtered.mean(), RF_tibia_filtered.mean(), RF_tarsus_filtered.mean(),
+                 RM_coxa_filtered.mean(), RM_femur_filtered.mean(), RM_tibia_filtered.mean(), RM_tarsus_filtered.mean(),
+                 RH_coxa_filtered.mean(), RH_femur_filtered.mean(), RH_tibia_filtered.mean(), RH_tarsus_filtered.mean()
+                 ]
+
+    means_filtered_2 = [LF_coxa_filtered_2.mean(), LF_femur_filtered_2.mean(), LF_tibia_filtered_2.mean(), LF_tarsus_filtered_2.mean(),
+                 LM_coxa_filtered_2.mean(), LM_femur_filtered_2.mean(), LM_tibia_filtered_2.mean(), LM_tarsus_filtered_2.mean(),
+                 LH_coxa_filtered_2.mean(), LH_femur_filtered_2.mean(), LH_tibia_filtered_2.mean(), LH_tarsus_filtered_2.mean(),
+                 RF_coxa_filtered_2.mean(), RF_femur_filtered_2.mean(), RF_tibia_filtered_2.mean(), RF_tarsus_filtered_2.mean(),
+                 RM_coxa_filtered_2.mean(), RM_femur_filtered_2.mean(), RM_tibia_filtered_2.mean(), RM_tarsus_filtered_2.mean(),
+                 RH_coxa_filtered_2.mean(), RH_femur_filtered_2.mean(), RH_tibia_filtered_2.mean(), RH_tarsus_filtered_2.mean()
+                 ]
+    means = [LF_coxa.mean(), LF_femur.mean(), LF_tibia.mean(), LF_tarsus.mean(),
+                 LM_coxa.mean(), LM_femur.mean(), LM_tibia.mean(), LM_tarsus.mean(),
+                 LH_coxa.mean(), LH_femur.mean(), LH_tibia.mean(), LH_tarsus.mean(),
+                 RF_coxa.mean(), RF_femur.mean(), RF_tibia.mean(), RF_tarsus.mean(),
+                 RM_coxa.mean(), RM_femur.mean(), RM_tibia.mean(), RM_tarsus.mean(),
+                 RH_coxa.mean(), RH_femur.mean(), RH_tibia.mean(), RH_tarsus.mean()
+                 ]
+
+    means_filtered_2_std = [LF_coxa_filtered_2.std(), LF_femur_filtered_2.std(), LF_tibia_filtered_2.std(), LF_tarsus_filtered_2.std(),
+                 LM_coxa_filtered_2.std(), LM_femur_filtered_2.std(), LM_tibia_filtered_2.std(), LM_tarsus_filtered_2.std(),
+                 LH_coxa_filtered_2.std(), LH_femur_filtered_2.std(), LH_tibia_filtered_2.std(), LH_tarsus_filtered_2.std(),
+                 RF_coxa_filtered_2.std(), RF_femur_filtered_2.std(), RF_tibia_filtered_2.std(), RF_tarsus_filtered_2.std(),
+                 RM_coxa_filtered_2.std(), RM_femur_filtered_2.std(), RM_tibia_filtered_2.std(), RM_tarsus_filtered_2.std(),
+                 RH_coxa_filtered_2.std(), RH_femur_filtered_2.std(), RH_tibia_filtered_2.std(), RH_tarsus_filtered_2.std()
+                 ]
+    means_filtered_std = [LF_coxa_filtered.std(), LF_femur_filtered.std(), LF_tibia_filtered.std(), LF_tarsus_filtered.std(),
+                 LM_coxa_filtered.std(), LM_femur_filtered.std(), LM_tibia_filtered.std(), LM_tarsus_filtered.std(),
+                 LH_coxa_filtered.std(), LH_femur_filtered.std(), LH_tibia_filtered.std(), LH_tarsus_filtered.std(),
+                 RF_coxa_filtered.std(), RF_femur_filtered.std(), RF_tibia_filtered.std(), RF_tarsus_filtered.std(),
+                 RM_coxa_filtered.std(), RM_femur_filtered.std(), RM_tibia_filtered.std(), RM_tarsus_filtered.std(),
+                 RH_coxa_filtered.std(), RH_femur_filtered.std(), RH_tibia_filtered.std(), RH_tarsus_filtered.std()
+                 ]
+    means_std = [LF_coxa.std(), LF_femur.std(), LF_tibia.std(), LF_tarsus.std(),
+                 LM_coxa.std(), LM_femur.std(), LM_tibia.std(), LM_tarsus.std(),
+                 LH_coxa.std(), LH_femur.std(), LH_tibia.std(), LH_tarsus.std(),
+                 RF_coxa.std(), RF_femur.std(), RF_tibia.std(), RF_tarsus.std(),
+                 RM_coxa.std(), RM_femur.std(), RM_tibia.std(), RM_tarsus.std(),
+                 RH_coxa.std(), RH_femur.std(), RH_tibia.std(), RH_tarsus.std()
+                 ]
+    x = np.arange(len(bar_labels))  # the label locations
+    width = 0.25  # the width of the bars
+    fig_std, ax_std = plt.subplots()
+    rects1 = ax_std.bar(x - width, means, width, yerr=means_std , label=labels[0])
+    rects2 = ax_std.bar(x, means_filtered, width, yerr=means_filtered_std , label=labels[1])
+    rects3 = ax_std.bar(x + width, means_filtered_2, width, yerr=means_filtered_2_std , label=labels[2])
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax_std.set_ylabel('Mean Limb length [px]')
+    ax_std.set_title('Mean Limb length for Video fly_4_FW_1')
+    ax_std.set_xticks(x)
+    plt.setp(ax_std.get_xticklabels(), rotation=90)
+    ax_std.set_xticklabels(bar_labels)
+    ax_std.legend(loc='upper left')
+    fig_std.tight_layout()
+
+    width = .5
+    x_std_summary = np.arange(3)
+    fig_std_summary, ax_std_summary = plt.subplots()
+    ax_std_summary.bar(x_std_summary , [np.mean(means_std), np.mean(means_filtered_std), np.mean(means_filtered_2_std)] , width , label=labels[0])
+    # ax_std_summary.bar(x_std_summary , np.mean(means_filtered_std), width , label=labels[1])
+    # ax_std_summary.bar(x_std_summary + width, np.mean(means_filtered_2_std), width, label=labels[2])
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax_std_summary.set_ylabel('Mean standard deviation [px]')
+    ax_std_summary.set_title('Mean standard deviation limb length for video fly_4_FW_1')
+    ax_std_summary.set_xticks(x_std_summary)
+    plt.setp(ax_std_summary.get_xticklabels(), rotation=90)
+    ax_std_summary.set_xticklabels(labels)
+    # ax_std_summary.legend(loc='upper right')
+    fig_std_summary.tight_layout()
+
+
     plt.show()
 
 
@@ -329,9 +469,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = True
-    fly_number= [2]
+    fly_number= [4]
     behaviour=['FW']
-    video_sequence_number= [4]
+    video_sequence_number= [1]
 
     for _fly_number in zip(fly_number):
         for _behaviour in zip(behaviour):

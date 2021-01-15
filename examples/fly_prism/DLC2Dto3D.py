@@ -201,9 +201,9 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
             _bottom = pd.read_hdf(home_dir + videos_bottom[i] + scorer_bottom + '.h5')
         else:
             # load data of side_LV and bottom view
-            _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_1/pose-2d-filtered/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-            _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_1/pose-2d-filtered/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
-            _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/pose-2d-filtered/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _side_LV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/LV/trial_5/pose-2d-filtered/{}_{}_{}_LV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _side_RV = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/RV/trial_5/pose-2d-filtered/{}_{}_{}_RV_video.h5'.format(fly_number, behaviour, video_sequence_number))
+            _bottom = pd.read_hdf('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/pose-2d-filtered/{}_{}_{}_VV_video.h5'.format(fly_number, behaviour, video_sequence_number))
 
         initial_number_frames = _bottom.shape[0]
         _side_LV = _side_LV.droplevel('scorer', axis=1)
@@ -495,16 +495,16 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
             print(home_dir + videos_bottom[i] + 'points3d.npy' + ' successfully saved.')
 
         else:
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d_names_id.npy'.format(VV_net_name), name_id_kept_frames)
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name), points3d)
-            print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name) + ' successfully saved.')
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy', name_id_kept_frames)
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
+            print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy' + ' successfully saved.')
 
         save_victor = False
         if save_victor:
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
                                                                                                   video_sequence_number) + '{}_AniPose_points3d_names_id.npy'.format(VV_net_name),
                     name_id_kept_frames[5:])
-            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
+            np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_5/DLC_animations/victor_final/{}_{}_{}_'.format(fly_number, behaviour,
                                                                                                   video_sequence_number) + '{}_AniPose_points3d.npy'.format(VV_net_name),
                     points3d[5:,:,:])
 
