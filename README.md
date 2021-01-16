@@ -29,6 +29,30 @@ Don't forget to cite us if you find our work useful:
 
 There are only a few steps you should follow to use our code.
 
+## Installation
+
+Download this branch of the repository. From a terminal, type:
+
+```bash
+git clone -b package https://github.com/NeLy-EPFL/LiftPose3D.git
+```
+
+Use pip to install the tool:
+
+```bash
+pip install LiftPose3D
+```
+
+### With Conda
+
+You might want to use Conda and create a new environment before installing:
+
+```bash
+conda create --name liftpose3d python=3.7
+conda activate liftpose3d
+pip install LiftPose3D
+```
+
 ## Data format
 
 Ensure that you provide your data as a Python dictionary and saved as a pickle file. Our code uses the following dictionary keys:
