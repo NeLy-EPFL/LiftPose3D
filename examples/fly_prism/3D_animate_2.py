@@ -78,6 +78,55 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         points3d_names_id = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
 
+    # temp TODO
+    points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/tmp/1_FW_2_AniPose_points3d.npy')
+    num_repeats = 1
+    # num_repeats = 2
+    # points3d = np.append(points3d, points3d, axis=0)
+
+    # transfer points to new origin
+    new_origin = np.mean((points3d[:,5,:],points3d[:,10,:],points3d[:,20,:],points3d[:,25,:]),axis=0)
+    points3d = points3d - np.expand_dims(new_origin, 1)
+
+    # # plot gaits
+    # gaits = np.random.randint(2, size=(6, 10))
+    # fig, (ax0, ax1) = plt.subplots(2, 1)
+    # c = ax1.pcolor(gaits, edgecolors='k', linewidths=.1, cmap='binary')
+    # ax1.set_title('thick edges')
+    # fig.tight_layout()
+    # plt.show()
+
+    # TODO
+    x_dist = np.arange(points3d.shape[0])
+    y_dist = np.argsort(np.sum(np.linalg.norm(points3d[:,:,:] - points3d[-1, :, :], axis=2), axis=1))
+
+    fig, ax = plt.subplots()
+    ax.plot(x_dist, y_dist)
+
+    ax.set(xlabel='data', ylabel='l2 distance',
+           title='l2 distance vs data ')
+    ax.grid()
+    fig.savefig("test.png")
+    plt.show()
+
+    # TODO
+    x_dist = np.arange(points3d.shape[0])
+    y_dist = points3d[:,4, 2]
+    y_dist_2 = points3d[:,9, 2]
+    y_dist_3 = points3d[:,14, 2]
+
+    fig, ax = plt.subplots()
+    ax.plot(x_dist, y_dist, label='LF_tarsal_claw')
+    ax.plot(x_dist, y_dist_2, label='LM_tarsal_claw')
+    ax.plot(x_dist, y_dist_3, label='LH_tarsal_claw')
+
+    ax.set(xlabel='data', ylabel='z [px]',
+           title='predicted z coordinates of tarsal claws')
+    ax.grid()
+    ax.legend()
+    fig.savefig("test.png")
+    plt.show()
+
     x = points3d[:,:,0]
     y= points3d[:,:,1]
     z= points3d[:,:,2]
@@ -210,23 +259,24 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
 
         title.set_text('points3d, frame={}'.format(num+1))
 
-        im_LV_predictions.set_offsets(np.vstack((x_LV_2D[num, :],y_LV_2D[num, :])).T)
-        im_RV_predictions.set_offsets(np.vstack((x_RV_2D[num, :],y_RV_2D[num, :])).T)
-        im_VV_predictions.set_offsets(np.vstack((x_VV_2D[num, :],y_VV_2D[num, :])).T)
+        num_img = num%(total_number_date//num_repeats-1)
+        im_LV_predictions.set_offsets(np.vstack((x_LV_2D[num_img, :],y_LV_2D[num_img, :])).T)
+        im_RV_predictions.set_offsets(np.vstack((x_RV_2D[num_img, :],y_RV_2D[num_img, :])).T)
+        im_VV_predictions.set_offsets(np.vstack((x_VV_2D[num_img, :],y_VV_2D[num_img, :])).T)
 
 
         try:
-            img_name_LV = home_dir+'/LV/{}_{}_{}_LV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
+            img_name_LV = home_dir+'/LV/{}_{}_{}_LV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num_img])
             title_LV.set_text('LV, frame={}'.format(num + 1))
             img_LV = mpimg.imread(img_name_LV)
             im_LV.set_array(img_LV)
 
-            img_name_RV = home_dir+'/RV/{}_{}_{}_RV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
+            img_name_RV = home_dir+'/RV/{}_{}_{}_RV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num_img])
             title_RV.set_text('RV, frame={}'.format(num + 1))
             img_RV = mpimg.imread(img_name_RV)
             im_RV.set_array(img_RV)
 
-            img_name_VV = home_dir+'/VV/{}_{}_{}_VV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num])
+            img_name_VV = home_dir+'/VV/{}_{}_{}_VV_{:05d}.tiff'.format(fly_number,behaviour,video_sequence_number,points3d_names_id[num_img])
             title_VV.set_text('VV, frame={}'.format(num + 1))
             img_VV = mpimg.imread(img_name_VV)
             im_VV.set_array(img_VV)
@@ -235,9 +285,9 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         except:
             pass
 
-        ax.set_xlim((100, 600))
-        ax.set_ylim((50, 500))
-        ax.set_zlim((-25, 150))
+        # ax.set_xlim((100, 600))
+        # ax.set_ylim((50, 500))
+        # ax.set_zlim((-25, 150))
 
         return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, graph_back_L, graph_back_R,  im_LV, title_LV, im_RV, title_RV, im_VV, title_VV, graph_keypoints_scatter, im_LV_predictions, im_RV_predictions, im_VV_predictions, graph_abdomen, graph_neck_proboscis
 
@@ -333,9 +383,9 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     plt.setp(cbar_LV.ax.get_xticklabels(),rotation=90)
     cbar_LV.set_ticklabels(LV_bodyparts)
 
-
-    ani = matplotlib.animation.FuncAnimation(fig, update_graph, x.shape[0]-1,
-                                   interval=1, blit=False)
+    total_number_date = x.shape[0]
+    ani = matplotlib.animation.FuncAnimation(fig, update_graph, total_number_date-1,
+                                   interval=.1, blit=False)
     ax.set_xlim(x.min(),x.max())
     ax.set_ylim(y.min(),y.max())
     ax.set_zlim(z.min(),z.max())
@@ -355,6 +405,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
 
 
 if __name__ == "__main__":
+
     import traceback
 
     # fly_number=range(1,6+1,1)
