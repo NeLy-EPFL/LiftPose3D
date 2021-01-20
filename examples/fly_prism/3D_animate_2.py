@@ -78,15 +78,28 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         points3d_names_id = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
 
-    # temp TODO
-    points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/tmp/1_FW_2_AniPose_points3d.npy')
+    # temp TODOq
+    # points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/tmp/1_FW_2_AniPose_points3d.npy')
     num_repeats = 1
     # num_repeats = 2
     # points3d = np.append(points3d, points3d, axis=0)
 
+    # # temp TODO
+    # points3d = points3d[:-20,:,:]
+    # points3d_names_id = points3d_names_id[:-20]
+
+    # temp TODO
     # transfer points to new origin
     new_origin = np.mean((points3d[:,5,:],points3d[:,10,:],points3d[:,20,:],points3d[:,25,:]),axis=0)
     points3d = points3d - np.expand_dims(new_origin, 1)
+
+    # temp TODO
+    N = 1
+    points3d = np.concatenate([points3d[27:44,:,:]]*N)
+    points3d_names_id = np.concatenate([points3d_names_id[27:44]]*N)
+    np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/victor_final/1_repeated_27_43_{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
+    # points3d = np.append(np.repeat(points3d[17:38,:,:],N,axis=0), points3d[17:-20, :, :], axis=0)
+    # points3d_names_id = np.append(np.repeat(points3d_names_id[17:38],N,axis=0), points3d_names_id[17:-20], axis=0)
 
     # # plot gaits
     # gaits = np.random.randint(2, size=(6, 10))
@@ -97,29 +110,33 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # plt.show()
 
     # TODO
-    x_dist = np.arange(points3d.shape[0])
-    y_dist = np.argsort(np.sum(np.linalg.norm(points3d[:,:,:] - points3d[-1, :, :], axis=2), axis=1))
-
-    fig, ax = plt.subplots()
-    ax.plot(x_dist, y_dist)
-
-    ax.set(xlabel='data', ylabel='l2 distance',
-           title='l2 distance vs data ')
-    ax.grid()
-    fig.savefig("test.png")
-    plt.show()
+    for data_idx in range(0,points3d.shape[0]):
+        x_dist = np.arange(points3d.shape[0])
+        y_dist = np.sum(np.linalg.norm(points3d[:,:30,:] - points3d[data_idx, :30, :], axis=2), axis=1)
+        fig, ax = plt.subplots()
+        ax.plot(x_dist, y_dist)
+        ax.set(xlabel='data', ylabel='l2 distance',
+               title='l2 distance of data frame = {} vs data'.format(data_idx+1))
+        ax.grid()
+        fig.savefig("test.png")
+        plt.show()
+        plt.close()
 
     # TODO
     x_dist = np.arange(points3d.shape[0])
     y_dist = points3d[:,4, 2]
     y_dist_2 = points3d[:,9, 2]
     y_dist_3 = points3d[:,14, 2]
-
+    y_dist_R = points3d[:,19, 2]
+    y_dist_2_R = points3d[:,24, 2]
+    y_dist_3_R = points3d[:,29, 2]
     fig, ax = plt.subplots()
     ax.plot(x_dist, y_dist, label='LF_tarsal_claw')
     ax.plot(x_dist, y_dist_2, label='LM_tarsal_claw')
     ax.plot(x_dist, y_dist_3, label='LH_tarsal_claw')
-
+    ax.plot(x_dist, y_dist_R, linestyle='--', label='RF_tarsal_claw')
+    ax.plot(x_dist, y_dist_2_R, linestyle='--', label='RM_tarsal_claw')
+    ax.plot(x_dist, y_dist_3_R, linestyle='--', label='RH_tarsal_claw')
     ax.set(xlabel='data', ylabel='z [px]',
            title='predicted z coordinates of tarsal claws')
     ax.grid()
@@ -259,7 +276,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
 
         title.set_text('points3d, frame={}'.format(num+1))
 
-        num_img = num%(total_number_date//num_repeats-1)
+        num_img = num%(total_number_data//num_repeats-1)
         im_LV_predictions.set_offsets(np.vstack((x_LV_2D[num_img, :],y_LV_2D[num_img, :])).T)
         im_RV_predictions.set_offsets(np.vstack((x_RV_2D[num_img, :],y_RV_2D[num_img, :])).T)
         im_VV_predictions.set_offsets(np.vstack((x_VV_2D[num_img, :],y_VV_2D[num_img, :])).T)
@@ -383,8 +400,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     plt.setp(cbar_LV.ax.get_xticklabels(),rotation=90)
     cbar_LV.set_ticklabels(LV_bodyparts)
 
-    total_number_date = x.shape[0]
-    ani = matplotlib.animation.FuncAnimation(fig, update_graph, total_number_date-1,
+    total_number_data = x.shape[0]
+    ani = matplotlib.animation.FuncAnimation(fig, update_graph, total_number_data-1,
                                    interval=.1, blit=False)
     ax.set_xlim(x.min(),x.max())
     ax.set_ylim(y.min(),y.max())
@@ -400,8 +417,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         print('{}/VV/points3d_animation.mp4'.format(home_dir) + ' successfully saved.')
 
     else:
-        ani.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4', writer=writer)
-        print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_2/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4' + ' successfully saved.')
+        ani.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/1_repeated_27_43_{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4', writer=writer)
+        print('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_1/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_animation.mp4' + ' successfully saved.')
 
 
 if __name__ == "__main__":
@@ -413,9 +430,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = True
-    fly_number= [1]
+    fly_number= [4]
     behaviour=['FW']
-    video_sequence_number= [2]
+    video_sequence_number= [1]
     VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 

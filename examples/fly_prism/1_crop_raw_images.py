@@ -286,7 +286,7 @@ if __name__ == '__main__':
     #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/4', True]
     #            ]
 
-    folders = [['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/FW/1', False]]
+    folders = [['/media/mahdi/LaCie/Mahdi/AniPose/tmp/fly_2_FW_2', True]]
 
 
     # video_id = 1
@@ -318,6 +318,11 @@ if __name__ == '__main__':
         fly_number = data_dir[-14]
         behaviour = data_dir[-4:-2]  # Forward Walking = FW, Proboscis Expansion = PE, Anterior Grooming = AG, Posterior Grooming = PG
         behaviour_subfolder_name = data_dir[-1]
+
+        # todo
+        fly_number = '1'
+        behaviour = 'FW'
+        behaviour_subfolder_name = '2'
 
         if fly_number=='1':
             threshold = 30
@@ -495,6 +500,11 @@ if __name__ == '__main__':
 
             # bottom_img, ventral_view_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
             ventral_view_img, right_view_img, left_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
+
+            # todo
+            # left_view_img[left_view_img > 190] = 10
+            cv2.imshow("left_view", left_view_img)
+            cv2.waitKey(1000000)
 
             # img = pad(img, pad_width=((0, 0), (-(left_vert_crop - left_bbox_pad), 0)), mode='constant')
 
