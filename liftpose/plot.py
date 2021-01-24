@@ -6,23 +6,26 @@ import networkx as nx
 import numpy as np
 
 
-def plot_pose_3d(ax, tar, pred, bones, limb_id, colors, good_keypts=None):
-    tar_m = np.median(tar, axis=0)
-    tar -= tar_m
-    pred -= tar_m
-
-    #tar = tar.reshape(-1)
-    #pred = pred.reshape(-1)
+def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors=None, good_keypts=None):
+    if normalize: # move points toward origin for easier visualization
+        tar_m = np.median(tar, axis=0)
+        tar -= tar_m
+        if pred is not None:
+            pred -= tar_m
 
     G = nx.Graph()
     G.add_edges_from(bones)
-    G.add_nodes_from(np.arange(pred.shape[0]))
-
-    # limb_id = [i for i in range(6) for j in range(5)]
-    edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
+    G.add_nodes_from(np.arange(tar.shape[0]))
+    
+    # if limb_id or colors are not provided, then paint everything in blue
+    if limb_id is None or colors is None:
+        edge_colors = [[0,0,1.0] for _ in limb_id]
+    else:
+        edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
     plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts)
-    plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
+    if pred is not None:
+        plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
 
     #### this bit is just to make special legend
     pts = np.array([0, 0])
@@ -32,16 +35,14 @@ def plot_pose_3d(ax, tar, pred, bones, limb_id, colors, good_keypts=None):
     # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
     ax.legend(
         [(p1), (p3)],
-        ["LiftPose3D prediction", "Triangulated 3D pose"],
+        ["LiftPose3D prediction", "Triangulated 3D pose"] if pred is not None else ["Triangulated 3D pose"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
         frameon=False,
     )
     p1.remove()
-    # p2.remove()
     p3.remove()
-    # p4.remove()
     ####
 
 

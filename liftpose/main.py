@@ -41,7 +41,8 @@ def train_np(
 
     roots = [root]
     target_sets = list(set(range(n_joints)) - set(roots))  # every point except the root
-
+    target_sets = [target_sets]
+    
     train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, out_dir)
 
 
@@ -118,7 +119,12 @@ def train(
         8. "ckpt_best.pth.tar"
         9. "log_train.txt"
     """
-
+    
+    assert list(train_2d.values())[0].ndim == 3
+    assert list(test_2d.values())[0].ndim == 3
+    assert list(train_3d.values())[0].ndim == 3
+    assert list(test_3d.values())[0].ndim == 3
+        
     # init data
     in_dim = list(train_2d.values())[0].shape[-1]
     out_dim = list(train_3d.values())[0].shape[-1]
