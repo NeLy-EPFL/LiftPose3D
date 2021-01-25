@@ -55,6 +55,7 @@ def world_to_camera(poses_world, cam_par, rotate=True):
         poses_world = poses_world[:,cam_par['vis'].astype(bool),:]
         
     ndim = poses_world.shape[1]
+    n_poses = poses_world.shape[0]
     poses_world = np.reshape(poses_world, [-1, 3])
     
     if rotate:
@@ -66,7 +67,7 @@ def world_to_camera(poses_world, cam_par, rotate=True):
             poses_cam = np.matmul(cam_par['R'], poses_world.T).T
                 
     poses_cam += cam_par['tvec']
-    poses_cam = np.reshape( poses_cam, [-1, ndim] )
+    poses_cam = np.reshape( poses_cam, [n_poses, ndim, 3] )
   
     return poses_cam
 
