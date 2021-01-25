@@ -7,6 +7,7 @@ from liftpose.preprocess import normalize, unNormalize
 from torch.autograd import Variable
 from tqdm import tqdm
 import torch
+import warnings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -36,11 +37,11 @@ def test(test_loader, model, criterion, stat, predict=False):
 
         # calculate loss
         if not predict:
-            loss = criterion(targets, outputs)
-            losses.update(loss.item(), inputs.size(0))
-
             outputs[~good_keypts] = 0
             targets[~good_keypts] = 0
+            
+            loss = criterion(targets, outputs)
+            losses.update(loss.item(), inputs.size(0))
 
             # undo normalisation to calculate accuracy in real units
             dim = stat["out_dim"]
@@ -98,7 +99,9 @@ def test(test_loader, model, criterion, stat, predict=False):
 
     # mean errors
     all_dist[all_dist == 0] = np.nan
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     joint_err = np.nanmean(all_dist, axis=0)
+    warnings.filterwarnings("default", category=RuntimeWarning) 
     ttl_err = np.nanmean(joint_err)
 
     # logger.info("test error: {}".format(ttl_err))

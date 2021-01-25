@@ -31,19 +31,28 @@ def train_np(
     test_3d: np.ndarray,
     out_dir: str,
     root: int = 0,
+    train_keypts: dict = None,
+    test_keypts: dict = None,
 ) -> None:
-    # (1, 'all', 'pose_result__data_paper_180918_MDN_CsCh_Fly1_001_SG1_behData_images.cam_2')
     n_joints = train_2d.shape[1]
-    train_2d = {(1, "", ""): train_2d}
-    train_3d = {(1, "", ""): train_3d}
-    test_2d = {(1, "", ""): test_2d}
-    test_3d = {(1, "", ""): test_3d}
+    k = ("")
+    train_2d = {k: train_2d}
+    train_3d = {k: train_3d}
+    test_2d = {k: test_2d}
+    test_3d = {k: test_3d}
 
     roots = [root]
-    target_sets = list(set(range(n_joints)) - set(roots))  # every point except the root
+    target_sets = list(set(range(n_joints)) - set(roots))  # every point except the root is going to be predicted
     target_sets = [target_sets]
     
-    train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, out_dir)
+    if train_keypts is not None:
+        train_keypts = {k:train_keypts}
+    if test_keypts is not None:
+        test_keypts = {k:test_keypts}
+    
+    train(train_2d, test_2d, train_3d, test_3d, 
+          roots, target_sets, out_dir, 
+          train_keypts=train_keypts, test_keypts=test_keypts)
 
 
 # TODO what is the key name dependency between 2d and 3d data
@@ -130,7 +139,10 @@ def train(
     out_dim = list(train_3d.values())[0].shape[-1]
     train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
     train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
-
+    if train_keypts is not None:
+        train_keypts = flatten_dict(train_keypts)
+    if train_keypts is not None:
+        test_keypts = flatten_dict(test_keypts)
     if train_keypts is None:
         train_keypts = init_keypts(train_2d)
     if test_keypts is None:
@@ -190,7 +202,6 @@ def train(
     logger.info(
         f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir + "stat_3d.pth.tar."))}'
     )
-
     # TODO not clear what this does
     for key in train_keypts.keys():
         train_keypts[key] = train_keypts[key][:, targets_3d]

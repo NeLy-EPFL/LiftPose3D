@@ -30,7 +30,7 @@ def transform_frame(poses_world, cam_par, project=False):
     return poses_cam
 
 
-def world_to_camera(poses_world, cam_par, reshape=True):
+def world_to_camera(poses_world, R, tvec, reshape=True):
     """
     Rotate/translate 3d poses from world to camera viewpoint
     
@@ -50,13 +50,13 @@ def world_to_camera(poses_world, cam_par, reshape=True):
     poses_world = np.reshape(poses_world, [-1, 3])
 
     assert poses_world.shape[1] == 3
-    poses_cam = np.matmul(cam_par["R"], poses_world.T).T + cam_par["tvec"]
+    poses_cam = np.matmul(R, poses_world.T).T + tvec
     poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam
 
 
-def camera_to_world(poses_cam, cam_par):
+def camera_to_world(poses_cam, R, tvec):
     """
     Rotate/translate 3d poses from camera to world
     
@@ -71,8 +71,8 @@ def camera_to_world(poses_cam, cam_par):
     ndim = poses_cam.shape[1]
 
     poses_world = np.reshape(poses_cam, [-1, 3]).copy()
-    poses_world -= cam_par["tvec"]
-    poses_world = np.matmul(np.linalg.inv(cam_par["R"]), poses_world.T).T
+    poses_world -= tvec
+    poses_world = np.matmul(np.linalg.inv(R), poses_world.T).T
     poses_world = np.reshape(poses_world, [-1, ndim])
 
     return poses_world

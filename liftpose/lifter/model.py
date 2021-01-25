@@ -11,7 +11,7 @@ def weight_init(m):
         nn.init.kaiming_normal_(m.weight)
 
 
-# this is the class for linear layers (see class below)
+#  class for linear layers (see class below)
 class Linear(nn.Module):
     def __init__(self, linear_size, p_dropout=0.5):
         super(Linear, self).__init__()

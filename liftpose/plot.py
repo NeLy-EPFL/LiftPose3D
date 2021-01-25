@@ -7,10 +7,12 @@ import numpy as np
 
 
 def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors=None, good_keypts=None):
+    tar = tar.copy()
     if normalize: # move points toward origin for easier visualization
-        tar_m = np.median(tar, axis=0)
+        tar_m = np.nanmedian(tar, axis=0)
         tar -= tar_m
         if pred is not None:
+            pred = pred.copy()
             pred -= tar_m
 
     G = nx.Graph()
@@ -28,14 +30,14 @@ def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors
         plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
 
     #### this bit is just to make special legend
-    pts = np.array([0, 0])
-    (p1,) = ax.plot(pts, pts, pts, "r-")
+    pts = tar.mean(axis=0)
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r-")
     # (p2,) = ax.plot(pts, pts, pts, "b-")
-    (p3,) = ax.plot(pts, pts, pts, "r--", dashes=(2, 2))
+    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
     # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
     ax.legend(
         [(p1), (p3)],
-        ["LiftPose3D prediction", "Triangulated 3D pose"] if pred is not None else ["Triangulated 3D pose"],
+        ["Triangulated 3D pose", "LiftPose3D prediction"] if pred is not None else ["Triangulated 3D pose"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
@@ -51,6 +53,8 @@ def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
 
         if good_keypts is not None:
             if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
+                continue
+            if np.any(np.isnan(pos[j[0]])) or np.any(np.isnan(pos[j[1]])):
                 continue
 
         # coordinates
