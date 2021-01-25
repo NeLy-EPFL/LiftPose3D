@@ -15,14 +15,20 @@ def transform_frame(poses_world, cam_par, project=False):
     """
 
     poses_cam = {}
-    for k in poses_world.keys():
-        for c in list(cam_par[k].keys()):
-            rcams = cam_par[k][c]
-            Pcam = world_to_camera(poses_world[k], rcams)
+    for s, a, f in poses_world.keys():
+        if cam_par[(s, a, f)] is None:
+            return poses_world
+        
+        for c in list(cam_par[(s, a, f)].keys()):
+            rcams = cam_par[(s, a, f)][c]
+            poses = poses_world[(s, a, f)]
+            
+            Pcam = world_to_camera(poses, rcams)
+            
             if project:
                 Pcam = project_to_camera(Pcam, rcams["intr"])
 
-            poses_cam[(k[0], k[1], k[2] + ".cam_" + str(c))] = Pcam
+            poses_cam[ (s, a, f + '.cam_' + str(c)) ] = Pcam
 
     # sort dictionary
     poses_cam = dict(sorted(poses_cam.items()))
@@ -30,29 +36,38 @@ def transform_frame(poses_world, cam_par, project=False):
     return poses_cam
 
 
-def world_to_camera(poses_world, R, tvec, reshape=True):
+def world_to_camera(poses_world, cam_par, rotate=True):
     """
     Rotate/translate 3d poses from world to camera viewpoint
     
     Args
-        poses_world: array of poses in world coordinates of size n_frames x n_dimensions
+        poses_world: array of poses in world coordinates of size n_frames x joints x n_dimensions
         cam_par: dictionary of camera parameters
         
     Returns
         poses_cam: poses in camera-centred coordinates
     """
-
-    if "vis" in cam_par.keys():
-        ids = [i for i in cam_par["vis"].astype(bool)]
-        poses_world = poses_world[:, ids]
-
-    s = poses_world.shape
+    
+    assert len(poses_world.shape) == 3
+    
+    if 'vis' in cam_par.keys():
+        # ids = [i for i in cam_par['vis'].astype(bool) for j in range(3)]
+        poses_world = poses_world[:,cam_par['vis'].astype(bool),:]
+        
+    ndim = poses_world.shape[1]
     poses_world = np.reshape(poses_world, [-1, 3])
-
-    assert poses_world.shape[1] == 3
-    poses_cam = np.matmul(R, poses_world.T).T + tvec
-    poses_cam = np.reshape(poses_cam, s)
-
+    
+    if rotate:
+        if len(cam_par['R'])==poses_world.shape[0]//(ndim//3): 
+            poses_cam = np.zeros_like(poses_world)
+            for i in range(poses_world.shape[0]):
+                poses_cam[i,:] = np.matmul(cam_par['R'][i//(ndim//3)], poses_world[i,:])
+        else:
+            poses_cam = np.matmul(cam_par['R'], poses_world.T).T
+                
+    poses_cam += cam_par['tvec']
+    poses_cam = np.reshape( poses_cam, [-1, ndim] )
+  
     return poses_cam
 
 
