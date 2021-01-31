@@ -1,8 +1,6 @@
 import numpy as np
-from liftpose.vision_3d import transform_frame
 
 
-# TODO merge preprocess_2d and preprocess_3d functions
 def preprocess_2d(train: dict, test: dict, roots: list, target_sets: list, in_dim: int):
     """ Preprocess 2D data
         1. Center points in target_sets sets around roots
@@ -267,11 +265,7 @@ def get_coords_in_dim(targets, dim):
 
 def init_keypts(train_3d):
     """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
-    # TODO why hard-code 2
-    return {
-        k: np.ones((v.shape[0], v.shape[1] * 2), dtype=np.bool)
-        for (k, v) in train_3d.items()
-    }
+    return {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
 
 
 def flatten_dict(d):

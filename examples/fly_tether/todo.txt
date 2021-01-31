@@ -1,0 +1,1 @@
+1. reprojection error is very high, highly likely the camera paramaters are wrong

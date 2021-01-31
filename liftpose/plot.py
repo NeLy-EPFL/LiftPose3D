@@ -6,10 +6,21 @@ import networkx as nx
 import numpy as np
 
 
-def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors=None, good_keypts=None):
+def plot_pose_3d(
+    ax,
+    tar,
+    bones,
+    normalize=True,
+    pred=None,
+    limb_id=None,
+    colors=None,
+    good_keypts=None,
+    show_gt_always=True
+):
+    """will not plot nan values"""
     tar = tar.copy()
-    if normalize: # move points toward origin for easier visualization
-        tar_m = np.nanmedian(tar, axis=0)
+    if normalize:  # move points toward origin for easier visualization
+        tar_m = np.nanmedian(tar, axis=0, keepdims=True)
         tar -= tar_m
         if pred is not None:
             pred = pred.copy()
@@ -18,16 +29,18 @@ def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors
     G = nx.Graph()
     G.add_edges_from(bones)
     G.add_nodes_from(np.arange(tar.shape[0]))
-    
+
     # if limb_id or colors are not provided, then paint everything in blue
     if limb_id is None or colors is None:
-        edge_colors = [[0,0,1.0] for _ in limb_id]
+        edge_colors = [[0, 0, 1.0] for _ in limb_id]
     else:
         edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
-    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts)
+    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts if not show_gt_always else None)
     if pred is not None:
-        plot_3d_graph(G, pred, ax, color_edge=edge_colors, style="--")
+        plot_3d_graph(
+            G, pred, ax, color_edge=edge_colors, style="--", good_keypts=good_keypts
+        )
 
     #### this bit is just to make special legend
     pts = tar.mean(axis=0)
@@ -37,7 +50,9 @@ def plot_pose_3d(ax, tar, bones, normalize=True, pred=None, limb_id=None, colors
     # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
     ax.legend(
         [(p1), (p3)],
-        ["Triangulated 3D pose", "LiftPose3D prediction"] if pred is not None else ["Triangulated 3D pose"],
+        ["Triangulated 3D pose", "LiftPose3D prediction"]
+        if pred is not None
+        else ["Triangulated 3D pose"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
@@ -52,7 +67,7 @@ def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
     for i, j in enumerate(reversed(list(G.edges()))):
 
         if good_keypts is not None:
-            if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
+            if (good_keypts[j[0]][0] == 0) | (good_keypts[j[1]][0] == 0):
                 continue
             if np.any(np.isnan(pos[j[0]])) or np.any(np.isnan(pos[j[1]])):
                 continue

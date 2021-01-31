@@ -17,7 +17,6 @@ from liftpose.lifter.data_loader_fun import data_loader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-
 def network_main(opt):
     logger = logging.getLogger(__name__)
     logging.basicConfig(

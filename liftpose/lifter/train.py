@@ -37,13 +37,6 @@ def train(
     model.train()
     pbar = tqdm(train_loader)
     for i, (inps, tars, good_keypts, keys) in enumerate(pbar):
-        
-        '''
-        for param_group in optimizer.param_groups:
-            print(param_group[‘lr’])
-        for param_group in :
-            print(param_group[‘lr’])
-        '''
         pbar.set_description(
             "Epoch {:03d} | LR {:8.5f} | Loss Test {:8.5f} | Loss Train {:8.5f}|".format(
                 epoch, list(optimizer.param_groups)[0]['lr'], 0 if loss_test is None else loss_test, losses.avg

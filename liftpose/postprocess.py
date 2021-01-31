@@ -4,7 +4,9 @@ from liftpose.vision_3d import camera_to_world
 from liftpose.preprocess import unNormalize, add_roots
 
 
-def load_test_results(data: dict, stat_2d: dict, stat_3d: dict) -> (np.array, np.array):
+def load_test_results(
+    data: dict, stat_2d: dict, stat_3d: dict, prism=False
+) -> (np.array, np.array):
     """Transforms vectorized and raw liftpose3d results into [T J 3] format.
         In case out_dim=
         Args:
@@ -28,7 +30,7 @@ def load_test_results(data: dict, stat_2d: dict, stat_3d: dict) -> (np.array, np
     good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean))
 
     # TODO make this more universal!!
-    if False:
+    if prism:
         if np.sum(good_keypts[0, :15]) > 10:
             offset = np.hstack((offset[0, :15], offset[0, :15]))
         else:
@@ -66,5 +68,7 @@ def load_test_results(data: dict, stat_2d: dict, stat_3d: dict) -> (np.array, np
     else:
         raise NotImplementedError
 
-    return tar, out
+    good_keypts = good_keypts.reshape((good_keypts.shape[0], -1, stat_3d["out_dim"]))
+
+    return tar, out, good_keypts
 

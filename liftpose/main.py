@@ -15,6 +15,8 @@ from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatt
 torch.manual_seed(0)
 np.random.seed(0)
 
+
+# set up the logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     stream=sys.stdout,
@@ -35,27 +37,36 @@ def train_np(
     test_keypts: dict = None,
 ) -> None:
     n_joints = train_2d.shape[1]
-    k = ("")
+    k = ""
     train_2d = {k: train_2d}
     train_3d = {k: train_3d}
     test_2d = {k: test_2d}
     test_3d = {k: test_3d}
 
     roots = [root]
-    target_sets = list(set(range(n_joints)) - set(roots))  # every point except the root is going to be predicted
+    target_sets = list(
+        set(range(n_joints)) - set(roots)
+    )  # every point except the root is going to be predicted
     target_sets = [target_sets]
-    
+
     if train_keypts is not None:
-        train_keypts = {k:train_keypts}
+        train_keypts = {k: train_keypts}
     if test_keypts is not None:
-        test_keypts = {k:test_keypts}
-    
-    train(train_2d, test_2d, train_3d, test_3d, 
-          roots, target_sets, out_dir, 
-          train_keypts=train_keypts, test_keypts=test_keypts)
+        test_keypts = {k: test_keypts}
+
+    train(
+        train_2d=train_2d,
+        test_2d=test_2d,
+        train_3d=train_3d,
+        test_3d=test_3d,
+        roots=roots,
+        target_sets=target_sets,
+        out_dir=out_dir,
+        train_keypts=train_keypts,
+        test_keypts=test_keypts,
+    )
 
 
-# TODO what is the key name dependency between 2d and 3d data
 def train(
     train_2d: dict,
     test_2d: dict,
@@ -128,48 +139,43 @@ def train(
         8. "ckpt_best.pth.tar"
         9. "log_train.txt"
     """
-    
-    assert list(train_2d.values())[0].ndim == 3
-    assert list(test_2d.values())[0].ndim == 3
-    assert list(train_3d.values())[0].ndim == 3
-    assert list(test_3d.values())[0].ndim == 3
-        
-    # init data
-    in_dim = list(train_2d.values())[0].shape[-1]
-    out_dim = list(train_3d.values())[0].shape[-1]
-    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
-    if train_keypts is not None:
-        train_keypts = flatten_dict(train_keypts)
-    if train_keypts is not None:
-        test_keypts = flatten_dict(test_keypts)
-    if train_keypts is None:
-        train_keypts = init_keypts(train_2d)
-    if test_keypts is None:
-        test_keypts = init_keypts(test_2d)
-
-    # TODO make sure key values make sense across 2d and 3d data
-    # make sure roots and target_sets are non-empty
-    assert len(roots) != 0
-    assert len(target_sets) != 0
-    # out_dim can only be 1 or 3
-    assert (
-        out_dim == 1 or out_dim == 3
-    ), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
-    # number of root joint and number of targer sets are equivalent
-    assert len(roots) == len(
-        target_sets
-    ), "number of elements in roots and target_sets does not match in params.yaml"
-    # make sure in_dim and out_dim are consistent
+    # fmt: off
+    assert all(t.ndim == 3 for t in list(train_2d.values()))
+    assert all(t.ndim == 3 for t in list(test_2d.values()))
+    assert all(t.ndim == 3 for t in list(train_2d.values()))
+    assert all(t.ndim == 3 for t in list(test_3d.values()))
     assert len(set([v.shape[-1] for v in train_2d.values()])) == 1
     assert len(set([v.shape[-1] for v in train_3d.values()])) == 1
     assert len(set([v.shape[-1] for v in test_2d.values()])) == 1
     assert len(set([v.shape[-1] for v in test_3d.values()])) == 1
+    assert all([t3d.shape[0] == t2d.shape[0] for (t3d,t2d) in zip(list(train_3d.values()), list(train_2d.values()))])
+    assert all([t3d.shape[1] == t2d.shape[1] for (t3d,t2d) in zip(list(train_3d.values()), list(train_2d.values()))])
+    assert all([kp.shape == t.shape for (kp,t) in zip(list(test_3d.values()), list(test_keypts.values()))])
+    assert len(roots) != 0
+    assert len(target_sets) != 0
+    assert len(roots) == len(target_sets) # number of root joint and number of targert sets are equivalent
 
     # create out_dir if it does not exists
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
         os.makedirs(out_dir)
+
+    # init default keypts in case it is None
+    train_keypts = init_keypts(train_3d) if train_keypts is None else train_keypts
+    test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
+    
+    # make sure keypts are in the correct shape
+    # keypts should be in the same shape of corresponding train3d and test3d values
+    assert all([kp.shape == t.shape for (kp,t) in zip(list(train_3d.values()), list(train_keypts.values()))])
+    assert all([kp.shape == t.shape for (kp,t) in zip(list(test_3d.values()), list(test_keypts.values()))])
+    
+    # init data
+    in_dim = list(train_2d.values())[0].shape[-1]
+    out_dim = list(train_3d.values())[0].shape[-1]
+    assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
+    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
+    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)    
+    # fmt: on
 
     # preprocess 2d
     train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
@@ -198,15 +204,17 @@ def train(
         train_3d, test_3d, roots, target_sets, out_dim
     )
 
+    # flatten train_keypts
+    train_keypts = flatten_dict(train_keypts)
+    test_keypts = flatten_dict(test_keypts)
+
+    train_keypts = {k: v[:, targets_3d] for (k, v) in train_keypts.items()}
+    test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
+
     # save 3d data
     logger.info(
         f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir + "stat_3d.pth.tar."))}'
     )
-    # TODO not clear what this does
-    for key in train_keypts.keys():
-        train_keypts[key] = train_keypts[key][:, targets_3d]
-    for key in test_keypts.keys():
-        test_keypts[key] = test_keypts[key][:, targets_3d]
 
     torch.save([train_set_3d, train_keypts], os.path.join(out_dir, "train_3d.pth.tar"))
     torch.save([test_set_3d, test_keypts], os.path.join(out_dir, "test_3d.pth.tar"))
@@ -228,11 +236,9 @@ def train(
     # Starting to train Martinez et. al model
     logger.info("Starting training model.")
 
-    # TODO bit hacky, we should get inputs for the network from another yaml file
-    # TODO also everything should be explicit function argument, instead of be hidden in dictionary
     option = Options().parse()
     option.data_dir = os.path.abspath(out_dir)
-    option.out = os.path.abspath(out_dir)  # TODO do we need to set out?
+    option.out = os.path.abspath(out_dir)
     option.out_dir = os.path.abspath(out_dir)
 
     logger.debug("\n==================Options=================")

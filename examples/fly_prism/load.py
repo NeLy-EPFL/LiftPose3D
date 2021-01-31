@@ -52,20 +52,13 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
                 if (par is not None) and ('dims_to_exclude' in par.keys()):
                     dimensions = [i for i in range(par['ndims']) if i not in par['dims_to_exclude']]   
                     poses3d = poses3d[:, dimensions,:]
-                    
-                #reshape data
-                #poses3d = np.reshape(poses3d, 
-                #                    (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
-        
+
                 #collect data
                 seqname = os.path.basename( fname_ )  
                 data[ (subject, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
                 
                 if 'good_keypts' in poses.keys():
-                    good_keypts[ (subject, action, seqname[:-4]) ] = poses['good_keypts']
-                    
-                if cam_id is not None:
-                    cam_par[(subject, action, seqname[:-4])] = [poses[cam_id] for i in range(poses3d.shape[0])]
+                    good_keypts[ (subject, action, seqname[:-4]) ] = np.tile(poses['good_keypts'][:,:,None], reps=(1,1,3))
                 
     #sort
     data = dict(sorted(data.items()))
@@ -123,9 +116,7 @@ def load_2D(path, par=None, cam_id=0, subjects='all', actions='all'):
                     
                 #reshape data
                 poses_cam = poses[cam_id,:,:,:]
-                #poses_cam = np.reshape(poses_cam, 
-                #        (poses.shape[1], poses.shape[2]*poses.shape[3]))    
-        
+
                 #collect data
                 data[ (subject, action, seqname[:-4]) ] = poses_cam
             

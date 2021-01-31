@@ -1,7 +1,12 @@
 import numpy as np
 
 
-def transform_frame(poses_world, cam_par, project=False):
+def reprojection_error(poses_3d, poses_2d, R, tvec, intr):
+    poses_3d = world_to_camera(poses_3d, R, tvec)
+    return np.linalg.norm(pose_2d - project_to_camera(poses_3d, intr), axis=2)
+
+
+def world_to_camera_dict(poses_world:dict, cam_par:dict):
     """
     Affine transform 3D coordinates to camera frame
 
@@ -16,21 +21,13 @@ def transform_frame(poses_world, cam_par, project=False):
 
     poses_cam = {}
     for k in poses_world.keys():
-        for c in list(cam_par[k].keys()):
-            rcams = cam_par[k][c]
-            Pcam = world_to_camera(poses_world[k], rcams)
-            if project:
-                Pcam = project_to_camera(Pcam, rcams["intr"])
-
-            poses_cam[(k[0], k[1], k[2] + ".cam_" + str(c))] = Pcam
-
-    # sort dictionary
-    poses_cam = dict(sorted(poses_cam.items()))
+        rcams = cam_par[k]
+        poses_cam[k] = world_to_camera(poses_world[k], rcams['R'], rcams['tvec'])
 
     return poses_cam
 
 
-def world_to_camera(poses_world, R, tvec, reshape=True):
+def world_to_camera(poses_world:np.ndarray, R:np.ndarray, tvec:np.ndarray):
     """
     Rotate/translate 3d poses from world to camera viewpoint
     
@@ -41,13 +38,8 @@ def world_to_camera(poses_world, R, tvec, reshape=True):
     Returns
         poses_cam: poses in camera-centred coordinates
     """
-
-    if "vis" in cam_par.keys():
-        ids = [i for i in cam_par["vis"].astype(bool)]
-        poses_world = poses_world[:, ids]
-
     s = poses_world.shape
-    poses_world = np.reshape(poses_world, [-1, 3])
+    poses_world = np.reshape(poses_world, [s[0]*s[1], 3])
 
     assert poses_world.shape[1] == 3
     poses_cam = np.matmul(R, poses_world.T).T + tvec
@@ -61,46 +53,45 @@ def camera_to_world(poses_cam, R, tvec):
     Rotate/translate 3d poses from camera to world
     
     Args
-        poses_cam: poses in camera coordinates
-        cam_par: dictionary with camera parameters
+        poses_cam: poses in camera coordinates, [N, J, 3]
+        cam_par: dictionary with camera parameters 
         
     Returns
         poses_world: poses in world coordinates
     """
-
-    ndim = poses_cam.shape[1]
+    s = poses_cam.shape
 
     poses_world = np.reshape(poses_cam, [-1, 3]).copy()
     poses_world -= tvec
     poses_world = np.matmul(np.linalg.inv(R), poses_world.T).T
-    poses_world = np.reshape(poses_world, [-1, ndim])
+    poses_world = np.reshape(poses_world, s)
 
     return poses_world
 
 
-def project_to_camera(poses, intr):
+def project_to_camera(poses:np.ndarray, intr:np.ndarray):
     """
     Project poses to camera frame
     
     Args
-        poses: poses in camera coordinates
-        intr: intrinsic camera matrix
+        poses: poses in camera coordinates, [N, J, 3]
+        intr: intrinsic camera matrix, [3, 3] 
         
     Returns
         poses_proj: 2D poses projected to camera plane
     """
+    s = poses.shape
+    poses = np.reshape(poses, [s[0]*s[1], 3])
 
-    ndim = poses.shape[1]
-    poses = np.reshape(poses, [-1, 3])
-    poses_proj = np.squeeze(np.matmul(intr, poses[:, :, np.newaxis]))
+    poses_proj = np.squeeze(np.matmul(intr, poses.T)).T
     poses_proj = poses_proj / poses_proj[:, [2]]
     poses_proj = poses_proj[:, :2]
-    poses_proj = np.reshape(poses_proj, [-1, int(ndim / 3 * 2)])
+    poses_proj = poses_proj.reshape([s[0], s[1], 2])
 
     return poses_proj
 
 
-def XY_coord(poses):
+def XY_coord_dict(poses:dict):
     """
     Project 3d poses to XY plane
     
@@ -118,7 +109,7 @@ def XY_coord(poses):
     return poses_xy
 
 
-def Z_coord(poses):
+def Z_coord_dict(poses:dict):
     """
     Project 3d poses to XY plane
     
