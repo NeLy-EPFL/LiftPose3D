@@ -219,7 +219,7 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
 
         orientation_info = np.loadtxt(home_dir + videos_bottom[0] + 'orientation_info.txt', dtype=str)
 
-        # todo keep -1 only to keep manually labeled
+        # todo keep -1 only to keep manually labeled all video frames by DLC
         angle = orientation_info[:-1, 3]
         cx = orientation_info[:-1, 6]
         cy = orientation_info[:-1, 9]
@@ -532,9 +532,9 @@ if __name__ == "__main__":
     # behaviour=['AG','FW','PG','PE']
     # video_sequence_number=range(1,20+1,1)
 
-    fly_number= [2]
-    behaviour=['PG']
-    video_sequence_number= [1]
+    fly_number= [1]
+    behaviour=['AG']
+    video_sequence_number= [2]
     AniPose_filter_enable = False
     # VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     # LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'

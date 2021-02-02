@@ -78,7 +78,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         points3d_names_id = np.load('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_6/DLC_animations/{}_{}_{}_'.format(fly_number, behaviour, video_sequence_number) + 'AniPose_points3d_names_id.npy')
 
 
-    # temp TODOq
+    # temp TODO
     # points3d = np.load('/media/mahdi/LaCie/Mahdi/AniPose/tmp/1_FW_2_AniPose_points3d.npy')
     num_repeats = 1
     # num_repeats = 2
@@ -88,15 +88,13 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # points3d = points3d[:-20,:,:]
     # points3d_names_id = points3d_names_id[:-20]
 
-    # # # temp TODO
-    # # transfer points to new origin
+    # # temp TODO
+    # transfer points to new origin
     # new_origin = np.mean((points3d[:,5,:],points3d[:,10,:],points3d[:,20,:],points3d[:,25,:]),axis=0)
     # points3d = points3d - np.expand_dims(new_origin, 1)
-    # #
     # # temp TODO
     # points3d = points3d[31:49, :, :]
     # points3d_names_id = points3d_names_id[31:49]
-    #
     # # temp TODO add one frame: linear interpolation first and last frames
     # points3d = np.append(points3d, [(points3d[0, :, :] + points3d[-1, :, :]) / 2], axis=0)
     # points3d_names_id = np.append(points3d_names_id, points3d_names_id[-1])
@@ -107,13 +105,13 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # points3d_names_id = np.concatenate([points3d_names_id]*N)
     # np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_6/DLC_animations/victor_final/{}_repeated_31_48_{}_{}_{}_'.format(N,fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
 
-    # # temp TODO repeat only a chunck of video in the MIDDLE
+    # temp TODO repeat only a chunck of video in the MIDDLE
     # transfer points to new origin
     new_origin = np.mean((points3d[:, 5, :], points3d[:, 10, :], points3d[:, 20, :], points3d[:, 25, :]), axis=0)
     points3d = points3d - np.expand_dims(new_origin, 1)
     # temp TODO
-    points3d_middle = points3d[59:81, :, :]
-    points3d_names_id_middle = points3d_names_id[59:81]
+    points3d_middle = points3d[45:70, :, :]
+    points3d_names_id_middle = points3d_names_id[45:70]
     # temp TODO add one frame: linear interpolation first and last frames
     points3d_middle = np.append(points3d_middle, [(points3d_middle[0, :, :] + points3d_middle[-1, :, :]) / 2], axis=0)
     points3d_names_id_middle = np.append(points3d_names_id_middle, points3d_names_id_middle[-1])
@@ -122,13 +120,13 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     points3d_middle = np.concatenate([points3d_middle] * N)
     points3d_names_id_middle = np.concatenate([points3d_names_id_middle] * N)
 
-    points3d = np.concatenate([points3d[:59,:,:], points3d_middle, points3d[81:,:,:]])
-    points3d_names_id = np.concatenate([points3d_names_id[:59], points3d_names_id_middle, points3d_names_id[81:]])
+    points3d = np.concatenate([points3d[:45,:,:], points3d_middle, points3d[70:,:,:]])
+    points3d_names_id = np.concatenate([points3d_names_id[:45], points3d_names_id_middle, points3d_names_id[70:]])
     np.save(
-        '/media/mahdi/LaCie/Mahdi/tmp3/victor_final/{}_repeated_60_81_middle_{}_{}_{}_'.format(N,
+        '/media/mahdi/LaCie/Mahdi/tmp3/victor_final/{}_repeated_46_70_middle_{}_{}_{}_'.format(N,
                                                                                                                      fly_number,
                                                                                                                      behaviour,
-                                                                                                                     video_sequence_number) + 'AniPose_points3d.npy',
+                                                                                                                     video_sequence_number) + 'points3d.npy',
         points3d)
 
     # points3d = np.append(np.repeat(points3d[17:38,:,:],N,axis=0), points3d[17:-20, :, :], axis=0)
@@ -143,7 +141,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # plt.show()
 
     # # TODO
-    # for data_idx in range(0,points3d.shape[0]):
+    # for data_idx in range(40,points3d.shape[0]):
     #     x_dist = np.arange(points3d.shape[0])
     #     y_dist = np.sum(np.linalg.norm(points3d[:,:30,:] - points3d[data_idx, :30, :], axis=2), axis=1)
     #     fig, ax = plt.subplots()
@@ -463,9 +461,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = False
-    fly_number= [2]
-    behaviour=['PG']
-    video_sequence_number= [1]
+    fly_number= [1]
+    behaviour=['AG']
+    video_sequence_number= [2]
     # VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     # LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 
