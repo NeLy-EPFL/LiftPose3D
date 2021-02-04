@@ -15,8 +15,9 @@ def plot_pose_3d(
     colors=None,
     good_keypts=None,
     show_gt_always=True,
-    show_pred_always=False,
-):
+    show_pred_always=False
+    ):
+    
     """will not plot nan values"""
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
@@ -82,8 +83,8 @@ def plot_pose_2d(
     colors=None,
     good_keypts=None,
     show_gt_always=True,
-    show_pred_always=False,
-):
+    show_pred_always=False
+    ):
 
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
@@ -109,7 +110,15 @@ def plot_pose_2d(
     )
 
 
-def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
+def plot_3d_graph(
+        G, 
+        pos, 
+        ax, 
+        color_edge=None, 
+        style=None, 
+        good_keypts=None
+        ):
+    
     for i, j in enumerate(reversed(list(G.edges()))):
 
         if good_keypts is not None:
@@ -137,7 +146,15 @@ def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
         ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2)
 
 
-def plot_2d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
+def plot_2d_graph(
+        G, 
+        pos, 
+        ax, 
+        color_edge=None, 
+        style=None, 
+        good_keypts=None
+        ):
+    
     for i, j in enumerate(G.edges()):
         if good_keypts is not None:
             if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
