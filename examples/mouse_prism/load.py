@@ -64,7 +64,7 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
                 data[ (subject, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
                 
                 if 'good_keypts' in poses.keys():
-                    good_keypts[ (subject, action, seqname[:-4]) ] = poses['good_keypts']
+                    good_keypts[ (subject, action, seqname[:-4]) ] = poses['good_keypts'][:,:,None]
                     
                 if cam_id is not None:
                     cam_par[(subject, action, seqname[:-4])] = [poses[cam_id] for i in range(poses3d.shape[0])]

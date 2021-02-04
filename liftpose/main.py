@@ -36,6 +36,11 @@ def train_np(
     train_keypts: dict = None,
     test_keypts: dict = None,
 ) -> None:
+    assert train_2d.shape[0] == train_3d.shape[0]
+    assert train_2d.shape[1] == train_3d.shape[1]
+    assert test_2d.shape[0] == test_3d.shape[0]
+    assert test_2d.shape[1] == test_3d.shape[1]
+    
     n_joints = train_2d.shape[1]
     k = ""
     train_2d = {k: train_2d}
@@ -139,6 +144,10 @@ def train(
         8. "ckpt_best.pth.tar"
         9. "log_train.txt"
     """
+    # init default keypts in case it is None
+    train_keypts = init_keypts(train_3d) if train_keypts is None else train_keypts
+    test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
+
     # fmt: off
     assert all(t.ndim == 3 for t in list(train_2d.values()))
     assert all(t.ndim == 3 for t in list(test_2d.values()))
@@ -160,9 +169,7 @@ def train(
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
         os.makedirs(out_dir)
 
-    # init default keypts in case it is None
-    train_keypts = init_keypts(train_3d) if train_keypts is None else train_keypts
-    test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
+
     
     # make sure keypts are in the correct shape
     # keypts should be in the same shape of corresponding train3d and test3d values

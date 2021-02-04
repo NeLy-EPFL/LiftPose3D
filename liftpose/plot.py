@@ -15,7 +15,8 @@ def plot_pose_3d(
     limb_id=None,
     colors=None,
     good_keypts=None,
-    show_gt_always=True
+    show_gt_always=True,
+    show_pred_always=False,
 ):
     """will not plot nan values"""
     tar = tar.copy()
@@ -36,14 +37,20 @@ def plot_pose_3d(
     else:
         edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
-    plot_3d_graph(G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts if not show_gt_always else None)
+    plot_3d_graph(
+        G,
+        tar,
+        ax,
+        color_edge=edge_colors,
+        good_keypts=good_keypts if not show_gt_always else None,
+    )
     if pred is not None:
         plot_3d_graph(
-            G, pred, ax, color_edge=edge_colors, style="--", good_keypts=good_keypts
+            G, pred, ax, color_edge=edge_colors, style="--", good_keypts=good_keypts if not show_pred_always else None
         )
 
     #### this bit is just to make special legend
-    pts = tar.mean(axis=0)
+    pts = np.nanmean(tar,axis=0)
     (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r-")
     # (p2,) = ax.plot(pts, pts, pts, "b-")
     (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))

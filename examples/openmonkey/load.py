@@ -17,7 +17,7 @@ def load_data(data_folder, batches):
     data = loadmat(data_folder + "Data.mat")
     name = data["T"][0][0]["name"]
     label = data["T"][0][0]["data"]
-    batch_w_3d = batches  # ["7"]  #["7", "9", "9a", "9b", "10", "11"]
+    batch_w_3d = batches
     cameras, cameras_copy = load_cameras(data_folder, batch_w_3d)
 
     cam_list = np.unique(
@@ -45,12 +45,12 @@ edges = [
     (7, 12),
 ]
 
-leaves = [0, 4, 6, 9, 11, 12]
+
 #          0  1  2  3  4  5  6  7   8  9  10 11 12
-parents = [1, 2, 7, 2, 3, 2, 5, -1, 7, 8, 7, 10, 7]
 
 
-def bone_length_normalize(template, d):
+
+def bone_length_normalize(template, d, leaves, parents):
     pts3d = np.array(template)
     bone_length = np.zeros((len(edges)))
     for idx, edge in enumerate(edges):
@@ -203,11 +203,12 @@ def load_points(data_folder, batch_w_3d, name, cameras, cam_list, label):
                 dist = [cameras[btch][cam_id]["d1"], cameras[btch][cam_id]["d2"], 0, 0]
                 intr = cameras[btch][cam_id]["K"]
                 src = get_pts2d(i, n, label)
-                points2d[cam_list.index(str(cam_id)), frame_id] = cv2.undistortPoints(
-                    np.expand_dims(src, 0).astype(np.float32),
-                    distCoeffs=np.array(dist).astype(np.float32),
-                    cameraMatrix=np.array(intr).astype(np.float32),
-                )
+                points2d[cam_list.index(str(cam_id)), frame_id] = src
+                #cv2.undistortPoints(
+                #    np.expand_dims(src, 0).astype(np.float32),
+                #    distCoeffs=np.array(dist).astype(np.float32),
+                #    cameraMatrix=np.array(intr).astype(np.float32),
+                #)
 
         # fill pts3d
         for frm in range((annotations["coords"].shape[0]) // 13 - 1):
