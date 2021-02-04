@@ -1,5 +1,3 @@
-import glob
-
 from matplotlib.legend_handler import HandlerTuple
 import networkx as nx
 import numpy as np
@@ -13,12 +11,39 @@ def plot_pose_3d(
     pred=None,
     limb_id=None,
     colors=None,
-    good_keypts=None,
-    show_gt_always=True,
-    show_pred_always=False
+    good_keypts_tar=None,
+    good_keypts_pred=None
     ):
+    """
+    Plot 3D pose
     
-    """will not plot nan values"""
+    
+    Parameters
+    ----------
+    ax : matplotlib axes object
+    tar : n x 3 numpy array
+        Positions for n joints.
+    bones : list of lists of integers
+        Bones in skeleton.
+    normalize : True/False, optional
+        Center pose by mean. The defauls is False.
+    pred : n x 3 numpy array
+        Positions for n joints. Useful when comparing target to prediction. The default is None.
+    limb_id : list of integers, optional
+        Numbers represent which leg the joint belongs to. The default is None.
+    colors : list of triples, optional
+        Color assigned to bones for each leg. The default is None.
+    good_keypts_tar : n x 3 boolean array, optional
+        Selectively plot keypoints where good_keypoints_tar is 1. The default is None.
+    good_keypts_pred : n x 3 boolean array, optional
+        Selectively plot keypoints where good_keypoints_pred is 1. The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
+    
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
         tar_m = np.nanmedian(tar, axis=0, keepdims=True)
@@ -42,7 +67,7 @@ def plot_pose_3d(
         tar,
         ax,
         color_edge=edge_colors,
-        good_keypts=good_keypts if not show_gt_always else None,
+        good_keypts=good_keypts_tar
     )
     if pred is not None:
         plot_3d_graph(
@@ -51,7 +76,7 @@ def plot_pose_3d(
             ax, 
             color_edge=edge_colors, 
             style="--", 
-            good_keypts=good_keypts if not show_pred_always else None
+            good_keypts=good_keypts_pred
         )
 
     #### this bit is to make special legend
@@ -81,10 +106,32 @@ def plot_pose_2d(
     normalize=True,
     limb_id=None,
     colors=None,
-    good_keypts=None,
-    show_gt_always=True,
-    show_pred_always=False
+    good_keypts=None
     ):
+    """
+    Plot 2D pose
+    
+    Parameters
+    ----------
+    ax : matplotlib axes object
+    tar : n x 2 numpy array
+        Positions for n joints.
+    bones : list of lists of integers
+        Bones in skeleton.
+    normalize : True/False, optional
+        Center pose by mean. The defauls is False.
+    limb_id : list of integers, optional
+        Numbers represent which leg the joint belongs to. The default is None.
+    colors : list of triples, optional
+        Color assigned to bones for each leg. The default is None.
+    good_keypts : n x 2 boolean array, optional
+        Selectively plot keypoints where good_keypoints_tar is 1. The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
 
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
@@ -106,7 +153,7 @@ def plot_pose_2d(
         tar,
         ax,
         color_edge=edge_colors,
-        good_keypts=good_keypts if not show_gt_always else None,
+        good_keypts=good_keypts,
     )
 
 
@@ -118,6 +165,28 @@ def plot_3d_graph(
         style=None, 
         good_keypts=None
         ):
+    """
+    Plot 3D graph, called by plot_pose_3d()
+
+    Parameters
+    ----------
+    G : networkx graph object
+        Graph with nodes being keypoints and edge being bones.
+    pos : n x 3 numpy array
+        Position of keypoints.
+    ax : matplotlib axes object
+    color_edge : list of triples, optional
+        Color assigned to bones for each leg. The default is None.
+    style : '.', '--' ,'._', optional
+        Line style. The default is None.
+    good_keypts : n x 3 boolean array, optional
+        Selectively plot keypoints where good_keypoints_tar is 1. The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
     
     for i, j in enumerate(reversed(list(G.edges()))):
 
@@ -154,6 +223,28 @@ def plot_2d_graph(
         style=None, 
         good_keypts=None
         ):
+    """
+    Plot 2D graph, called by plot_pose_2d()
+
+    Parameters
+    ----------
+    G : networkx graph object
+        Graph with nodes being keypoints and edge being bones.
+    pos : n x 2 numpy array
+        Position of keypoints.
+    ax : matplotlib axes object
+    color_edge : list of triples, optional
+        Color assigned to bones for each leg. The default is None.
+    style : '.', '--' ,'._', optional
+        Line style. The default is None.
+    good_keypts : n x 2 boolean array, optional
+        Selectively plot keypoints where good_keypoints_tar is 1. The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
     
     for i, j in enumerate(G.edges()):
         if good_keypts is not None:
@@ -177,6 +268,22 @@ def plot_2d_graph(
 
 
 def plot_trailing_points(pos, thist, ax):
+    """
+    Plot lagging, trailing points when moving legs
+
+    Parameters
+    ----------
+    pos : n x 3 x t numpy array
+        Positions of all n keypoints for t timesteps.
+    thist : integer
+        Number of points trailign behind.
+    ax : matplotlib axis object
+
+    Returns
+    -------
+    None.
+
+    """
     alphas = np.linspace(0.1, 1, thist)
     rgba_colors = np.zeros((thist, 4))
     rgba_colors[:, [0, 1, 2]] = 0.8
@@ -206,6 +313,7 @@ def plot_log_train(ax, loss_train, loss_test, epochs):
 
 
 def read_log_train(out_dir):
+    import glob
     file = glob.glob(out_dir + "/log_train.txt")[0]
     f = open(file, "r")
     contents = f.readlines()
