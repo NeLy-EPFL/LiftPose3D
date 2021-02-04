@@ -1,0 +1,21 @@
+data_dir: '/data/LiftPose3D/fly_tether/data_DF3D/'
+out_dir: '/data/LiftPose3D/fly_tether/cam_angles/universal_lifter'
+ndims: 38 #number of dimensions in dataset
+in_dim: 2
+out_dim: 3
+dims_to_exclude: [15,16,17,18,34,35,36,37] #dimensions to not consider
+train_subjects: [Fly1,Fly2,Fly3,Fly4,Fly5,Fly6,Fly7,Fly8,Fly9,Fly10]
+test_subjects: [Fly6,Fly7]
+cam_id: [0]#,1,2, 4,5,6]
+actions: ['all'] #actions to load
+target_sets: [[ 1,  2,  3,  4],  [6,  7,  8,  9], [11, 12, 13, 14]]
+roots: [0, 5, 10]
+#eangle: {0: [[-90,-10], [-2, -2], [-2,2]], 1: [[-270,-180], [-2, -2], [-2,2]]}
+#vis: {0: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+#      1: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+eangle: {0: [[-30,-20], [-2, -2], [-2,2]]}
+vis: {0: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+axsorder: 'yxz'
+pxtomm: 171.0
+focal_length: [94.0, 94.0]
+frame_size: [240, 480]

@@ -63,7 +63,7 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
         cams: dictionary with camera parameters
         cam_id: camera_id to consider
     Returns
-        poses_cam: dictionary with 3d poses (2d poses if projection is True) in camera coordinates 
+        poses_cam: dictionary with 3d poses (2d poses if projection is True) in camera coordinates
         vis: boolean array with coordinates visible from the camera
     """
 
@@ -72,17 +72,20 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
         rcams = cam_par[k]
         poses_cam[k] = world_to_camera(poses_world[k], rcams["R"], rcams["tvec"])
 
+    # sort dictionary
+    #poses_cam = dict(sorted(poses_cam.items()))
+
     return poses_cam
 
 
 def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
     """
     Rotate/translate 3d poses from world to camera viewpoint
-    
+
     Args
-        poses_world: array of poses in world coordinates of size n_frames x n_dimensions
+        poses_world: array of poses in world coordinates of size n_frames x joints x n_dimensions
         cam_par: dictionary of camera parameters
-        
+
     Returns
         poses_cam: poses in camera-centred coordinates
     """
@@ -99,11 +102,11 @@ def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
 def camera_to_world(poses_cam, R, tvec):
     """
     Rotate/translate 3d poses from camera to world
-    
+
     Args
         poses_cam: poses in camera coordinates, [N, J, 3]
-        cam_par: dictionary with camera parameters 
-        
+        cam_par: dictionary with camera parameters
+
     Returns
         poses_world: poses in world coordinates
     """
@@ -120,11 +123,11 @@ def camera_to_world(poses_cam, R, tvec):
 def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     """
     Project poses to camera frame
-    
+
     Args
         poses: poses in camera coordinates, [N, J, 3]
-        intr: intrinsic camera matrix, [3, 3] 
-        
+        intr: intrinsic camera matrix, [3, 3]
+
     Returns
         poses_proj: 2D poses projected to camera plane
     """
@@ -142,12 +145,12 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
 def XY_coord_dict(poses: dict):
     """
     Project 3d poses to XY plane
-    
+
     Args
         poses: poses
-        
+
     Returns
-        poses_xy: poses projected to xy plane   
+        poses_xy: poses projected to xy plane
     """
     poses_xy = {}
 
@@ -160,12 +163,12 @@ def XY_coord_dict(poses: dict):
 def Z_coord_dict(poses: dict):
     """
     Project 3d poses to XY plane
-    
+
     Args
         poses: poses
-        
+
     Returns
-        poses_xy: poses projected to xy plane   
+        poses_xy: poses projected to xy plane
     """
     poses_xy = {}
 

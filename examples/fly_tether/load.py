@@ -42,7 +42,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
 
                 # load
                 poses = pickle.load(open(fname_, "rb"))
-                poses3d = poses["points3d"]
+                poses3d = poses["points3d"][:899]
                 
                 for c in cam_id:
                     data[(s, a, f + ".cam_" + str(c))] = poses3d
@@ -92,6 +92,6 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
 
                 for c in cam_id:
                     #ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c]
+                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899]
 
     return data
