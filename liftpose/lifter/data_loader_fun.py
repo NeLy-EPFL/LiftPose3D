@@ -68,13 +68,12 @@ class data_loader(Dataset):
                         self.test_out.append(self.test_3d[key][i])
                         self.test_keypts.append(self.test_bool[key][i])
                         self.test_keys.append(key)
-
+                        
+                        
     def __getitem__(self, index):
         if self.is_train:
             outputs = torch.from_numpy(self.train_out[index]).float()
             if self.eangle is not None:
-                
-                # outputs = project_to_eangle(self.train_stat_2d, self.train_stat_3d, outputs)
                 
                 mean_2d = self.train_stat_2d['mean']
                 std_2d = self.train_stat_2d['std']

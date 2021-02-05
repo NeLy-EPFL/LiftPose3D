@@ -40,6 +40,7 @@ def normalize_bone_length(pose3d, edges, bone_length, parents, leaves):
 
     return pose3d_normalized
 
+
 def calc_bone_length(poses_3d: np.ndarray, edges: list):
     assert poses_3d.ndim == 3
     bone_length = np.zeros((len(edges)))
