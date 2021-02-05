@@ -49,10 +49,6 @@ class data_loader(Dataset):
             for key in self.test_2d.keys():
                 # print(self.test_2d[key].shape)
                 num_f = self.test_2d[key].shape[0]
-                # if not predict:
-                #    assert (
-                #        self.test_2d[key].shape[0] == self.test_3d[key].shape[0]
-                #    ), "(test) 3d & 2d shape not matched"
                 for i in range(num_f):
                     self.test_inp.append(self.test_2d[key][i])
                     if not predict:

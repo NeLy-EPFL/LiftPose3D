@@ -11,6 +11,8 @@ from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
 from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict
 
+from typing import Dict, Union, List
+
 # deterministic training
 torch.manual_seed(0)
 np.random.seed(0)
@@ -33,31 +35,32 @@ def train_np(
     test_3d: np.ndarray,
     out_dir: str,
     root: int = 0,
-    train_keypts: dict = None,
-    test_keypts: dict = None,
+    train_keypts: Dict[str, np.ndarray] = None,
+    test_keypts: Dict[str, np.ndarray] = None,
+    network_kwargs: Dict[str, Union[str, int]] = None,
 ) -> None:
     assert train_2d.shape[0] == train_3d.shape[0]
     assert train_2d.shape[1] == train_3d.shape[1]
     assert test_2d.shape[0] == test_3d.shape[0]
     assert test_2d.shape[1] == test_3d.shape[1]
-    
+
     n_joints = train_2d.shape[1]
     k = ""
+    # wrap numpy input into a dictionary
     train_2d = {k: train_2d}
     train_3d = {k: train_3d}
     test_2d = {k: test_2d}
     test_3d = {k: test_3d}
+    if train_keypts is not None:
+        train_keypts = {k: train_keypts}
+    if test_keypts is not None:
+        test_keypts = {k: test_keypts}
 
     roots = [root]
     target_sets = list(
         set(range(n_joints)) - set(roots)
     )  # every point except the root is going to be predicted
     target_sets = [target_sets]
-
-    if train_keypts is not None:
-        train_keypts = {k: train_keypts}
-    if test_keypts is not None:
-        test_keypts = {k: test_keypts}
 
     train(
         train_2d=train_2d,
@@ -69,19 +72,21 @@ def train_np(
         out_dir=out_dir,
         train_keypts=train_keypts,
         test_keypts=test_keypts,
+        network_kwargs=network_kwargs,
     )
 
 
 def train(
-    train_2d: dict,
-    test_2d: dict,
-    train_3d: dict,
-    test_3d: dict,
-    roots: list,
-    target_sets: list,
+    train_2d: Dict[str, np.ndarray],
+    test_2d: Dict[str, np.ndarray],
+    train_3d: Dict[str, np.ndarray],
+    test_3d: Dict[str, np.ndarray],
+    roots: List[int],
+    target_sets: List[List[int]],
     out_dir: str,
-    train_keypts: dict = None,
-    test_keypts: dict = None,
+    train_keypts: Dict[str, np.ndarray] = None,
+    test_keypts: Dict[str, np.ndarray] = None,
+    network_kwargs: Dict[str, Union[str, int]] = None,
 ) -> None:
 
     """Train LiftPose3D.
@@ -168,8 +173,6 @@ def train(
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
         os.makedirs(out_dir)
-
-
     
     # make sure keypts are in the correct shape
     # keypts should be in the same shape of corresponding train3d and test3d values
@@ -212,6 +215,7 @@ def train(
     )
 
     # flatten train_keypts
+    # TODO move preprocessing of train_keypts inside preprocess_3d function
     train_keypts = flatten_dict(train_keypts)
     test_keypts = flatten_dict(test_keypts)
 
@@ -247,6 +251,9 @@ def train(
     option.data_dir = os.path.abspath(out_dir)
     option.out = os.path.abspath(out_dir)
     option.out_dir = os.path.abspath(out_dir)
+
+    # overwrite training options with network_kwargs if given
+    option.__dict__.update(network_kwargs) if network_kwargs is not None else None
 
     logger.debug("\n==================Options=================")
     logger.debug(pformat(vars(option), indent=4))
