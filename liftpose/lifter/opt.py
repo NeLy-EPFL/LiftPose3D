@@ -34,6 +34,7 @@ class Options:
         # ===============================================================
         #                     Running options
         # ===============================================================
+        # self.parser.add_argument('--eangle',         type=list,   defaule=None) 
         self.parser.add_argument('--noise',          type=float,  default=None)
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=5000, help='# steps of lr decay')

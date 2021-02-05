@@ -9,7 +9,8 @@ def reprojection_error(poses_3d, poses_2d, R, tvec, intr):
     assert intr.ndim == 2
 
     poses_3d = world_to_camera(poses_3d, R, tvec)
-    return np.linalg.norm(poses_2d - project_to_camera(poses_3d, intr), axis=2)
+    proj_2d = project_to_camera(poses_3d, intr)
+    return np.linalg.norm(poses_2d - proj_2d, axis=2)
 
 
 def normalize_bone_length(pose3d, edges, bone_length, parents, leaves):
@@ -70,7 +71,7 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
     poses_cam = {}
     for k in poses_world.keys():
         rcams = cam_par[k]
-        poses_cam[k] = world_to_camera(poses_world[k], rcams["R"], rcams["tvec"])
+        poses_cam[k] = world_to_camera(poses_world[k], rcams['R'], rcams['tvec'])
 
     # sort dictionary
     #poses_cam = dict(sorted(poses_cam.items()))
@@ -93,6 +94,7 @@ def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
     poses_world = np.reshape(poses_world, [s[0] * s[1], 3])
 
     assert poses_world.shape[1] == 3
+
     poses_cam = np.matmul(R, poses_world.T).T + tvec
     poses_cam = np.reshape(poses_cam, s)
 
@@ -132,9 +134,9 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
         poses_proj: 2D poses projected to camera plane
     """
     s = poses.shape
+    
     poses = np.reshape(poses, [s[0] * s[1], 3])
-
-    poses_proj = np.squeeze(np.matmul(intr, poses.T)).T
+    poses_proj = np.matmul(intr, poses.T).T
     poses_proj = poses_proj / poses_proj[:, [2]]
     poses_proj = poses_proj[:, :2]
     poses_proj = poses_proj.reshape([s[0], s[1], 2])
