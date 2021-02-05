@@ -2,6 +2,14 @@ from matplotlib.legend_handler import HandlerTuple
 import networkx as nx
 import numpy as np
 
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+from typing import Optional, List
+
 
 def plot_pose_3d(
     ax,
@@ -16,8 +24,8 @@ def plot_pose_3d(
     ):
     """
     Plot 3D pose
-    
-    
+
+
     Parameters
     ----------
     ax : matplotlib axes object
@@ -43,7 +51,7 @@ def plot_pose_3d(
     None.
 
     """
-    
+
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
         tar_m = np.nanmedian(tar, axis=0, keepdims=True)
@@ -71,16 +79,16 @@ def plot_pose_3d(
     )
     if pred is not None:
         plot_3d_graph(
-            G, 
-            pred, 
-            ax, 
-            color_edge=edge_colors, 
-            style="--", 
-            good_keypts=good_keypts_pred
+            G,
+            pred,
+            ax,
+            color_edge=edge_colors,
+            style="--",
+            good_keypts=good_keypts if not show_pred_always else None,
         )
 
-    #### this bit is to make special legend
-    pts = np.nanmean(tar,axis=0)
+    #### this bit is just to make special legend
+    pts = np.nanmean(tar, axis=0)
     (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r-")
     # (p2,) = ax.plot(pts, pts, pts, "b-")
     (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
@@ -110,7 +118,7 @@ def plot_pose_2d(
     ):
     """
     Plot 2D pose
-    
+
     Parameters
     ----------
     ax : matplotlib axes object
@@ -137,17 +145,17 @@ def plot_pose_2d(
     if normalize:  # move points toward origin for easier visualization
         tar_m = np.nanmedian(tar, axis=0, keepdims=True)
         tar -= tar_m
-        
+
     G = nx.Graph()
     G.add_edges_from(bones)
     G.add_nodes_from(np.arange(tar.shape[0]))
-    
+
     # if limb_id or colors are not provided, then paint everything in blue
     if limb_id is None or colors is None:
         edge_colors = [[0, 0, 1.0] for _ in limb_id]
     else:
         edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
-    
+
     plot_2d_graph(
         G,
         tar,
@@ -158,11 +166,11 @@ def plot_pose_2d(
 
 
 def plot_3d_graph(
-        G, 
-        pos, 
-        ax, 
-        color_edge=None, 
-        style=None, 
+        G,
+        pos,
+        ax,
+        color_edge=None,
+        style=None,
         good_keypts=None
         ):
     """
@@ -187,7 +195,7 @@ def plot_3d_graph(
     None.
 
     """
-    
+
     for i, j in enumerate(reversed(list(G.edges()))):
 
         if good_keypts is not None:
@@ -216,11 +224,11 @@ def plot_3d_graph(
 
 
 def plot_2d_graph(
-        G, 
-        pos, 
-        ax, 
-        color_edge=None, 
-        style=None, 
+        G,
+        pos,
+        ax,
+        color_edge=None,
+        style=None,
         good_keypts=None
         ):
     """
@@ -245,7 +253,7 @@ def plot_2d_graph(
     None.
 
     """
-    
+
     for i, j in enumerate(G.edges()):
         if good_keypts is not None:
             if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
@@ -253,17 +261,17 @@ def plot_2d_graph(
 
         u = np.array((pos[j[0],0], pos[j[1],0]))
         v = np.array((pos[j[0],1], pos[j[1],1]))
-        
+
         # edge color
         if color_edge is not None:
             c = color_edge[j[0]]
         else:
             c = "k"
-            
+
         # edge style
         if style is None:
             style = "-"
-        
+
         ax.plot(u, v, c=c, alpha=1.0, linewidth=2)
 
 
@@ -304,16 +312,12 @@ def plot_trailing_points(pos, thist, ax):
 def plot_log_train(ax, loss_train, loss_test, epochs):
     ax.plot(epochs, loss_train, label="train")
     ax.plot(epochs, loss_test, label="test")
-    # ax.xscale('log')
-    # ax.xlim([0, 100])
     ax.set_ylabel("Loss")
     ax.set_xlabel("Epochs")
     ax.legend()
-    # ax.savefig("training_error.svg")
 
 
-def read_log_train(out_dir):
-    import glob
+def read_log_train(out_dir: str):
     file = glob.glob(out_dir + "/log_train.txt")[0]
     f = open(file, "r")
     contents = f.readlines()
@@ -327,3 +331,65 @@ def read_log_train(out_dir):
         err_test.append(float(line[4]))
 
     return epoch, lr, loss_train, loss_test, err_test
+
+
+def get_violin_ylabel(body_length, units):
+    if body_length is not None:
+        return "Percentage of body length"
+    if units is not None:
+        return f"Error ({units})"
+    return "Error (unitless)"
+
+
+# TODO test the function
+def violin_plot(
+    ax,
+    test_3d_gt: np.ndarray,
+    test_3d_pred: np.ndarray,
+    test_keypoints: np.ndarray,
+    joints_name: List[str],
+    body_length: int = None,
+    units: str = None,
+    ylim: List[int] = None,
+):
+    """ creates violin plot of error distribution for each joint """
+    # fmt: off
+    assert test_3d_gt.shape[1] == len(joints_name), f"given 3d data has {test_3d_gt.shape[1]} joints however joints_name only has {len(joints_name)} names"
+    assert (test_3d_gt.shape == test_3d_pred), "ground-truth and prediction shapes do not match"
+    # fmt: on
+
+    err_norm = np.sum(np.linalg.norm((test_3d_gt - test_3d_pred)), axis=2)
+    # remove the outliers
+    err_norm_sp = err_norm.copy()
+    for j in range(err_norm.shape[1]):
+        q = np.quantile(err_norm[:, j], 0.95)
+        err_norm_sp[err_norm_sp[:, j] > q, j] = q
+
+    # TODO vectorize the following loop
+    e_list = list()
+    n_list = list()
+    for i in range(err_norm_sp.shape[0]):
+        for j in range(err_norm_sp.shape[1]):
+            if not np.isnan(err_norm_sp[i, j]):
+                if test_keypoints[i, j, 0]:
+                    e_list.append(
+                        err_norm_sp[i, j]
+                        if body_length is not None
+                        else err_norm_sp[i, j] / body_length * 100
+                    )
+                    n_list.append(joints_name[j])
+
+    # remove outliers
+    d = pd.DataFrame({"err": e_list, "joint": n_list})
+    q = d.quantile(q=0.95)
+    d = d.loc[d["err"] < q["err"]]
+
+    # draw the violin
+    s = sns.violinplot(x="joint", y="err", data=d, color="gray")
+
+    # set the labels
+    s.set_xticklabels(s.get_xticklabels(), rotation=30)
+    ax.set_xlabel("")
+    ax.set_ylabel(get_violin_ylabel(body_length, units))
+    ax.set_ylim(ylim) if ylim is not None else None
+
