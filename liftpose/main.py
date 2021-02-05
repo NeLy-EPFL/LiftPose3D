@@ -15,7 +15,6 @@ from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatt
 torch.manual_seed(0)
 np.random.seed(0)
 
-
 # set up the logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -168,8 +167,6 @@ def train(
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
         os.makedirs(out_dir)
-
-
     
     # make sure keypts are in the correct shape
     # keypts should be in the same shape of corresponding train3d and test3d values
@@ -220,7 +217,7 @@ def train(
 
     # save 3d data
     logger.info(
-        f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir + "stat_3d.pth.tar."))}'
+        f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir, "stat_3d.pth.tar."))}'
     )
 
     torch.save([train_set_3d, train_keypts], os.path.join(out_dir, "train_3d.pth.tar"))

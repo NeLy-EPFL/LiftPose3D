@@ -9,7 +9,7 @@ import logging
 
 from liftpose.lifter.test import test
 from liftpose.lifter.train import train
-from liftpose.lifter.opt import Options
+# from liftpose.lifter.opt import Options
 import liftpose.lifter.log as log
 from liftpose.lifter.log import save_ckpt
 from liftpose.lifter.model import LinearModel, weight_init
@@ -34,13 +34,9 @@ def network_main(opt):
     lr_now = opt.lr
 
     # data loading
-    # logging.getLogger(__name__).info("loading data")
     stat_3d = torch.load(os.path.join(opt.data_dir, "stat_3d.pth.tar"))
     input_size = stat_3d["input_size"]
     output_size = stat_3d["output_size"]
-
-    # logger.info("input dimension: {}".format(input_size))
-    # logger.info("output dimension: {}".format(output_size))
 
     # save options
     log.save_options(opt, opt.out_dir)
@@ -49,7 +45,7 @@ def network_main(opt):
     model = LinearModel(input_size=input_size, output_size=output_size)
     model = model.to(device)
     model.apply(weight_init)
-    criterion = nn.MSELoss(reduction="mean").to(device)
+    criterion = nn.L1Loss(reduction="mean").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr)
 
     logger.info(
@@ -140,8 +136,6 @@ def network_main(opt):
         cudnn.benchmark = True
         loss_test = None
         for epoch in range(start_epoch, opt.epochs):
-            # logger.info("==========================")
-            # logger.info("epoch: {} | lr: {:.5f}".format(epoch + 1, lr_now))
 
             # train
             glob_step, lr_now, loss_train = train(

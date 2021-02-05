@@ -8,7 +8,7 @@ def reprojection_error(poses_3d, poses_2d, R, tvec, intr):
     assert tvec.ndim == 1 or tvec.ndim == 2
     assert intr.ndim == 2
 
-    poses_3d = world_to_camera(poses_3d, {'R': R, 'tvec': tvec})
+    poses_3d = world_to_camera(poses_3d, R, tvec)
     proj_2d = project_to_camera(poses_3d, intr)
     return np.linalg.norm(poses_2d - proj_2d, axis=2)
 
@@ -71,7 +71,7 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
     poses_cam = {}
     for k in poses_world.keys():
         rcams = cam_par[k]
-        poses_cam[k] = world_to_camera(poses_world[k], rcams)
+        poses_cam[k] = world_to_camera(poses_world[k], rcams['R'], rcams['tvec'])
 
     # sort dictionary
     #poses_cam = dict(sorted(poses_cam.items()))
@@ -79,7 +79,7 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
     return poses_cam
 
 
-def world_to_camera(poses_world: np.ndarray, rcams):
+def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
     """
     Rotate/translate 3d poses from world to camera viewpoint
 
@@ -95,7 +95,7 @@ def world_to_camera(poses_world: np.ndarray, rcams):
 
     assert poses_world.shape[1] == 3
 
-    poses_cam = np.matmul(rcams["R"], poses_world.T).T + rcams["tvec"]
+    poses_cam = np.matmul(R, poses_world.T).T + tvec
     poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam

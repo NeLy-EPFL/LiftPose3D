@@ -1,7 +1,13 @@
 import numpy as np
 
 
-def preprocess_2d(train: dict, test: dict, roots: list, target_sets: list, in_dim: int):
+def preprocess_2d(train: dict, 
+                  test: dict, 
+                  roots: list, 
+                  target_sets: list, 
+                  in_dim: int,
+                  mean=None,
+                  std=None):
     """ Preprocess 2D data
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
@@ -40,7 +46,8 @@ def preprocess_2d(train: dict, test: dict, roots: list, target_sets: list, in_di
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
 
     # Standardize each dimension independently
-    mean, std = normalization_stats(train)
+    if (mean is None) or (std is None):
+        mean, std = normalization_stats(train)
     train = normalize(train, mean, std)
     test = normalize(test, mean, std)
 
@@ -51,8 +58,13 @@ def preprocess_2d(train: dict, test: dict, roots: list, target_sets: list, in_di
     return train, test, mean, std, targets, offset
 
 
-def preprocess_3d(
-    train, test, roots, target_sets, out_dim,
+def preprocess_3d(train, 
+                  test, 
+                  roots, 
+                  target_sets, 
+                  out_dim,
+                  mean=None,
+                  std=None
 ):
     """ Preprocess 3D data
         1. Center points in target_sets sets around roots
@@ -85,7 +97,8 @@ def preprocess_3d(
     test, offset = anchor_to_root(test, roots, target_sets, out_dim)
 
     # Standardize each dimension independently
-    mean, std = normalization_stats(train)
+    if (mean is None) or (std is None):
+        mean, std = normalization_stats(train)
     train = normalize(train, mean, std)
     test = normalize(test, mean, std)
 
