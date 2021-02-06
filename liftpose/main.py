@@ -11,7 +11,7 @@ from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
 from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict
 
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Callable
 
 # deterministic training
 torch.manual_seed(0)
@@ -37,6 +37,7 @@ def train_np(
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
     network_kwargs: Dict[str, Union[str, int]] = None,
+    augmentation: List[Callable] = None
 ) -> None:
     assert train_2d.shape[0] == train_3d.shape[0]
     assert train_2d.shape[1] == train_3d.shape[1]
@@ -72,6 +73,7 @@ def train_np(
         train_keypts=train_keypts,
         test_keypts=test_keypts,
         network_kwargs=network_kwargs,
+        augmentation=augmentation
     )
 
 
@@ -86,6 +88,7 @@ def train(
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
     network_kwargs: Dict[str, Union[str, int]] = None,
+    augmentation: List[Callable] = None
 ) -> None:
 
     """Train LiftPose3D.
@@ -257,7 +260,7 @@ def train(
     logger.debug("\n==================Options=================")
     logger.debug(pformat(vars(option), indent=4))
     logger.debug("==========================================\n")
-    network_main(option)
+    network_main(option, augmentation)
 
 
 def test(out_dir: str) -> None:

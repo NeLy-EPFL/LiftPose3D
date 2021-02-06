@@ -6,6 +6,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
 
 
 from typing import Optional, List
@@ -19,9 +20,10 @@ def plot_pose_3d(
     pred=None,
     limb_id=None,
     colors=None,
-    good_keypts_tar=None,
-    good_keypts_pred=None
-    ):
+    good_keypts=None,
+    show_pred_always=False,
+    show_gt_always=False,
+):
     """
     Plot 3D pose
 
@@ -75,7 +77,7 @@ def plot_pose_3d(
         tar,
         ax,
         color_edge=edge_colors,
-        good_keypts=good_keypts_tar
+        good_keypts=good_keypts if not show_gt_always else None,
     )
     if pred is not None:
         plot_3d_graph(
@@ -108,14 +110,8 @@ def plot_pose_3d(
 
 
 def plot_pose_2d(
-    ax,
-    tar,
-    bones,
-    normalize=True,
-    limb_id=None,
-    colors=None,
-    good_keypts=None
-    ):
+    ax, tar, bones, normalize=True, limb_id=None, colors=None, good_keypts=None
+):
     """
     Plot 2D pose
 
@@ -157,22 +153,11 @@ def plot_pose_2d(
         edge_colors = [[x / 255.0 for x in colors[i]] for i in limb_id]
 
     plot_2d_graph(
-        G,
-        tar,
-        ax,
-        color_edge=edge_colors,
-        good_keypts=good_keypts,
+        G, tar, ax, color_edge=edge_colors, good_keypts=good_keypts,
     )
 
 
-def plot_3d_graph(
-        G,
-        pos,
-        ax,
-        color_edge=None,
-        style=None,
-        good_keypts=None
-        ):
+def plot_3d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
     """
     Plot 3D graph, called by plot_pose_3d()
 
@@ -223,14 +208,7 @@ def plot_3d_graph(
         ax.plot(x, y, z, style, c=c, alpha=1.0, linewidth=2)
 
 
-def plot_2d_graph(
-        G,
-        pos,
-        ax,
-        color_edge=None,
-        style=None,
-        good_keypts=None
-        ):
+def plot_2d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
     """
     Plot 2D graph, called by plot_pose_2d()
 
@@ -259,8 +237,8 @@ def plot_2d_graph(
             if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
                 continue
 
-        u = np.array((pos[j[0],0], pos[j[1],0]))
-        v = np.array((pos[j[0],1], pos[j[1],1]))
+        u = np.array((pos[j[0], 0], pos[j[1], 0]))
+        v = np.array((pos[j[0], 1], pos[j[1], 1]))
 
         # edge color
         if color_edge is not None:

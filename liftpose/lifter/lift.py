@@ -9,6 +9,7 @@ import logging
 
 from liftpose.lifter.test import test
 from liftpose.lifter.train import train
+
 # from liftpose.lifter.opt import Options
 import liftpose.lifter.log as log
 from liftpose.lifter.log import save_ckpt
@@ -17,7 +18,8 @@ from liftpose.lifter.data_loader_fun import data_loader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def network_main(opt):
+
+def network_main(opt, augmentation=None):
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         stream=sys.stdout,
@@ -45,7 +47,7 @@ def network_main(opt):
     model = LinearModel(input_size=input_size, output_size=output_size)
     model = model.to(device)
     model.apply(weight_init)
-    criterion = nn.L1Loss(reduction="mean").to(device)
+    criterion = nn.MSELoss(reduction="mean").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr)
 
     logger.info(
@@ -66,10 +68,8 @@ def network_main(opt):
         optimizer.load_state_dict(ckpt["optimizer"])
         logger.info("ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
 
-    if opt.test:
-        log_file = "log_test.txt"
-    else:
-        log_file = "log_train.txt"
+    log_file = "log_test.txt" if opt.test else "log_train.txt"
+
     if opt.resume:
         io = log.Logger(os.path.join(opt.out_dir, log_file), resume=True)
     else:
@@ -79,7 +79,7 @@ def network_main(opt):
     # loader for testing and prediction
     test_loader = DataLoader(
         dataset=data_loader(
-            data_path=opt.data_dir, is_train=False, predict=opt.predict
+            data_path=opt.data_dir, is_train=False, predict=opt.predict,
         ),
         batch_size=opt.batch_size,
         shuffle=False,
@@ -99,7 +99,7 @@ def network_main(opt):
             inputs,
             good_keypts,
         ) = test(test_loader, model, criterion, stat_3d, predict=opt.predict)
-            
+
         logger.info(
             "Saving results: {}".format(
                 os.path.join(opt.out_dir, "test_results.pth.tar")
@@ -125,7 +125,9 @@ def network_main(opt):
     else:
         # loader for training
         train_loader = DataLoader(
-            dataset=data_loader(data_path=opt.data_dir, is_train=True, noise=opt.noise),
+            dataset=data_loader(
+                data_path=opt.data_dir, is_train=True, augmentation=augmentation,
+            ),
             batch_size=opt.batch_size,
             shuffle=True,
             num_workers=opt.job,
