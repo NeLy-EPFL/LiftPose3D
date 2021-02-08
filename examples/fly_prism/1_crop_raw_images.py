@@ -286,7 +286,7 @@ if __name__ == '__main__':
     #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/4', True]
     #            ]
 
-    folders = [['/media/mahdi/LaCie/Mahdi/AniPose/tmp/fly_2_FW_2', True]]
+    folders = [['/media/mahdi/LaCie/Mahdi/tmp/fly_6_AG_3', True]]
 
 
     # video_id = 1
@@ -501,10 +501,10 @@ if __name__ == '__main__':
             # bottom_img, ventral_view_img, left_vert_crop, right_vert_crop = _separate_bottom_side_flies(img, threshold)
             ventral_view_img, right_view_img, left_view_img, left_vert_crop, right_vert_crop = _separate_flies_vertically(img, threshold)
 
-            # todo
-            # left_view_img[left_view_img > 190] = 10
-            cv2.imshow("left_view", left_view_img)
-            cv2.waitKey(1000000)
+            # # todo
+            # # left_view_img[left_view_img > 190] = 10
+            # cv2.imshow("left_view", left_view_img)
+            # cv2.waitKey(1000000)
 
             # img = pad(img, pad_width=((0, 0), (-(left_vert_crop - left_bbox_pad), 0)), mode='constant')
 
