@@ -319,7 +319,6 @@ def get_violin_ylabel(body_length, units):
     return "Error (unitless)"
 
 
-# TODO test the function
 def violin_plot(
     ax,
     test_3d_gt: np.ndarray,
@@ -333,10 +332,10 @@ def violin_plot(
     """ creates violin plot of error distribution for each joint """
     # fmt: off
     assert test_3d_gt.shape[1] == len(joints_name), f"given 3d data has {test_3d_gt.shape[1]} joints however joints_name only has {len(joints_name)} names"
-    assert (test_3d_gt.shape == test_3d_pred), "ground-truth and prediction shapes do not match"
+    assert (test_3d_gt.shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
     # fmt: on
 
-    err_norm = np.sum(np.linalg.norm((test_3d_gt - test_3d_pred)), axis=2)
+    err_norm = np.linalg.norm((test_3d_gt - test_3d_pred), axis=2)
     # remove the outliers
     err_norm_sp = err_norm.copy()
     for j in range(err_norm.shape[1]):
@@ -352,7 +351,7 @@ def violin_plot(
                 if test_keypoints[i, j, 0]:
                     e_list.append(
                         err_norm_sp[i, j]
-                        if body_length is not None
+                        if body_length is None
                         else err_norm_sp[i, j] / body_length * 100
                     )
                     n_list.append(joints_name[j])

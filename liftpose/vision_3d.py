@@ -1,7 +1,14 @@
 import numpy as np
+from typing import List, Dict
 
 
-def reprojection_error(poses_3d, poses_2d, R, tvec, intr):
+def reprojection_error(
+    poses_3d: np.ndarray,
+    poses_2d: np.ndarray,
+    R: np.ndarray,
+    tvec: np.ndarray,
+    intr: np.ndarray,
+) -> np.ndarray:
     assert poses_3d.ndim == 3
     assert poses_2d.ndim == 3
     assert R.ndim == 2
@@ -13,50 +20,50 @@ def reprojection_error(poses_3d, poses_2d, R, tvec, intr):
     return np.linalg.norm(poses_2d - proj_2d, axis=2)
 
 
-def normalize_bone_length(pose3d, edges, bone_length, parents, leaves):
-    edges = [tuple(e) for e in edges]
-    pose3d_normalized = pose3d.copy()
-    for leaf in leaves:
-        curr = leaf
-        print(curr)
-        print(",", len(parents))
-        parent = parents[curr]
-        history = list()
-        while parent != -1:
-            try:
-                idx = edges.index((curr, parent))
-            except:
-                idx = edges.index((parent, curr))
-            vec = pose3d_normalized[curr] - pose3d_normalized[parent]
-            curr_length = np.linalg.norm(vec)
-            offset = (vec / curr_length) * (bone_length[idx] - curr_length)
-
-            history.append((curr, parent))
-            for c, p in history:
-                pose3d_normalized[c] += offset
-
-            curr = parent
-            parent = parents[curr]
-
-    return pose3d_normalized
+def adjust_tree(pose3d, root, child, offset) -> None:
+    pose3d[:, root] += offset
+    for c in child[root]:
+        adjust_tree(pose3d, c, child, offset)
 
 
-def calc_bone_length(poses_3d: np.ndarray, edges: list):
-    assert poses_3d.ndim == 3
-    bone_length = np.zeros((len(edges)))
-    bone_length_std = np.zeros((len(edges)))
-    for idx, edge in enumerate(edges):
-        bone_length[idx] = np.nanmean(
-            np.linalg.norm(poses_3d[:, edge[0]] - poses_3d[:, edge[1]], axis=1)
-        )
-        bone_length_std[idx] = np.nanstd(
-            np.linalg.norm(poses_3d[:, edge[0]] - poses_3d[:, edge[1]], axis=1)
-        )
+"""
+def normalize_bone_length(
+    pose3d: np.ndarray, root: int, child: List[int], bone_length: Dict[tuple, float],
+):
+    pose3d_c = np.zeros_like(pose3d)
+    for t in range(pose3d.shape[0]):
+        pose3d_c[t] = normalize_bone_length_single(pose3d[t], root, child, bone_length)
 
-    return bone_length, bone_length_std
+    return pose3d_c
+"""
 
 
-def world_to_camera_dict(poses_world: dict, cam_par: dict):
+def normalize_bone_length(
+    pose3d: np.ndarray, root: int, child: List[int], bone_length: Dict[tuple, float],
+) -> np.ndarray:
+    assert pose3d.ndim == 3, f"{pose3d.ndim}"
+
+    for c in child[root]:
+        vec = pose3d[:, c] - pose3d[:, root]
+        curr_length = np.linalg.norm(vec, axis=-1, keepdims=True)
+        k = (c, root) if (c, root) in bone_length else (root, c)
+        offset = (vec / curr_length) * (bone_length[k] - curr_length)
+
+        adjust_tree(pose3d, c, child, offset)
+        normalize_bone_length(pose3d, c, child, bone_length)
+
+    return pose3d
+
+
+def calculate_bone_length(poses_3d: np.ndarray, edges: List[List[int]]) -> np.ndarray:
+    """expects poses_3d in shape [N J 3]. returns a numpy array of shape [N len(edges)]"""
+    assert poses_3d.ndim == 3, f"{poses_3d.ndim}"
+    assert poses_3d.shape[2] == 3
+    edges = np.array(edges)
+    return np.linalg.norm(poses_3d[:, edges[:, 0]] - poses_3d[:, edges[:, 1]], axis=2)
+
+
+def world_to_camera_dict(poses_world: dict, cam_par: dict) -> dict:
     """
     Affine transform 3D coordinates to camera frame
 
@@ -72,15 +79,14 @@ def world_to_camera_dict(poses_world: dict, cam_par: dict):
     poses_cam = {}
     for k in poses_world.keys():
         rcams = cam_par[k]
-        poses_cam[k] = world_to_camera(poses_world[k], rcams['R'], rcams['tvec'])
-
-    # sort dictionary
-    #poses_cam = dict(sorted(poses_cam.items()))
+        poses_cam[k] = world_to_camera(poses_world[k], rcams["R"], rcams["tvec"])
 
     return poses_cam
 
 
-def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
+def world_to_camera(
+    poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray
+) -> np.ndarray:
     """
     Rotate/translate 3d poses from world to camera viewpoint
 
@@ -102,7 +108,9 @@ def world_to_camera(poses_world: np.ndarray, R: np.ndarray, tvec: np.ndarray):
     return poses_cam
 
 
-def camera_to_world(poses_cam, R, tvec):
+def camera_to_world(
+    poses_cam: np.ndarray, R: np.ndarray, tvec: np.ndarray
+) -> np.ndarray:
     """
     Rotate/translate 3d poses from camera to world
 
@@ -135,7 +143,7 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
         poses_proj: 2D poses projected to camera plane
     """
     s = poses.shape
-    
+
     poses = np.reshape(poses, [s[0] * s[1], 3])
     poses_proj = np.matmul(intr, poses.T).T
     poses_proj = poses_proj / poses_proj[:, [2]]
