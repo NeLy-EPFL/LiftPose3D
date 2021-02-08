@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def preprocess_2d(train: dict, 
                   test: dict, 
                   roots: list, 
@@ -285,4 +284,16 @@ def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
+    return d
+
+
+def get_visible_points(d, good_keypts):
+    d = d.copy()
+    for (k, v) in d.items():
+        d_tmp = []
+        for i in range(d[k].shape[0]):
+            d_tmp.append(v[i,good_keypts[k][i,:,0],:])
+        
+        d[k] = np.stack(d_tmp,axis=0)
+        
     return d

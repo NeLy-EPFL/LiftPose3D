@@ -5,11 +5,15 @@ import sys
 from pprint import pformat
 
 import numpy as np
+import numpy.linalg as linalg
 import torch
 
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
-from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict
+from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict, anchor_to_root
+from liftpose.vision_3d import project_to_eangle
+
+import pickle
 
 from typing import Dict, Union, List, Callable
 
@@ -39,6 +43,7 @@ def train_np(
     network_kwargs: Dict[str, Union[str, int]] = None,
     augmentation: List[Callable] = None
 ) -> None:
+    
     assert train_2d.shape[0] == train_3d.shape[0]
     assert train_2d.shape[1] == train_3d.shape[1]
     assert test_2d.shape[0] == test_3d.shape[0]
@@ -291,3 +296,59 @@ def test(out_dir: str) -> None:
     option.predict = False
     network_main(option)
 
+
+def obtain_projected_stats(poses, eangle, axsorder, intr, par, th=0.05):
+    
+    error = 1
+    count = 0
+    error_log = []
+    #run until convergence
+    
+    logger.info("Bootstrapping normalization statistics.")
+    
+    while(error>th):
+                
+        #obtain randomly projected points
+        pts_2d = project_to_eangle( poses, eangle, axsorder, project=True, intr=intr)
+        pts_3d = project_to_eangle( poses, eangle, axsorder, project=False )
+        
+        pts_2d = flatten_dict(pts_2d)
+        pts_3d = flatten_dict(pts_3d)
+        
+        pts_2d, _  = anchor_to_root( pts_2d, par['roots'], par['target_sets'], par['in_dim'])
+        pts_3d, _  = anchor_to_root( pts_3d, par['roots'], par['target_sets'], par['out_dim'])    
+        
+        pts_2d = np.concatenate([v for k,v in pts_2d.items()], 0)
+        pts_3d = np.concatenate([v for k,v in pts_3d.items()], 0)
+        
+        #bootstrap mean, std
+        if count == 0:
+            train_samples_2d = pts_2d
+            mean_old_2d = np.zeros(pts_2d.shape[1])
+            std_old_2d  = np.zeros(pts_2d.shape[1])
+            train_samples_3d = pts_3d
+            mean_old_3d = np.zeros(pts_3d.shape[1])
+            std_old_3d  = np.zeros(pts_3d.shape[1])
+        else:
+            train_samples_2d = np.vstack((train_samples_2d,pts_2d))
+            train_samples_3d = np.vstack((train_samples_3d,pts_3d))
+            
+        mean_2d = np.nanmean(train_samples_2d, axis=0)
+        std_2d  = np.nanstd(train_samples_2d, axis=0)
+        mean_3d = np.nanmean(train_samples_3d, axis=0)
+        std_3d  = np.nanstd(train_samples_3d, axis=0)
+        
+        error = linalg.norm(mean_2d - mean_old_2d) + linalg.norm(std_2d - std_old_2d) + \
+                linalg.norm(mean_3d - mean_old_3d) + linalg.norm(std_3d - std_old_3d)
+        error_log.append(error)
+        
+        logger.info(f"Error: {error}")
+        mean_old_2d = mean_2d
+        std_old_2d = std_2d
+        mean_old_3d = mean_3d
+        std_old_3d = std_3d
+        count += 1
+        
+        pickle.dump(error_log, open(par['out_dir'] + '/error_log.pkl','wb'))
+    
+    return mean_2d, std_2d, mean_3d, std_3d

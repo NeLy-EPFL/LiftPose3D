@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List, Dict
+from scipy.spatial.transform import Rotation as Rot
 
 
 def reprojection_error(
@@ -101,8 +102,15 @@ def world_to_camera(
     poses_world = np.reshape(poses_world, [s[0] * s[1], 3])
 
     assert poses_world.shape[1] == 3
+    
+    if len(R)==poses_world.shape[0]//s[1]: 
+        poses_cam = np.zeros_like(poses_world)
+        for i in range(poses_world.shape[0]):
+            poses_cam[i,:] = np.matmul(R[i//s[1]], poses_world[i,:])
+    else:
+        poses_cam = np.matmul(R, poses_world.T).T
 
-    poses_cam = np.matmul(R, poses_world.T).T + tvec
+    poses_cam += tvec
     poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam
@@ -151,6 +159,67 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     poses_proj = poses_proj.reshape([s[0], s[1], 2])
 
     return poses_proj
+
+
+def project_to_eangle( poses_world, eangles, axsorder, project=False, intr=None):
+    """
+    Rotate 3D poses to specified Euler angles and project to virtual camera.
+
+    Parameters
+    ----------
+    poses_world : dict of numpy arrays
+        3D poses.
+    eangles : dict of lists
+        Each value in the dict should contain 3 lists containing a minimum and maximum eangle range.
+    axsorder : str
+        'xyz' or a permutation of this specifying the order of euler angle rotation.
+    project : bool, optional
+        Whether to project to virtual camera. The default is False.
+    intr : 4x3 numpy array, optional
+        Intrinsic camera matrix used for projections. The default is None.
+
+    Returns
+    -------
+    poses_cam : TYPE
+        DESCRIPTION.
+
+    """
+    
+    poses_cam = {}
+    for s, a, f in poses_world.keys():
+        
+        if len(eangles)==2:
+            lr = np.random.binomial(1,0.5)
+            if lr:
+                eangle = eangles[0]
+            else:
+                eangle = eangles[1]
+        else:
+            eangle = eangles[0]
+        
+        #generate Euler angles
+        n = poses_world[(s, a, f)].shape[0]
+        alpha = np.random.uniform(low=eangle[0][0], high=eangle[0][1], size=n)
+        beta = np.random.uniform(low=eangle[1][0], high=eangle[1][1], size=n)
+        gamma = np.random.uniform(low=eangle[2][0], high=eangle[2][1], size=n)
+        
+        #convert to rotation matrices
+        eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]      
+        R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
+                
+        #obtain 3d pose in camera coordinates
+        Pcam = world_to_camera(poses_world[(s, a, f)], R, np.array([0, 0, 117]))
+      
+        #project to camera axis
+        if project:
+            Pcam = project_to_camera(Pcam, intr)
+      
+        poses_cam[ (s, a, f) ] = Pcam
+            
+    #sort dictionary
+    poses_cam = dict(sorted(poses_cam.items()))
+
+    return poses_cam
 
 
 def XY_coord_dict(poses: dict):

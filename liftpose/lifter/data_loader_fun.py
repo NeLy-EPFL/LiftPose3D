@@ -2,9 +2,6 @@ import os
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-from scipy.spatial.transform import Rotation as Rot
-from liftpose.vision_3d import world_to_camera, project_to_camera
-from liftpose.preprocess import anchor_to_root, remove_roots
 
 
 class data_loader(Dataset):
