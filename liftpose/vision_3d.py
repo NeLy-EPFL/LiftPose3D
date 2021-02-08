@@ -161,7 +161,7 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     return poses_proj
 
 
-def project_to_eangle( poses_world, eangles, axsorder, project=False, intr=None):
+def project_to_eangle_dict( poses_world: dict, eangles, axsorder, project=False, intr=None):
     """
     Rotate 3D poses to specified Euler angles and project to virtual camera.
 
@@ -188,38 +188,46 @@ def project_to_eangle( poses_world, eangles, axsorder, project=False, intr=None)
     poses_cam = {}
     for s, a, f in poses_world.keys():
         
-        if len(eangles)==2:
-            lr = np.random.binomial(1,0.5)
-            if lr:
-                eangle = eangles[0]
-            else:
-                eangle = eangles[1]
-        else:
-            eangle = eangles[0]
-        
-        #generate Euler angles
-        n = poses_world[(s, a, f)].shape[0]
-        alpha = np.random.uniform(low=eangle[0][0], high=eangle[0][1], size=n)
-        beta = np.random.uniform(low=eangle[1][0], high=eangle[1][1], size=n)
-        gamma = np.random.uniform(low=eangle[2][0], high=eangle[2][1], size=n)
-        
-        #convert to rotation matrices
-        eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]      
-        R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
-                
-        #obtain 3d pose in camera coordinates
-        Pcam = world_to_camera(poses_world[(s, a, f)], R, np.array([0, 0, 117]))
-      
-        #project to camera axis
-        if project:
-            Pcam = project_to_camera(Pcam, intr)
-      
-        poses_cam[ (s, a, f) ] = Pcam
+        poses_cam[ (s, a, f) ] = \
+            project_to_eangle(poses_world[(s, a, f)], eangles, axsorder, project=project, intr=intr)        
             
     #sort dictionary
     poses_cam = dict(sorted(poses_cam.items()))
 
     return poses_cam
+
+
+def project_to_eangle(poses_world, eangles, axsorder, project=False, intr=None):
+    
+    assert len(poses_world.shape)==3
+    
+    if len(eangles)==2:
+        lr = np.random.binomial(1,0.5)
+        if lr:
+            eangle = eangles[0]
+        else:
+            eangle = eangles[1]
+    else:
+        eangle = eangles[0]
+        
+    #generate Euler angles
+    n = poses_world.shape[0]
+    alpha = np.random.uniform(low=eangle[0][0], high=eangle[0][1], size=n)
+    beta = np.random.uniform(low=eangle[1][0], high=eangle[1][1], size=n)
+    gamma = np.random.uniform(low=eangle[2][0], high=eangle[2][1], size=n)
+        
+    #convert to rotation matrices
+    eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]      
+    R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
+                
+    #obtain 3d pose in camera coordinates
+    Pcam = world_to_camera(poses_world, R, np.array([0, 0, 117]))
+      
+    #project to camera axis
+    if project:
+        Pcam = project_to_camera(Pcam, intr)
+        
+    return Pcam
 
 
 def XY_coord_dict(poses: dict):

@@ -57,6 +57,7 @@ class data_loader(Dataset):
         if self.is_train:
             outputs = torch.from_numpy(self.train_out[index]).float()
             inputs = torch.from_numpy(self.train_inp[index]).float()
+            
             if self.augmentation is not None:
                 for aug in self.augmentation:
                     inputs, outputs = aug(inputs, outputs, **self.get_aug_args())
@@ -76,11 +77,10 @@ class data_loader(Dataset):
 
         return inputs, outputs, good_keypts, keys
 
+
     def get_aug_args(self):
         mean_2d = self.train_stat_2d["mean"]
         std_2d = self.train_stat_2d["std"]
-        #f = self.train_stat_2d.get("focal_length")
-        #s = self.train_stat_2d.get("frame_size")
         mean_3d = self.train_stat_3d["mean"]
         std_3d = self.train_stat_3d["std"]
         axsorder = self.train_stat_2d.get("axsorder")
@@ -89,15 +89,16 @@ class data_loader(Dataset):
         targets_2d = self.train_stat_2d["targets_2d"]
 
         return {
-            "mean_2d": mean_2d,
-            "std_2d": std_2d,
-            "mean_3d": mean_3d,
-            "std_3d": std_3d,
+            "stats": {'mean_2d': mean_2d, 
+                      'std_2d': std_2d, 
+                      'mean_3d': mean_3d, 
+                      'std_3d': std_3d},
             "axsorder": axsorder,
             "roots": roots,
             "target_sets": target_sets,
             "targets_2d": targets_2d,
         }
+
 
     def __len__(self):
         if self.is_train:

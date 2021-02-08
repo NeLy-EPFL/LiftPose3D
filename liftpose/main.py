@@ -10,8 +10,8 @@ import torch
 
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
-from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict, anchor_to_root
-from liftpose.vision_3d import project_to_eangle
+from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict, anchor_to_root, get_visible_points
+from liftpose.vision_3d import project_to_eangle_dict
 
 import pickle
 
@@ -40,7 +40,7 @@ def train_np(
     root: int = 0,
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
-    network_kwargs: Dict[str, Union[str, int]] = None,
+    training_kwargs: Dict[str, Union[str, int]] = None,
     augmentation: List[Callable] = None
 ) -> None:
     
@@ -77,7 +77,7 @@ def train_np(
         out_dir=out_dir,
         train_keypts=train_keypts,
         test_keypts=test_keypts,
-        network_kwargs=network_kwargs,
+        network_kwargs=training_kwargs,
         augmentation=augmentation
     )
 
@@ -92,7 +92,7 @@ def train(
     out_dir: str,
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
-    network_kwargs: Dict[str, Union[str, int]] = None,
+    training_kwargs: Dict[str, Union[str, int]] = None,
     augmentation: List[Callable] = None
 ) -> None:
 
@@ -190,14 +190,63 @@ def train(
     in_dim = list(train_2d.values())[0].shape[-1]
     out_dim = list(train_3d.values())[0].shape[-1]
     assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
-    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)    
+ 
+    # bootstrap normalization statistics
+    logger.info("Bootstrapping normalization statistics.")
+    
+    train = get_visible_points(train_3d, train_keypts)
+    if 'eangles' in training_kwargs.keys():
+        
+        assert 'eangles' in training_kwargs.keys()
+        assert 'axsorder' in training_kwargs.keys()
+        assert 'intr' in training_kwargs.keys()
+        
+        mean_2d, std_2d, mean_3d, std_3d = obtain_projected_stats(train, 
+                                                 training_kwargs['eangles'], 
+                                                 training_kwargs['axsorder'], 
+                                                 training_kwargs['intr'], 
+                                                 roots, 
+                                                 target_sets,
+                                                 out_dir, 
+                                                 th=0.05) 
+    else:
+        mean_2d, std_2d, mean_3d, std_3d = None, None, None, None
+ 
     # fmt: on
 
     # preprocess 2d
-    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
-        train_2d, test_2d, roots, target_sets, in_dim
+    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
+    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = \
+        preprocess_2d(
+            train_2d, 
+            test_2d, 
+            roots, 
+            target_sets, 
+            in_dim, 
+            mean=mean_2d, 
+            std=std_2d
+    )            
+
+    # preprocess 3d
+    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
+    (train_set_3d, test_set_3d, mean_3d, std_3d, targets_3d, offset_3d,) = \
+        preprocess_3d(
+            train_3d, 
+            test_3d, 
+            roots, 
+            target_sets, 
+            out_dim,
+            mean=mean_3d,
+            std=std_3d
     )
+
+    # flatten train_keypts
+    # TODO move preprocessing of train_keypts inside preprocess_3d function
+    train_keypts = flatten_dict(train_keypts)
+    test_keypts = flatten_dict(test_keypts)
+
+    train_keypts = {k: v[:, targets_3d] for (k, v) in train_keypts.items()}
+    test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
 
     # save 2d data
     logger.info(
@@ -216,19 +265,6 @@ def train(
         os.path.join(out_dir, "stat_2d.pth.tar"),
     )
 
-    # preprocess 3d
-    (train_set_3d, test_set_3d, mean_3d, std_3d, targets_3d, offset,) = preprocess_3d(
-        train_3d, test_3d, roots, target_sets, out_dim
-    )
-
-    # flatten train_keypts
-    # TODO move preprocessing of train_keypts inside preprocess_3d function
-    train_keypts = flatten_dict(train_keypts)
-    test_keypts = flatten_dict(test_keypts)
-
-    train_keypts = {k: v[:, targets_3d] for (k, v) in train_keypts.items()}
-    test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
-
     # save 3d data
     logger.info(
         f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir, "stat_3d.pth.tar."))}'
@@ -241,7 +277,7 @@ def train(
             "mean": mean_3d,
             "std": std_3d,
             "targets_3d": targets_3d,
-            "offset": offset,
+            "offset": offset_3d,
             "LR_train": train_keypts,
             "LR_test": test_keypts,
             "out_dim": out_dim,
@@ -259,8 +295,8 @@ def train(
     option.out = os.path.abspath(out_dir)
     option.out_dir = os.path.abspath(out_dir)
 
-    # overwrite training options with network_kwargs if given
-    option.__dict__.update(network_kwargs) if network_kwargs is not None else None
+    # overwrite training options with training_kwargs if given
+    option.__dict__.update(training_kwargs) if training_kwargs is not None else None
 
     logger.debug("\n==================Options=================")
     logger.debug(pformat(vars(option), indent=4))
@@ -297,26 +333,24 @@ def test(out_dir: str) -> None:
     network_main(option)
 
 
-def obtain_projected_stats(poses, eangle, axsorder, intr, par, th=0.05):
+def obtain_projected_stats(poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05):
     
     error = 1
     count = 0
     error_log = []
+    
     #run until convergence
-    
-    logger.info("Bootstrapping normalization statistics.")
-    
     while(error>th):
                 
         #obtain randomly projected points
-        pts_2d = project_to_eangle( poses, eangle, axsorder, project=True, intr=intr)
-        pts_3d = project_to_eangle( poses, eangle, axsorder, project=False )
-        
+        pts_2d = project_to_eangle_dict( poses, eangle, axsorder, project=True, intr=intr)
+        pts_3d = project_to_eangle_dict( poses, eangle, axsorder, project=False )
+                
         pts_2d = flatten_dict(pts_2d)
         pts_3d = flatten_dict(pts_3d)
         
-        pts_2d, _  = anchor_to_root( pts_2d, par['roots'], par['target_sets'], par['in_dim'])
-        pts_3d, _  = anchor_to_root( pts_3d, par['roots'], par['target_sets'], par['out_dim'])    
+        pts_2d, _  = anchor_to_root( pts_2d, roots, target_sets, 2)
+        pts_3d, _  = anchor_to_root( pts_3d, roots, target_sets, 3)    
         
         pts_2d = np.concatenate([v for k,v in pts_2d.items()], 0)
         pts_3d = np.concatenate([v for k,v in pts_3d.items()], 0)
@@ -349,6 +383,6 @@ def obtain_projected_stats(poses, eangle, axsorder, intr, par, th=0.05):
         std_old_3d = std_3d
         count += 1
         
-        pickle.dump(error_log, open(par['out_dir'] + '/error_log.pkl','wb'))
+        pickle.dump(error_log, open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")),'wb'))
     
     return mean_2d, std_2d, mean_3d, std_3d

@@ -40,6 +40,7 @@ def preprocess_2d(train: dict,
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
+    
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
@@ -91,6 +92,10 @@ def preprocess_3d(train,
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
+    
+    train = train.copy()
+    test = test.copy()
+    
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
     train, _ = anchor_to_root(train, roots, target_sets, out_dim)
     test, offset = anchor_to_root(test, roots, target_sets, out_dim)
