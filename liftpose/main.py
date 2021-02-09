@@ -11,7 +11,7 @@ import torch
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
 from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict, anchor_to_root, get_visible_points
-from liftpose.vision_3d import project_to_eangle_dict
+from liftpose.vision_3d import project_to_random_eangle, process_dict
 
 import pickle
 
@@ -343,8 +343,8 @@ def obtain_projected_stats(poses, eangle, axsorder, intr, roots, target_sets, ou
     while(error>th):
                 
         #obtain randomly projected points
-        pts_2d = project_to_eangle_dict( poses, eangle, axsorder, project=True, intr=intr)
-        pts_3d = project_to_eangle_dict( poses, eangle, axsorder, project=False )
+        pts_2d = process_dict(project_to_random_eangle, poses, eangle, axsorder, project=True, intr=intr)
+        pts_3d = process_dict(project_to_random_eangle, poses, eangle, axsorder, project=False)
                 
         pts_2d = flatten_dict(pts_2d)
         pts_3d = flatten_dict(pts_3d)

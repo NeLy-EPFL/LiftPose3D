@@ -1,5 +1,5 @@
 import numpy as np
-from liftpose.vision_3d import project_to_eangle
+from liftpose.vision_3d import project_to_random_eangle
 from liftpose.preprocess import anchor_to_root, remove_roots
 import torch
 
@@ -22,7 +22,7 @@ def random_project(eangle, axsorder):
         raise NotImplementedError
 
         # do random projection
-        inputs = project_to_eangle(outputs[None, :], eangle, axsorder, project=True, intr=intr)
+        inputs = project_to_random_eangle(outputs[None, :], eangle, axsorder, project=True, intr=intr)
 
         # anchor points to body-coxa (to predict legjoints wrt body-coxas)
         inputs, _ = anchor_to_root({"inputs": inputs}, roots, target_sets, 2)

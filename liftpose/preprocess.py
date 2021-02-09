@@ -114,8 +114,7 @@ def preprocess_3d(train,
 
 
 def normalization_stats(data):
-    """
-    Computes mean and stdev
+    """ Computes mean and stdev
     
     Args
         data: dictionary containing data of all experiments
@@ -132,8 +131,7 @@ def normalization_stats(data):
 
 
 def normalize(data, mean, std):
-    """
-    Normalizes a dictionary of poses
+    """ Normalizes a dictionary of poses
   
     Args
         data: dictionary containing data of all experiments
@@ -154,8 +152,7 @@ def normalize(data, mean, std):
 
 
 def unNormalize(data_norm, mean, std):
-    """
-    Un-normalizes a matrix whose mean has been substracted and that has been divided by
+    """ Un-normalizes a matrix whose mean has been substracted and that has been divided by
     standard deviation
   
     Args
@@ -174,8 +171,7 @@ def unNormalize(data_norm, mean, std):
 
 
 def anchor_to_root(poses, roots, target_sets, dim):
-    """
-    Center points in targset sets around roots
+    """ Center points in targset sets around roots
     
     Args
         poses: dictionary of experiments each with array of size n_frames x n_dimensions
@@ -206,8 +202,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
 
 
 def add_roots(data, dim_to_use, n_dim):
-    """
-    Add back the root dimensions
+    """ Add back the root dimensions
     
     Args
         data: array of size n_frames x (n_dim-n_roots)
@@ -251,8 +246,7 @@ def remove_roots(data, targets, n_dim, vis=None):
 
 
 def get_coords_in_dim(targets, dim):
-    """
-    Get keypoint indices in spatial dimension 'dim'
+    """ Get keypoint indices in spatial dimension 'dim'
     
     Args
         targets: list of lists of keypoints to be converted
@@ -293,6 +287,22 @@ def flatten_dict(d):
 
 
 def get_visible_points(d, good_keypts):
+    """ Restricts a dictionary of poses only to th visible points.
+    
+
+    Parameters
+    ----------
+    d : dict of np arrays
+        Dict of poses.
+    good_keypts : dict of boolean np arrays
+        Visible points for each timestep.
+
+    Returns
+    -------
+    d : dict of np arrays
+        Dict of poses with only visible keypoints.
+
+    """
     d = d.copy()
     for (k, v) in d.items():
         d_tmp = []

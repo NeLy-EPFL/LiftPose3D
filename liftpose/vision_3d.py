@@ -161,63 +161,105 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     return poses_proj
 
 
-def project_to_eangle_dict( poses_world: dict, eangles, axsorder, project=False, intr=None):
+def process_dict(function, d: dict, **args):
     """
-    Rotate 3D poses to specified Euler angles and project to virtual camera.
+    Apply a function to each array in a dictionary.
 
     Parameters
     ----------
-    poses_world : dict of numpy arrays
-        3D poses.
-    eangles : dict of lists
-        Each value in the dict should contain 3 lists containing a minimum and maximum eangle range.
-    axsorder : str
-        'xyz' or a permutation of this specifying the order of euler angle rotation.
-    project : bool, optional
-        Whether to project to virtual camera. The default is False.
-    intr : 4x3 numpy array, optional
-        Intrinsic camera matrix used for projections. The default is None.
+    function : Callable
+        Function to apply to all arrays in d.
+    d : dict of 3-dim numpy arrays
+        Arrays to operate on.
+    **args : TYPE
+        Arguments for function.
 
     Returns
     -------
-    poses_cam : TYPE
-        DESCRIPTION.
+    None.
+
+    """
+    d_new = {}
+    for key in d.keys():
+        
+        d_new[key] = function(d,args)
+            
+    #sort dictionary
+    d_new = dict(sorted(d_new.items()))
+
+
+def project_to_random_eangle(poses_world, eangle_range, axsorder='xyz', project=False, intr=None):
+    """
+    Project to a random Euler angle within specified intervals.
+
+    Parameters
+    ----------
+    poses_world : t x n x 3 numpy array
+        Poses in world coordinates.
+    eangle_range : list of 3 pairs
+        Lower and upper limits of Euler angles.
+    axsorder : 'xyz' or a permutation
+        Order of Euler angles.
+    project : bool, optional
+        Do projection. The default is False.
+    intr : 4x3 matrix, optional
+        Intrinsic camera matrix for the projections. The default is None.
+
+    Returns
+    -------
+    Pcam : t x n x 2 or t x n x 3 numpy array
+        Projected points.
 
     """
     
-    poses_cam = {}
-    for s, a, f in poses_world.keys():
-        
-        poses_cam[ (s, a, f) ] = \
-            project_to_eangle(poses_world[(s, a, f)], eangles, axsorder, project=project, intr=intr)        
-            
-    #sort dictionary
-    poses_cam = dict(sorted(poses_cam.items()))
-
-    return poses_cam
-
-
-def project_to_eangle(poses_world, eangles, axsorder, project=False, intr=None):
-    
     assert len(poses_world.shape)==3
     
-    if len(eangles)==2:
+    if len(eangle_range)==2:
         lr = np.random.binomial(1,0.5)
         if lr:
-            eangle = eangles[0]
+            eangle = eangle_range[0]
         else:
-            eangle = eangles[1]
+            eangle = eangle_range[1]
     else:
-        eangle = eangles[0]
+        eangle = eangle_range[0]
         
     #generate Euler angles
     n = poses_world.shape[0]
     alpha = np.random.uniform(low=eangle[0][0], high=eangle[0][1], size=n)
     beta = np.random.uniform(low=eangle[1][0], high=eangle[1][1], size=n)
     gamma = np.random.uniform(low=eangle[2][0], high=eangle[2][1], size=n)
+    eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]
+    
+    Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, intr=intr)
+        
+    return Pcam
+
+
+def project_to_eangle(poses_world, eangle, axsorder='xyz', project=False, intr=None):
+    """
+    Project to specified Euler angle
+
+    Parameters
+    ----------
+    poses_world : t x n x 3 numpy array
+        Poses in world coordinates.
+    eangle : triple
+        Euler angle.
+    axsorder : 'xyz' or a permutation
+        Order of Euler angles.
+    project : bool, optional
+        Do projection. The default is False.
+    intr : 4x3 matrix, optional
+        Intrinsic camera matrix for the projections. The default is None.
+
+    Returns
+    -------
+    Pcam : t x n x 2 or t x n x 3 numpy array
+        Projected points.
+
+    """
         
     #convert to rotation matrices
-    eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]      
     R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
                 
     #obtain 3d pose in camera coordinates
@@ -264,3 +306,230 @@ def Z_coord_dict(poses: dict):
         poses_xy[key] = poses[key][:, :, [-1]]
 
     return poses_xy
+
+
+def procrustes(X, Y, scaling=True, reflection='best'):
+    """
+    A port of MATLAB's `procrustes` function to Numpy.
+
+    Procrustes analysis determines a linear transformation (translation,
+    reflection, orthogonal rotation and scaling) of the points in Y to best
+    conform them to the points in matrix X, using the sum of squared errors
+    as the goodness of fit criterion.
+
+        d, Z, [tform] = procrustes(X, Y)
+
+    Inputs:
+    ------------
+    X, Y    
+        matrices of target and input coordinates. they must have equal
+        numbers of  points (rows), but Y may have fewer dimensions
+        (columns) than X.
+
+    scaling 
+        if False, the scaling component of the transformation is forced
+        to 1
+
+    reflection
+        if 'best' (default), the transformation solution may or may not
+        include a reflection component, depending on which fits the data
+        best. setting reflection to True or False forces a solution with
+        reflection or no reflection respectively.
+
+    Outputs
+    ------------
+    d       
+        the residual sum of squared errors, normalized according to a
+        measure of the scale of X, ((X - X.mean(0))**2).sum()
+
+    Z
+        the matrix of transformed Y-values
+
+    tform   
+        a dict specifying the rotation, translation and scaling that
+        maps X --> Y
+
+    """
+
+    n,m = X.shape
+    ny,my = Y.shape
+
+    muX = X.mean(0)
+    muY = Y.mean(0)
+
+    X0 = X - muX
+    Y0 = Y - muY
+
+    ssX = (X0**2.).sum()
+    ssY = (Y0**2.).sum()
+
+    # centred Frobenius norm
+    normX = np.sqrt(ssX)
+    normY = np.sqrt(ssY)
+
+    # scale to equal (unit) norm
+    X0 /= normX
+    Y0 /= normY
+
+    if my < m:
+        Y0 = np.concatenate((Y0, np.zeros(n, m-my)),0)
+
+    # optimum rotation matrix of Y
+    A = np.dot(X0.T, Y0)
+    U,s,Vt = np.linalg.svd(A,full_matrices=False)
+    V = Vt.T
+    T = np.dot(V, U.T)
+
+    if reflection != 'best':
+
+        # does the current solution use a reflection?
+        have_reflection = np.linalg.det(T) < 0
+
+        # if that's not what was specified, force another reflection
+        if reflection != have_reflection:
+            V[:,-1] *= -1
+            s[-1] *= -1
+            T = np.dot(V, U.T)
+
+    traceTA = s.sum()
+
+    if scaling:
+
+        # optimum scaling of Y
+        b = traceTA * normX / normY
+
+        # standarised distance between X and b*Y*T + c
+        d = 1 - traceTA**2
+
+        # transformed coords
+        Z = normX*traceTA*np.dot(Y0, T) + muX
+
+    else:
+        b = 1
+        d = 1 + ssY/ssX - 2 * traceTA * normY / normX
+        Z = normY*np.dot(Y0, T) + muX
+
+    # transformation matrix
+    if my < m:
+        T = T[:my,:]
+    c = muX - b*np.dot(muY, T)
+
+    #transformation values 
+    tform = {'rotation':T, 'scale':b, 'translation':c}
+
+    return d, Z, tform
+
+
+def find_neighbours(k, pts3d, source_pts3d, nn):
+    """
+    Procrustes align a source pose to all poses in pts3d and find nearest neighbours
+
+    Parameters
+    ----------
+    k : int
+        Index of pose in target_pts3d to search nearest neighbours for.
+    pts3d : 3-dim numpy array
+        P.
+    source_pts3d : 3-dim numpy array
+        Poses in the .
+    nn : int
+        Number of nearest neighbours to return.
+
+    Returns
+    -------
+    nn_ind: list
+        lift of nearest neighbours in ascending order of distances.
+
+    """
+    source_pose = source_pts3d[k,:,:]
+    disparity = np.zeros(pts3d.shape[0])
+    for i in range(pts3d.shape[0]):
+        disparity[i], _, _ = procrustes(source_pose, pts3d[i,:,:], scaling=True, reflection='best')   
+    
+    #find nn
+    nn_ind = list(np.argsort(disparity)[:nn])
+    
+    return nn_ind
+
+
+def best_linear_map(target_poses,source_poses,nns,nn):
+    """
+    Find best linear transformation from source poses to their nearest 
+    neighbour target poses
+    
+    AX = B looking for A
+    X^TA^T = B^T is a least squares problem
+
+    Parameters
+    ----------
+    target_poses : 3-dim numpy array
+        Target poses to map to.
+    source_poses : 3-dim numpy array
+        Source poses to map from.
+    nns : list of lists
+        Nearest neighbours of each target_pose in the source domain.
+    nn : TYPE
+        Number of nearest neighbours to use.
+
+    Returns
+    -------
+    A_est : TYPE
+        DESCRIPTION.
+
+    """
+    B = [] #target poses
+    X = [] #poses to be mapped
+    #M = [] #missing points
+    for i, n in enumerate(nns):
+        B_tmp = target_poses[n[:nn],:,:]
+        B_tmp = B_tmp.reshape(B_tmp.shape[0],B_tmp.shape[1]*B_tmp.shape[2]).T
+        X_tmp = source_poses[i,:,:]
+        X_tmp = X_tmp.reshape(X_tmp.shape[0]*X_tmp.shape[1],1)
+        X_tmp = np.tile(X_tmp, (1,nn))
+        #M_tmp = visible_points[[i],:].T
+        #M_tmp = np.tile(M_tmp, (1,len(n)))
+        B.append(B_tmp)
+        X.append(X_tmp)
+        #M.append(M_tmp)
+    
+    X = np.hstack(X)
+    B = np.hstack(B)
+    #M = np.hstack(M)
+    #M = np.tile(M,(3,1))
+
+    #A_est = censored_lstsq(X.T, B.T, np.ones_like(M).T)
+    A_est = np.linalg.pinv(X.T).dot(B.T).T
+    
+    return A_est
+
+
+def apply_linear_map(A, X):
+    """
+    Apply linear transformation to poses
+
+    Parameters
+    ----------
+    A : dim*n x dim*n numpy array
+        Linear map in dim dimensions between n joints.
+    X : 2-dim numpy array of pose or 3-dim numpy array
+        Input pose or set of poses.
+
+    Returns
+    -------
+    B : dim*n x dim*n numpy array
+        Mapped poses.
+
+    """
+    
+    if len(X.shape)==2:
+        X = X[None,:]
+             
+    n_frames, n_joints, n_dim = X.shape
+    assert A.shape[0]==n_joints*n_dim
+        
+    X_test = X.copy()
+    X_test = X_test.reshape(n_frames, n_joints*n_dim)
+    B = A.dot(X_test.T).T
+    B = B.reshape(n_frames, n_joints, n_dim)
+    
+    return B
