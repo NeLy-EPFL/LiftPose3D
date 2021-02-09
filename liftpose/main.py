@@ -343,9 +343,9 @@ def obtain_projected_stats(poses, eangle, axsorder, intr, roots, target_sets, ou
     while(error>th):
                 
         #obtain randomly projected points
-        pts_2d = process_dict(project_to_random_eangle, poses, eangle, axsorder, project=True, intr=intr)
-        pts_3d = process_dict(project_to_random_eangle, poses, eangle, axsorder, project=False)
-                
+        pts_2d = process_dict(project_to_random_eangle, poses, eangle, axsorder=axsorder, project=True, intr=intr)
+        pts_3d = process_dict(project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False)
+
         pts_2d = flatten_dict(pts_2d)
         pts_3d = flatten_dict(pts_3d)
         

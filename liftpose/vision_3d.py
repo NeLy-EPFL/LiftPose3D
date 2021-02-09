@@ -161,7 +161,7 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     return poses_proj
 
 
-def process_dict(function, d: dict, **args):
+def process_dict(function, d: dict,*args,**kwargs):
     """
     Apply a function to each array in a dictionary.
 
@@ -176,16 +176,20 @@ def process_dict(function, d: dict, **args):
 
     Returns
     -------
-    None.
+    d_new
+        Output of function.
 
     """
+        
     d_new = {}
     for key in d.keys():
         
-        d_new[key] = function(d,args)
+        d_new[key] = function(d[key],*args,**kwargs)
             
     #sort dictionary
     d_new = dict(sorted(d_new.items()))
+    
+    return d_new
 
 
 def project_to_random_eangle(poses_world, eangle_range, axsorder='xyz', project=False, intr=None):
@@ -202,7 +206,7 @@ def project_to_random_eangle(poses_world, eangle_range, axsorder='xyz', project=
         Order of Euler angles.
     project : bool, optional
         Do projection. The default is False.
-    intr : 4x3 matrix, optional
+    intr : 3x3 matrix, optional
         Intrinsic camera matrix for the projections. The default is None.
 
     Returns
@@ -213,7 +217,7 @@ def project_to_random_eangle(poses_world, eangle_range, axsorder='xyz', project=
     """
     
     assert len(poses_world.shape)==3
-    
+
     if len(eangle_range)==2:
         lr = np.random.binomial(1,0.5)
         if lr:
@@ -249,7 +253,7 @@ def project_to_eangle(poses_world, eangle, axsorder='xyz', project=False, intr=N
         Order of Euler angles.
     project : bool, optional
         Do projection. The default is False.
-    intr : 4x3 matrix, optional
+    intr : 3x3 matrix, optional
         Intrinsic camera matrix for the projections. The default is None.
 
     Returns
@@ -267,6 +271,8 @@ def project_to_eangle(poses_world, eangle, axsorder='xyz', project=False, intr=N
       
     #project to camera axis
     if project:
+        if intr is None:
+            intr = intrinsic_matrix(1, 1, 0, 0)
         Pcam = project_to_camera(Pcam, intr)
         
     return Pcam
@@ -306,6 +312,40 @@ def Z_coord_dict(poses: dict):
         poses_xy[key] = poses[key][:, :, [-1]]
 
     return poses_xy
+
+
+def intrinsic_matrix(fx,fy,cx,cy):
+    """
+    Generate camera intrinsic matrix.
+
+    Parameters
+    ----------
+    fx : float
+        Focal length x.
+    fy : float
+        Focal length y.
+    cx : float
+        Camera center x.
+    cy : float
+        Camera center y.
+
+    Returns
+    -------
+    intr : 3x3 numpy array
+        Camera intrinsic matrix.
+
+    """
+    
+    intr = np.array(
+                [
+                    [fx, 0, cx],
+                    [0, fy, cy],
+                    [0, 0, 1],
+                ],
+            dtype=float,
+            )
+    
+    return intr
 
 
 def procrustes(X, Y, scaling=True, reflection='best'):
@@ -420,17 +460,17 @@ def procrustes(X, Y, scaling=True, reflection='best'):
     return d, Z, tform
 
 
-def find_neighbours(k, pts3d, source_pts3d, nn):
+def find_neighbours(k, pts, target_pts, nn):
     """
-    Procrustes align a source pose to all poses in pts3d and find nearest neighbours
+    Procrustes align a source pose to all poses in pts and find nearest neighbours
 
     Parameters
     ----------
     k : int
-        Index of pose in target_pts3d to search nearest neighbours for.
+        Index of pose in target_pts to search nearest neighbours for.
     pts3d : 3-dim numpy array
         P.
-    source_pts3d : 3-dim numpy array
+    target_pts : 3-dim numpy array
         Poses in the .
     nn : int
         Number of nearest neighbours to return.
@@ -441,10 +481,10 @@ def find_neighbours(k, pts3d, source_pts3d, nn):
         lift of nearest neighbours in ascending order of distances.
 
     """
-    source_pose = source_pts3d[k,:,:]
-    disparity = np.zeros(pts3d.shape[0])
-    for i in range(pts3d.shape[0]):
-        disparity[i], _, _ = procrustes(source_pose, pts3d[i,:,:], scaling=True, reflection='best')   
+    target_pose = target_pts[k,:,:]
+    disparity = np.zeros(pts.shape[0])
+    for i in range(pts.shape[0]):
+        disparity[i], _, _ = procrustes(target_pose, pts[i,:,:], scaling=True, reflection='best')   
     
     #find nn
     nn_ind = list(np.argsort(disparity)[:nn])
@@ -452,10 +492,10 @@ def find_neighbours(k, pts3d, source_pts3d, nn):
     return nn_ind
 
 
-def best_linear_map(target_poses,source_poses,nns,nn):
+def best_linear_map(source_poses,target_poses,nns,nn):
     """
-    Find best linear transformation from source poses to their nearest 
-    neighbour target poses
+    Find best linear transformation from poses in target domain to their nearest 
+    neighbour poses in source domain
     
     AX = B looking for A
     X^TA^T = B^T is a least squares problem
@@ -481,9 +521,9 @@ def best_linear_map(target_poses,source_poses,nns,nn):
     X = [] #poses to be mapped
     #M = [] #missing points
     for i, n in enumerate(nns):
-        B_tmp = target_poses[n[:nn],:,:]
+        B_tmp = source_poses[n[:nn],:,:]
         B_tmp = B_tmp.reshape(B_tmp.shape[0],B_tmp.shape[1]*B_tmp.shape[2]).T
-        X_tmp = source_poses[i,:,:]
+        X_tmp = target_poses[i,:,:]
         X_tmp = X_tmp.reshape(X_tmp.shape[0]*X_tmp.shape[1],1)
         X_tmp = np.tile(X_tmp, (1,nn))
         #M_tmp = visible_points[[i],:].T

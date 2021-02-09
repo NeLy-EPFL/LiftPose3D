@@ -113,50 +113,59 @@ def preprocess_3d(train,
     return train, test, mean, std, targets_3d, offset
 
 
-def normalization_stats(data):
+def normalization_stats(d):
     """ Computes mean and stdev
     
     Args
-        data: dictionary containing data of all experiments
+        d: dictionary containing data of all experiments
     Returns
         mean: array with the mean of the data for all dimensions
         std: array with the stdev of the data for all dimensions
     """
 
-    complete_data = np.concatenate([v for k, v in data.items()], 0)
+    complete_data = np.concatenate([v for k, v in d.items()], 0)
     mean = np.nanmean(complete_data, axis=0)
     std = np.nanstd(complete_data, axis=0)
 
     return mean, std
 
 
-def normalize(data, mean, std):
+def center_poses(d):
+    """move center of gravity to origin"""
+    
+    for k in d.keys():
+        d[k] -= np.mean(d[k], axis=1, keepdims=True)
+
+    return d
+
+
+def normalize(d, mean, std):
     """ Normalizes a dictionary of poses
   
     Args
-        data: dictionary containing data of all experiments
+        d: dictionary containing data of all experiments
         mean: array with the mean of the data for all dimensions
         std: array with the stdev of the data for all dimensions
       
     Returns
-        data: dictionary containing normalized data
+        d: dictionary containing normalized data
     """
 
     np.seterr(divide="ignore", invalid="ignore")
 
-    for key in data.keys():
-        data[key] -= mean
-        data[key] /= std
+    for k in d.keys():
+        d[k] -= mean
+        d[k] /= std
 
-    return data
+    return d
 
 
-def unNormalize(data_norm, mean, std):
+def unNormalize(d_norm, mean, std):
     """ Un-normalizes a matrix whose mean has been substracted and that has been divided by
     standard deviation
   
     Args
-        data: dictionary containing normalized data of all experiments
+        d_norm: dictionary containing normalized data of all experiments
         mean: array with the mean of the data for all dimensions
         std: array with the stdev of the data for all dimensions
       
@@ -164,10 +173,10 @@ def unNormalize(data_norm, mean, std):
         data: dictionary containing normalized data
     """
 
-    data_norm *= std
-    data_norm += mean
+    d_norm *= std
+    d_norm += mean
 
-    return data_norm
+    return d_norm
 
 
 def anchor_to_root(poses, roots, target_sets, dim):
@@ -201,11 +210,11 @@ def anchor_to_root(poses, roots, target_sets, dim):
     return poses, offset
 
 
-def add_roots(data, dim_to_use, n_dim):
+def add_roots(d, dim_to_use, n_dim):
     """ Add back the root dimensions
     
     Args
-        data: array of size n_frames x (n_dim-n_roots)
+        d: array of size n_frames x (n_dim-n_roots)
         dim_to_use: list of indices of dimenions that are not roots 
         n_dim: integer number of dimensions including roots
     
@@ -213,20 +222,20 @@ def add_roots(data, dim_to_use, n_dim):
         orig_data: array of size n_frames x n_dim
     """
 
-    T = data.shape[0]
+    T = d.shape[0]
     D = n_dim
     orig_data = np.zeros((T, D), dtype=np.float32)
-    orig_data[:, dim_to_use] = data
+    orig_data[:, dim_to_use] = d
 
     return orig_data
 
 
-def remove_roots(data, targets, n_dim, vis=None):
+def remove_roots(d, targets, n_dim, vis=None):
     """
     # TODO 
   
     Args
-        data: dictionary of experiments each with array of size n_frames x n_dimensions
+        d: dictionary of experiments each with array of size n_frames x n_dimensions
         targets: list of list of dimensions to be considered
         n_dim: number of spatial dimensions (e.g., 1,2 or 3)
         
@@ -237,12 +246,12 @@ def remove_roots(data, targets, n_dim, vis=None):
 
     dim_to_use = np.squeeze(get_coords_in_dim(targets, n_dim))
 
-    for key in data.keys():
+    for k in d.keys():
         if vis is not None:
-            data[key] = data[key][:, vis]
-        data[key] = data[key][:, dim_to_use]
+            d[k] = d[k][:, vis]
+        d[k] = d[k][:, dim_to_use]
 
-    return data, dim_to_use
+    return d, dim_to_use
 
 
 def get_coords_in_dim(targets, dim):
@@ -276,15 +285,43 @@ def get_coords_in_dim(targets, dim):
 
 def init_keypts(train_3d):
     """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
-    return {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
+    d = {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
+    
+    return d
 
 
 def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
+        
     return d
 
+
+def concat_dict(d):
+    """concatenates dictionary vertically in the first dimension"""
+
+    d_concat = np.concatenate([v for k,v in d.items()], 0)
+    
+    return d_concat
+
+
+def total_frames(d):
+    """Count the number of frames for all experiments"""
+    count = 0
+    for (k, v) in d.items():
+        count += v.shape[0]
+        
+    return count
+
+
+def remove_dimensions(d, dims_to_remove):
+    """Remove dimensions specified in dims_to_remove"""
+    for (k, v) in d.items():
+        d[k] = np.delete(d[k], dims_to_remove, axis=1)
+        
+    return d
+        
 
 def get_visible_points(d, good_keypts):
     """ Restricts a dictionary of poses only to th visible points.
