@@ -196,13 +196,13 @@ def train(
         
         logger.info("Bootstrapping normalization statistics.")
         
-        train = get_visible_points(train_3d, train_keypts)
+        d_train = get_visible_points(train_3d, train_keypts)
         
         assert 'eangles' in training_kwargs.keys()
         assert 'axsorder' in training_kwargs.keys()
         assert 'intr' in training_kwargs.keys()
         
-        mean_2d, std_2d, mean_3d, std_3d = obtain_projected_stats(train, 
+        mean_2d, std_2d, mean_3d, std_3d = obtain_projected_stats(d_train, 
                                                  training_kwargs['eangles'], 
                                                  training_kwargs['axsorder'], 
                                                  training_kwargs['intr'], 
