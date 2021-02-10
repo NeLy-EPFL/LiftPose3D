@@ -437,5 +437,4 @@ def obtain_projected_stats(
             error_log,
             open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
-        break
     return mean_2d, std_2d, mean_3d, std_3d
