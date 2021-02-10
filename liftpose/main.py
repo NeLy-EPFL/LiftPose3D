@@ -192,10 +192,11 @@ def train(
     assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
  
     # bootstrap normalization statistics
-    logger.info("Bootstrapping normalization statistics.")
-    
-    train = get_visible_points(train_3d, train_keypts)
-    if 'eangles' in training_kwargs.keys():
+    if training_kwargs is not None and 'eangles' in training_kwargs.keys():
+        
+        logger.info("Bootstrapping normalization statistics.")
+        
+        train = get_visible_points(train_3d, train_keypts)
         
         assert 'eangles' in training_kwargs.keys()
         assert 'axsorder' in training_kwargs.keys()
