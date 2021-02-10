@@ -106,32 +106,32 @@ def train(
 
     """Train LiftPose3D.
         Training works in two steps:
-        1. Training and testing data will be preprocessed to zero-mean and unit-std. 
-            Root joints will be removed from the training and target_set will be subtracted from the root joints.  
+        1. Training and testing data will be preprocessed to zero-mean and unit-std.
+            Root joints will be removed from the training and target_set will be subtracted from the root joints.
             Corresponding normalization statistics will be written under stat_2d and stat_3d files.
             Normalized 2d and 3d data will written under train_2d and train_3d files.
         2. Martinez et. al network will be trained on the processed training data using liftpose.lifter module.
 
     Args:
         train_2d: Dict[Tuple:np.array[float]]
-            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2]. 
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2].
             T corresponds to time axis and J is number of joints. T can be arbitrary.
-            The last dimension 2 corresponds to the 2d pose. 
+            The last dimension 2 corresponds to the 2d pose.
         test_2d: Dict[Tuple:np.array[float]]
-            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2]. 
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J 2].
             T corresponds to time axis and J is number of joints. T can be arbitrary.
-            The last dimension 2 corresponds to the 2d pose.  
+            The last dimension 2 corresponds to the 2d pose.
         train_3d: Dict[Tuple:np.array[float]]
-            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim]. 
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim].
             T corresponds to time axis and J is number of joints. T can be arbitrary.
-            out_dim can only be 1 or 3. 
-        test_3d: Dict[Tuple:np.array[float]] 
-            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim]. 
+            out_dim can only be 1 or 3.
+        test_3d: Dict[Tuple:np.array[float]]
+            Dictionary with keys as experiment names and values as numpy arrays in the shape of [T J out_dim].
             T corresponds to time axis and J is number of joints. T can be arbitrary.
-            out_dim can only be 1 or 3. 
+            out_dim can only be 1 or 3.
         roots: List[Int]
             Single depth list consisting of root joints. Corresponding
-            target set will predicted with respect to the root joint. 
+            target set will predicted with respect to the root joint.
             Cannot be empty.
         target_sets: List[List[Int]]
             Joints to be predicted with respect to roots.
@@ -140,7 +140,7 @@ def train(
             Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
             Cannot be empty.
         out_dir: String
-            **relative** output path, will be created if does exist. 
+            **relative** output path, will be created if does exist.
         train_keypts: Dict[Tuple:np.array[bool]]
             Dictionary with same keys as train_3d. Values should have the same shape as train_3d, however instead should be boolean arrays.
             A point will not be used during training/testing in case corresponding boolean value is false.
@@ -151,10 +151,10 @@ def train(
     Returns:
         None
 
-    This function will create a folder in 
-    the relative path of out_dir, if does not exist. 
+    This function will create a folder in
+    the relative path of out_dir, if does not exist.
     Following files will be written under out_dir:
-        1. "stat_2d.pth.tar" 
+        1. "stat_2d.pth.tar"
         2. "stat_3d.pth.tar"
         3. "train_2d.pth.tar"
         4. "train_3d.pth.tar"
@@ -193,17 +193,16 @@ def train(
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
         os.makedirs(out_dir)
-    
+
     # make sure keypts are in the correct shape
     # keypts should be in the same shape of corresponding train3d and test3d values
     assert all([kp.shape == t.shape for (kp,t) in zip(list(train_3d.values()), list(train_keypts.values()))])
     assert all([kp.shape == t.shape for (kp,t) in zip(list(test_3d.values()), list(test_keypts.values()))])
-    
+
     # init data
     in_dim = list(train_2d.values())[0].shape[-1]
     out_dim = list(train_3d.values())[0].shape[-1]
     assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
-
     # fmt: on
     train_2d_raw, train_3d_raw = train_2d.copy(), train_3d.copy()
     test_2d_raw, test_3d_raw = test_2d.copy(), test_3d.copy()
@@ -307,8 +306,8 @@ def test(out_dir: str) -> None:
         Saves test_results.pth.tar under out_dir folder.
 
         Args:
-            out_dir: the same folder used during training (liftpose.main.train) 
-        
+            out_dir: the same folder used during training (liftpose.main.train)
+
         Returns:
             Nones
     """
