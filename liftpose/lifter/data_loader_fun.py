@@ -18,32 +18,42 @@ class data_loader(Dataset):
         self.augmentation = augmentation
 
         self.train_inp, self.test_inp, = [], []
-        self.train_out, self.test_out = [], []
+        self.train_out, self.test_out, self.train_out_raw, self.test_out_raw = (
+            [],
+            [],
+            [],
+            [],
+        )
         self.train_keypts, self.test_keypts = [], []
         self.test_keys, self.train_keys = [], []
 
         if is_train:  # load training data
             self.train_stat_2d = torch.load(os.path.join(data_path, "stat_2d.pth.tar"))
             self.train_stat_3d = torch.load(os.path.join(data_path, "stat_3d.pth.tar"))
-            self.train_3d, self.train_bool = torch.load(
+            self.train_3d, self.train_bool, self.train_3d_raw = torch.load(
                 os.path.join(data_path, "train_3d.pth.tar")
             )
-            self.train_2d = torch.load(os.path.join(data_path, "train_2d.pth.tar"))
+            self.train_2d, self.train_2d_raw = torch.load(
+                os.path.join(data_path, "train_2d.pth.tar")
+            )
 
             for key in self.train_3d.keys():
                 num_f = self.train_3d[key].shape[0]
                 for i in range(num_f):
                     self.train_inp.append(self.train_2d[key][i])
                     self.train_out.append(self.train_3d[key][i])
+                    self.train_out_raw.append(self.train_3d_raw[key][i])
                     self.train_keypts.append(self.train_bool[key][i])
                     self.train_keys.append(key)
 
         else:  # load test data
             if not predict:
-                self.test_3d, self.test_bool = torch.load(
+                self.test_3d, self.test_bool, self.test_3d_raw = torch.load(
                     os.path.join(data_path, "test_3d.pth.tar")
                 )
-            self.test_2d = torch.load(os.path.join(data_path, "test_2d.pth.tar"))
+            self.test_2d, self.test_2d_raw = torch.load(
+                os.path.join(data_path, "test_2d.pth.tar")
+            )
             for key in self.test_2d.keys():
                 num_f = self.test_2d[key].shape[0]
                 for i in range(num_f):
@@ -56,11 +66,14 @@ class data_loader(Dataset):
     def __getitem__(self, index):
         if self.is_train:
             outputs = torch.from_numpy(self.train_out[index]).float()
+            outputs_raw = torch.from_numpy(self.train_out_raw[index]).float()
             inputs = torch.from_numpy(self.train_inp[index]).float()
-            
+
             if self.augmentation is not None:
                 for aug in self.augmentation:
-                    inputs, outputs = aug(inputs, outputs, **self.get_aug_args())
+                    inputs, outputs = aug(
+                        inputs, outputs, outputs_raw, **self.get_aug_args()
+                    )
 
             good_keypts = torch.from_numpy(self.train_keypts[index])
             keys = self.train_keys[index]
@@ -77,28 +90,26 @@ class data_loader(Dataset):
 
         return inputs, outputs, good_keypts, keys
 
-
     def get_aug_args(self):
         mean_2d = self.train_stat_2d["mean"]
         std_2d = self.train_stat_2d["std"]
         mean_3d = self.train_stat_3d["mean"]
         std_3d = self.train_stat_3d["std"]
-        axsorder = self.train_stat_2d.get("axsorder")
         roots = self.train_stat_2d.get("roots")
         target_sets = self.train_stat_2d.get("target_sets")
         targets_2d = self.train_stat_2d["targets_2d"]
 
         return {
-            "stats": {'mean_2d': mean_2d, 
-                      'std_2d': std_2d, 
-                      'mean_3d': mean_3d, 
-                      'std_3d': std_3d},
-            "axsorder": axsorder,
+            "stats": {
+                "mean_2d": mean_2d,
+                "std_2d": std_2d,
+                "mean_3d": mean_3d,
+                "std_3d": std_3d,
+            },
             "roots": roots,
             "target_sets": target_sets,
             "targets_2d": targets_2d,
         }
-
 
     def __len__(self):
         if self.is_train:

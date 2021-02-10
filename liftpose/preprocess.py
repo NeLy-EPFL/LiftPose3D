@@ -1,12 +1,26 @@
 import numpy as np
+import logging
+import sys
+import os
 
-def preprocess_2d(train: dict, 
-                  test: dict, 
-                  roots: list, 
-                  target_sets: list, 
-                  in_dim: int,
-                  mean=None,
-                  std=None):
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.DEBUG,
+    format="[%(filename)s:%(lineno)d]:%(levelname)s:%(message)s",
+    datefmt="%H:%M:%S",
+)
+
+
+def preprocess_2d(
+    train: dict,
+    test: dict,
+    roots: list,
+    target_sets: list,
+    in_dim: int,
+    mean=None,
+    std=None,
+):
     """ Preprocess 2D data
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
@@ -40,7 +54,7 @@ def preprocess_2d(train: dict,
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
-    
+
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
@@ -58,14 +72,7 @@ def preprocess_2d(train: dict,
     return train, test, mean, std, targets, offset
 
 
-def preprocess_3d(train, 
-                  test, 
-                  roots, 
-                  target_sets, 
-                  out_dim,
-                  mean=None,
-                  std=None
-):
+def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
     """ Preprocess 3D data
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
@@ -92,10 +99,10 @@ def preprocess_3d(train,
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
-    
+
     train = train.copy()
     test = test.copy()
-    
+
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
     train, _ = anchor_to_root(train, roots, target_sets, out_dim)
     test, offset = anchor_to_root(test, roots, target_sets, out_dim)
@@ -132,7 +139,7 @@ def normalization_stats(d):
 
 def center_poses(d):
     """move center of gravity to origin"""
-    
+
     for k in d.keys():
         d[k] -= np.mean(d[k], axis=1, keepdims=True)
 
@@ -192,11 +199,12 @@ def anchor_to_root(poses, roots, target_sets, dim):
         poses: dictionary of anchored poses
         offset: offset of each root from origin
     """
-
     assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
+    assert all([p.ndim == 2 for p in list(poses.values())])
 
     offset = {}
     for k in poses.keys():
+
         offset[k] = np.zeros_like(poses[k])
         for i, root in enumerate(roots):
             for j in [root] + target_sets[i]:
@@ -286,7 +294,7 @@ def get_coords_in_dim(targets, dim):
 def init_keypts(train_3d):
     """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
     d = {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
-    
+
     return d
 
 
@@ -294,15 +302,15 @@ def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
-        
+
     return d
 
 
 def concat_dict(d):
     """concatenates dictionary vertically in the first dimension"""
 
-    d_concat = np.concatenate([v for k,v in d.items()], 0)
-    
+    d_concat = np.concatenate([v for k, v in d.items()], 0)
+
     return d_concat
 
 
@@ -311,7 +319,7 @@ def total_frames(d):
     count = 0
     for (k, v) in d.items():
         count += v.shape[0]
-        
+
     return count
 
 
@@ -319,9 +327,9 @@ def remove_dimensions(d, dims_to_remove):
     """Remove dimensions specified in dims_to_remove"""
     for (k, v) in d.items():
         d[k] = np.delete(d[k], dims_to_remove, axis=1)
-        
+
     return d
-        
+
 
 def get_visible_points(d, good_keypts):
     """ Restricts a dictionary of poses only to th visible points.
@@ -344,8 +352,90 @@ def get_visible_points(d, good_keypts):
     for (k, v) in d.items():
         d_tmp = []
         for i in range(d[k].shape[0]):
-            d_tmp.append(v[i,good_keypts[k][i,:,0],:])
-        
-        d[k] = np.stack(d_tmp,axis=0)
-        
+            d_tmp.append(v[i, good_keypts[k][i, :, 0], :])
+
+        d[k] = np.stack(d_tmp, axis=0)
+
     return d
+
+
+from liftpose.vision_3d import project_to_random_eangle, process_dict
+
+import pickle
+from numpy import linalg
+
+
+def obtain_projected_stats(
+    poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05
+):
+
+    error = np.inf
+    count = 0
+    error_log = []
+
+    # run until convergence
+    while error > th:
+        # obtain randomly projected points
+        pts_2d = process_dict(
+            project_to_random_eangle,
+            poses,
+            eangle,
+            axsorder=axsorder,
+            project=True,
+            intr=intr,
+        )
+        pts_3d = process_dict(
+            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
+        )
+
+        pts_2d = flatten_dict(pts_2d)
+        pts_3d = flatten_dict(pts_3d)
+
+        pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
+        pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
+
+        pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
+        pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
+
+        # bootstrap mean, std
+        if count == 0:
+            train_samples_2d = pts_2d
+            mean_old_2d = np.zeros(pts_2d.shape[1])
+            std_old_2d = np.zeros(pts_2d.shape[1])
+            train_samples_3d = pts_3d
+            mean_old_3d = np.zeros(pts_3d.shape[1])
+            std_old_3d = np.zeros(pts_3d.shape[1])
+        else:
+            train_samples_2d = np.vstack((train_samples_2d, pts_2d))
+            train_samples_3d = np.vstack((train_samples_3d, pts_3d))
+
+        mean_2d = np.nanmean(train_samples_2d, axis=0)
+        std_2d = np.nanstd(train_samples_2d, axis=0)
+        mean_3d = np.nanmean(train_samples_3d, axis=0)
+        std_3d = np.nanstd(train_samples_3d, axis=0)
+
+        error = (
+            linalg.norm(mean_2d - mean_old_2d)
+            + linalg.norm(std_2d - std_old_2d)
+            + linalg.norm(mean_3d - mean_old_3d)
+            + linalg.norm(std_3d - std_old_3d)
+        )
+        error_log.append(error)
+
+        logger.info(f"Expected error for obtaining projection stats: {error}")
+        mean_old_2d = mean_2d
+        std_old_2d = std_2d
+        mean_old_3d = mean_3d
+        std_old_3d = std_3d
+        count += 1
+
+        if not os.path.exists(out_dir):
+            logger.info(f"Creating directory {os.path.abspath(out_dir)}")
+            os.makedirs(out_dir)
+
+        pickle.dump(
+            error_log,
+            open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
+        )
+        break
+    return mean_2d, std_2d, mean_3d, std_3d

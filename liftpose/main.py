@@ -10,12 +10,19 @@ import torch
 
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
-from liftpose.preprocess import preprocess_2d, preprocess_3d, init_keypts, flatten_dict, anchor_to_root, get_visible_points
+from liftpose.preprocess import (
+    preprocess_2d,
+    preprocess_3d,
+    init_keypts,
+    flatten_dict,
+    anchor_to_root,
+    get_visible_points,
+)
 from liftpose.vision_3d import project_to_random_eangle, process_dict
 
 import pickle
 
-from typing import Dict, Union, List, Callable
+from typing import Dict, Union, List, Callable, Tuple
 
 # deterministic training
 torch.manual_seed(0)
@@ -41,9 +48,9 @@ def train_np(
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
     training_kwargs: Dict[str, Union[str, int]] = None,
-    augmentation: List[Callable] = None
+    augmentation: List[Callable] = None,
 ) -> None:
-    
+
     assert train_2d.shape[0] == train_3d.shape[0]
     assert train_2d.shape[1] == train_3d.shape[1]
     assert test_2d.shape[0] == test_3d.shape[0]
@@ -77,8 +84,8 @@ def train_np(
         out_dir=out_dir,
         train_keypts=train_keypts,
         test_keypts=test_keypts,
-        network_kwargs=training_kwargs,
-        augmentation=augmentation
+        training_kwargs=training_kwargs,
+        augmentation=augmentation,
     )
 
 
@@ -93,7 +100,8 @@ def train(
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
     training_kwargs: Dict[str, Union[str, int]] = None,
-    augmentation: List[Callable] = None
+    augmentation: List[Callable] = None,
+    mean: Tuple = None,
 ) -> None:
 
     """Train LiftPose3D.
@@ -159,7 +167,12 @@ def train(
     # init default keypts in case it is None
     train_keypts = init_keypts(train_3d) if train_keypts is None else train_keypts
     test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
-
+    mean_2d, std_2d, mean_3d, std_3d = (
+        mean if mean is not None else None,
+        None,
+        None,
+        None,
+    )
     # fmt: off
     assert all(t.ndim == 3 for t in list(train_2d.values()))
     assert all(t.ndim == 3 for t in list(test_2d.values()))
@@ -190,54 +203,28 @@ def train(
     in_dim = list(train_2d.values())[0].shape[-1]
     out_dim = list(train_3d.values())[0].shape[-1]
     assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
- 
-    # bootstrap normalization statistics
-    logger.info("Bootstrapping normalization statistics.")
-    
-    train = get_visible_points(train_3d, train_keypts)
-    if 'eangles' in training_kwargs.keys():
-        
-        assert 'eangles' in training_kwargs.keys()
-        assert 'axsorder' in training_kwargs.keys()
-        assert 'intr' in training_kwargs.keys()
-        
-        mean_2d, std_2d, mean_3d, std_3d = obtain_projected_stats(train, 
-                                                 training_kwargs['eangles'], 
-                                                 training_kwargs['axsorder'], 
-                                                 training_kwargs['intr'], 
-                                                 roots, 
-                                                 target_sets,
-                                                 out_dir, 
-                                                 th=0.05) 
-    else:
-        mean_2d, std_2d, mean_3d, std_3d = None, None, None, None
- 
+
     # fmt: on
+    train_2d_raw, train_3d_raw = train_2d.copy(), train_3d.copy()
+    test_2d_raw, test_3d_raw = test_2d.copy(), test_3d.copy()
 
     # preprocess 2d
     train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = \
-        preprocess_2d(
-            train_2d, 
-            test_2d, 
-            roots, 
-            target_sets, 
-            in_dim, 
-            mean=mean_2d, 
-            std=std_2d
-    )            
+    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
+        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
+    )
 
     # preprocess 3d
     train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
-    (train_set_3d, test_set_3d, mean_3d, std_3d, targets_3d, offset_3d,) = \
-        preprocess_3d(
-            train_3d, 
-            test_3d, 
-            roots, 
-            target_sets, 
-            out_dim,
-            mean=mean_3d,
-            std=std_3d
+    (
+        train_set_3d,
+        test_set_3d,
+        mean_3d,
+        std_3d,
+        targets_3d,
+        offset_3d,
+    ) = preprocess_3d(
+        train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
     )
 
     # flatten train_keypts
@@ -252,14 +239,16 @@ def train(
     logger.info(
         f'Saving pre-processed 2D data at {os.path.abspath(os.path.join(out_dir, "stat_2d.pth.tar."))}'
     )
-    torch.save(train_set_2d, os.path.join(out_dir, "train_2d.pth.tar"))
-    torch.save(test_set_2d, os.path.join(out_dir, "test_2d.pth.tar"))
+    torch.save([train_set_2d, train_2d_raw], os.path.join(out_dir, "train_2d.pth.tar"))
+    torch.save([test_set_2d, test_2d_raw], os.path.join(out_dir, "test_2d.pth.tar"))
     torch.save(
         {
             "mean": mean_2d,
             "std": std_2d,
             "in_dim": in_dim,
             "targets_2d": targets_2d,
+            "roots": roots,
+            "target_sets": target_sets,
             "offset": offset_2d,
         },
         os.path.join(out_dir, "stat_2d.pth.tar"),
@@ -270,8 +259,14 @@ def train(
         f'Saving pre-processed 3D data at {os.path.abspath(os.path.join(out_dir, "stat_3d.pth.tar."))}'
     )
 
-    torch.save([train_set_3d, train_keypts], os.path.join(out_dir, "train_3d.pth.tar"))
-    torch.save([test_set_3d, test_keypts], os.path.join(out_dir, "test_3d.pth.tar"))
+    torch.save(
+        [train_set_3d, train_keypts, train_3d_raw],
+        os.path.join(out_dir, "train_3d.pth.tar"),
+    )
+    torch.save(
+        [test_set_3d, test_keypts, test_3d_raw],
+        os.path.join(out_dir, "test_3d.pth.tar"),
+    )
     torch.save(
         {
             "mean": mean_3d,
@@ -333,56 +328,74 @@ def test(out_dir: str) -> None:
     network_main(option)
 
 
-def obtain_projected_stats(poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05):
-    
+def obtain_projected_stats(
+    poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05
+):
+
     error = 1
     count = 0
     error_log = []
-    
-    #run until convergence
-    while(error>th):
-                
-        #obtain randomly projected points
-        pts_2d = process_dict(project_to_random_eangle, poses, eangle, axsorder=axsorder, project=True, intr=intr)
-        pts_3d = process_dict(project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False)
+
+    # run until convergence
+    while error > th:
+
+        # obtain randomly projected points
+        pts_2d = process_dict(
+            project_to_random_eangle,
+            poses,
+            eangle,
+            axsorder=axsorder,
+            project=True,
+            intr=intr,
+        )
+        pts_3d = process_dict(
+            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
+        )
 
         pts_2d = flatten_dict(pts_2d)
         pts_3d = flatten_dict(pts_3d)
-        
-        pts_2d, _  = anchor_to_root( pts_2d, roots, target_sets, 2)
-        pts_3d, _  = anchor_to_root( pts_3d, roots, target_sets, 3)    
-        
-        pts_2d = np.concatenate([v for k,v in pts_2d.items()], 0)
-        pts_3d = np.concatenate([v for k,v in pts_3d.items()], 0)
-        
-        #bootstrap mean, std
+
+        pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
+        pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
+
+        pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
+        pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
+
+        # bootstrap mean, std
         if count == 0:
             train_samples_2d = pts_2d
             mean_old_2d = np.zeros(pts_2d.shape[1])
-            std_old_2d  = np.zeros(pts_2d.shape[1])
+            std_old_2d = np.zeros(pts_2d.shape[1])
             train_samples_3d = pts_3d
             mean_old_3d = np.zeros(pts_3d.shape[1])
-            std_old_3d  = np.zeros(pts_3d.shape[1])
+            std_old_3d = np.zeros(pts_3d.shape[1])
         else:
-            train_samples_2d = np.vstack((train_samples_2d,pts_2d))
-            train_samples_3d = np.vstack((train_samples_3d,pts_3d))
-            
+            train_samples_2d = np.vstack((train_samples_2d, pts_2d))
+            train_samples_3d = np.vstack((train_samples_3d, pts_3d))
+
         mean_2d = np.nanmean(train_samples_2d, axis=0)
-        std_2d  = np.nanstd(train_samples_2d, axis=0)
+        std_2d = np.nanstd(train_samples_2d, axis=0)
         mean_3d = np.nanmean(train_samples_3d, axis=0)
-        std_3d  = np.nanstd(train_samples_3d, axis=0)
-        
-        error = linalg.norm(mean_2d - mean_old_2d) + linalg.norm(std_2d - std_old_2d) + \
-                linalg.norm(mean_3d - mean_old_3d) + linalg.norm(std_3d - std_old_3d)
+        std_3d = np.nanstd(train_samples_3d, axis=0)
+
+        error = (
+            linalg.norm(mean_2d - mean_old_2d)
+            + linalg.norm(std_2d - std_old_2d)
+            + linalg.norm(mean_3d - mean_old_3d)
+            + linalg.norm(std_3d - std_old_3d)
+        )
         error_log.append(error)
-        
+
         logger.info(f"Error: {error}")
         mean_old_2d = mean_2d
         std_old_2d = std_2d
         mean_old_3d = mean_3d
         std_old_3d = std_3d
         count += 1
-        
-        pickle.dump(error_log, open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")),'wb'))
-    
+
+        pickle.dump(
+            error_log,
+            open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
+        )
+
     return mean_2d, std_2d, mean_3d, std_3d
