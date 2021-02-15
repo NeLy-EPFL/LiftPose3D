@@ -223,7 +223,7 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
         angle = orientation_info[:-1, 3]
         cx = orientation_info[:-1, 6]
         cy = orientation_info[:-1, 9]
-        # todo uncomment to inspect nan to keep manually labeled
+        # todo uncomment to inspect where nan to keep manually labeled
         # np.argwhere(np.isnan(_side_LV.loc[:, (slice(None), ['x'])].to_numpy()))
 
 
@@ -532,9 +532,9 @@ if __name__ == "__main__":
     # behaviour=['AG','FW','PG','PE']
     # video_sequence_number=range(1,20+1,1)
 
-    fly_number= [6]
-    behaviour=['AG']
-    video_sequence_number= [3]
+    fly_number= [4]
+    behaviour=['PG']
+    video_sequence_number= [4]
     AniPose_filter_enable = False
     # VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     # LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
