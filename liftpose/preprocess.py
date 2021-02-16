@@ -123,7 +123,7 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
     return _train, _test, mean, std, targets_3d, offset
 
 
-def normalization_stats(d):
+def normalization_stats(d, replace_zeros=True):
     """ Computes mean and stdev
     
     Args
@@ -134,6 +134,12 @@ def normalization_stats(d):
     """
 
     complete_data = np.concatenate([v for k, v in d.items()], 0)
+    
+    #replace zeros by nans
+    if replace_zeros:
+        complete_data = complete_data.astype('float')
+        complete_data[complete_data==0]=np.nan
+    
     mean = np.nanmean(complete_data, axis=0)
     std = np.nanstd(complete_data, axis=0)
 
