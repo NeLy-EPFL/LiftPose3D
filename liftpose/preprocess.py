@@ -133,15 +133,16 @@ def normalization_stats(d, replace_zeros=True):
         std: array with the stdev of the data for all dimensions
     """
 
-    complete_data = np.concatenate([v for k, v in d.items()], 0)
+    if type(d) is dict:
+        d = np.concatenate([v for k, v in d.items()], 0)
     
     #replace zeros by nans
     if replace_zeros:
-        complete_data = complete_data.astype('float')
-        complete_data[complete_data==0]=np.nan
+        d = d.astype('float')
+        d[d==0]=np.nan
     
-    mean = np.nanmean(complete_data, axis=0)
-    std = np.nanstd(complete_data, axis=0)
+    mean = np.nanmean(d, axis=0)
+    std = np.nanstd(d, axis=0)
 
     return mean, std
 
@@ -425,10 +426,8 @@ def obtain_projected_stats(
             train_samples_2d = np.vstack((train_samples_2d, pts_2d))
             train_samples_3d = np.vstack((train_samples_3d, pts_3d))
 
-        mean_2d = np.nanmean(train_samples_2d, axis=0)
-        std_2d = np.nanstd(train_samples_2d, axis=0)
-        mean_3d = np.nanmean(train_samples_3d, axis=0)
-        std_3d = np.nanstd(train_samples_3d, axis=0)
+        mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
+        mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
 
         error = (
             linalg.norm(mean_2d - mean_old_2d)
@@ -449,8 +448,15 @@ def obtain_projected_stats(
             logger.info(f"Creating directory {os.path.abspath(out_dir)}")
             os.makedirs(out_dir)
 
+        #save
         pickle.dump(
             error_log,
             open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
+        pickle.dump(
+            [mean_2d, std_2d, mean_3d, std_3d],
+            open(os.path.abspath(os.path.join(out_dir, '/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl')), "wb"),
+        )
+        
+        
     return mean_2d, std_2d, mean_3d, std_3d
