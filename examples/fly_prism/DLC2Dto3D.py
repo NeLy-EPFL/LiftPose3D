@@ -402,12 +402,12 @@ def main(fly_number,behaviour,video_sequence_number,AniPose_filter_enable=False,
                 horiz_crop_left_1 = 888
                 horiz_crop_left_2 = 1162
             elif fly_number == '2':
-                horiz_crop_right_1 = 20
+                horiz_crop_right_1 = 32
                 horiz_crop_right_2 = 286
                 horiz_crop_middle_1 = 386
                 horiz_crop_middle_2 = 858
                 horiz_crop_left_1 = 926
-                horiz_crop_left_2 = 1186
+                horiz_crop_left_2 = 1188
             elif fly_number == '3':
                 pad = 25
                 horiz_crop_right_1 = 32

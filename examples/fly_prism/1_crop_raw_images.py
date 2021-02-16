@@ -286,7 +286,7 @@ if __name__ == '__main__':
     #            ['/media/mahdi/LaCie/Mahdi/SSD/data_2Dpose/fly_6_clipped/PG/4', True]
     #            ]
 
-    folders = [['/media/mahdi/LaCie/Mahdi/tmp/fly_6_AG_3', True]]
+    folders = [['/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_2_clipped/AG/4', False]]
 
 
     # video_id = 1
@@ -319,10 +319,10 @@ if __name__ == '__main__':
         behaviour = data_dir[-4:-2]  # Forward Walking = FW, Proboscis Expansion = PE, Anterior Grooming = AG, Posterior Grooming = PG
         behaviour_subfolder_name = data_dir[-1]
 
-        # todo
-        fly_number = '1'
-        behaviour = 'FW'
-        behaviour_subfolder_name = '2'
+        # # todo
+        # fly_number = '1'
+        # behaviour = 'FW'
+        # behaviour_subfolder_name = '2'
 
         if fly_number=='1':
             threshold = 30
@@ -342,12 +342,12 @@ if __name__ == '__main__':
             border_width_1 = 200
             border_width_2 = 95
             bbox_width = 550
-            horiz_crop_right_1 = 20
+            horiz_crop_right_1 = 32
             horiz_crop_right_2 = 286
             horiz_crop_middle_1 = 386
             horiz_crop_middle_2 = 858
             horiz_crop_left_1 = 926
-            horiz_crop_left_2 = 1186
+            horiz_crop_left_2 = 1188
         elif fly_number=='3':
             threshold = 30
             DIST_TH = 10
