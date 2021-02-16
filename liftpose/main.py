@@ -206,15 +206,17 @@ def train(
     # fmt: on
     train_2d_raw, train_3d_raw = train_2d.copy(), train_3d.copy()
     test_2d_raw, test_3d_raw = test_2d.copy(), test_3d.copy()
-
+    
     # preprocess 2d
     train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
+    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = \
+    preprocess_2d(
         train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
     )
 
     # preprocess 3d
     train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
+    
     (
         train_set_3d,
         test_set_3d,
@@ -225,7 +227,7 @@ def train(
     ) = preprocess_3d(
         train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
     )
-
+        
     # flatten train_keypts
     # TODO move preprocessing of train_keypts inside preprocess_3d function
     train_keypts = flatten_dict(train_keypts)

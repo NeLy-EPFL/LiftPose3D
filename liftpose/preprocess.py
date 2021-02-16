@@ -55,21 +55,24 @@ def preprocess_2d(
             offset: the root position for corresponding target_sets for each joint
     """
 
+    _train = train.copy()
+    _test = test.copy()
+    
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
-    train, _ = anchor_to_root(train, roots, target_sets, in_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, in_dim)
+    _train, _ = anchor_to_root(_train, roots, target_sets, in_dim)
+    _test, offset = anchor_to_root(_test, roots, target_sets, in_dim)    
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
-
+        mean, std = normalization_stats(_train)
+    _train = normalize(_train, mean, std)
+    _test = normalize(_test, mean, std)
+    
     # select coordinates to be predicted and return them as 'targets'
-    train, _ = remove_roots(train, target_sets, in_dim)
-    test, targets = remove_roots(test, target_sets, in_dim)
+    _train, _ = remove_roots(_train, target_sets, in_dim)
+    _test, targets = remove_roots(_test, target_sets, in_dim)
 
-    return train, test, mean, std, targets, offset
+    return _train, _test, mean, std, targets, offset
 
 
 def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
@@ -92,7 +95,7 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
                 Cannot be empty.
 
         Return:
-            train:  Zero-mean and unit variance training data
+            train: Zero-mean and unit variance training data
             test: Zero-mean and unit variance test data
             mean: mean parameter for each dimension of train dadta
             std: std parameter for eaach dimension of test data
@@ -100,24 +103,24 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
             offset: the root position for corresponding target_sets for each joint
     """
 
-    train = train.copy()
-    test = test.copy()
+    _train = train.copy()
+    _test = test.copy()
 
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-    train, _ = anchor_to_root(train, roots, target_sets, out_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, out_dim)
+    _train, _ = anchor_to_root(_train, roots, target_sets, out_dim)
+    _test, offset = anchor_to_root(_test, roots, target_sets, out_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
+        mean, std = normalization_stats(_train)
+    _train = normalize(_train, mean, std)
+    _test = normalize(_test, mean, std)
 
     # select coordinates to be predicted and return them as 'targets_3d'
-    train, _ = remove_roots(train, target_sets, out_dim)
-    test, targets_3d = remove_roots(test, target_sets, out_dim)
+    _train, _ = remove_roots(_train, target_sets, out_dim)
+    _test, targets_3d = remove_roots(_test, target_sets, out_dim)
 
-    return train, test, mean, std, targets_3d, offset
+    return _train, _test, mean, std, targets_3d, offset
 
 
 def normalization_stats(d):
@@ -376,6 +379,9 @@ def obtain_projected_stats(
     # run until convergence
     while error > th:
         # obtain randomly projected points
+        # print(poses)
+        # import sys
+        # sys.exit()
         pts_2d = process_dict(
             project_to_random_eangle,
             poses,
@@ -385,7 +391,11 @@ def obtain_projected_stats(
             intr=intr,
         )
         pts_3d = process_dict(
-            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
+            project_to_random_eangle, 
+            poses, 
+            eangle, 
+            axsorder=axsorder, 
+            project=False
         )
 
         pts_2d = flatten_dict(pts_2d)

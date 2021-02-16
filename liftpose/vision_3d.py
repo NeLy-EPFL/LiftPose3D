@@ -101,7 +101,7 @@ def world_to_camera(
 
     poses_cam += tvec
     poses_cam = np.reshape(poses_cam, s)
-
+    
     return poses_cam
 
 
@@ -182,7 +182,7 @@ def process_dict(function, d: dict, *args, **kwargs):
 
 
 def project_to_random_eangle(
-    poses_world, eangle_range, axsorder="xyz", project=False, intr=None
+    poses_world, eangle_range: dict, axsorder="xyz", project=False, intr=None
 ):
     """
     Project to a random Euler angle within specified intervals.
@@ -191,7 +191,7 @@ def project_to_random_eangle(
     ----------
     poses_world : t x n x 3 numpy array
         Poses in world coordinates.
-    eangle_range : list of 3 pairs
+    eangle_range : dict whose values are list of 3 pairs
         Lower and upper limits of Euler angles.
     axsorder : 'xyz' or a permutation
         Order of Euler angles.
@@ -208,14 +208,9 @@ def project_to_random_eangle(
     """
     assert poses_world.ndim == 3
 
-    if len(eangle_range) == 2:
-        lr = np.random.binomial(1, 0.5)
-        if lr:
-            eangle = eangle_range[0]
-        else:
-            eangle = eangle_range[1]
-    else:
-        eangle = eangle_range[0]
+    #selecta camera to project
+    whichcam = np.random.randint(len(eangle_range))
+    eangle = eangle_range[whichcam]
 
     # generate Euler angles
     n = poses_world.shape[0]
