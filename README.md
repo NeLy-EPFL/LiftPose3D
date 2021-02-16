@@ -1,3 +1,5 @@
+## Note: We're currently working a significant update of the code for revisions. It should be released in the next few weeks. Please be patient and get in touch if you have questions.
+
 # LiftPose3D
 <p align="center">
   <img src="images/fig1ad.png" width="720">
