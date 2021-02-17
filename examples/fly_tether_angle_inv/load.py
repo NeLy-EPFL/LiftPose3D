@@ -55,6 +55,9 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                         good_keypts[k] = np.zeros_like(data[k], dtype=bool)
                         good_keypts[k][:,ind] = True
 
+    data = dict(sorted(data.items()))
+    good_keypts = dict(sorted(good_keypts.items()))
+    cam_par = dict(sorted(cam_par.items()))
     return data, good_keypts, cam_par
 
 
@@ -94,4 +97,5 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
                     #ind = np.arange(19) if c < 3 else np.arange(19,38)
                     data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899]
 
+    data = dict(sorted(data.items()))
     return data

@@ -55,21 +55,24 @@ def preprocess_2d(
             offset: the root position for corresponding target_sets for each joint
     """
 
+    _train = train.copy()
+    _test = test.copy()
+    
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
-    train, _ = anchor_to_root(train, roots, target_sets, in_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, in_dim)
+    _train, _ = anchor_to_root(_train, roots, target_sets, in_dim)
+    _test, offset = anchor_to_root(_test, roots, target_sets, in_dim)    
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
-
+        mean, std = normalization_stats(_train)
+    _train = normalize(_train, mean, std)
+    _test = normalize(_test, mean, std)
+    
     # select coordinates to be predicted and return them as 'targets'
-    train, _ = remove_roots(train, target_sets, in_dim)
-    test, targets = remove_roots(test, target_sets, in_dim)
+    _train, _ = remove_roots(_train, target_sets, in_dim)
+    _test, targets = remove_roots(_test, target_sets, in_dim)
 
-    return train, test, mean, std, targets, offset
+    return _train, _test, mean, std, targets, offset
 
 
 def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
@@ -92,7 +95,7 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
                 Cannot be empty.
 
         Return:
-            train:  Zero-mean and unit variance training data
+            train: Zero-mean and unit variance training data
             test: Zero-mean and unit variance test data
             mean: mean parameter for each dimension of train dadta
             std: std parameter for eaach dimension of test data
@@ -100,27 +103,27 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
             offset: the root position for corresponding target_sets for each joint
     """
 
-    train = train.copy()
-    test = test.copy()
+    _train = train.copy()
+    _test = test.copy()
 
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-    train, _ = anchor_to_root(train, roots, target_sets, out_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, out_dim)
+    _train, _ = anchor_to_root(_train, roots, target_sets, out_dim)
+    _test, offset = anchor_to_root(_test, roots, target_sets, out_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
+        mean, std = normalization_stats(_train)
+    _train = normalize(_train, mean, std)
+    _test = normalize(_test, mean, std)
 
     # select coordinates to be predicted and return them as 'targets_3d'
-    train, _ = remove_roots(train, target_sets, out_dim)
-    test, targets_3d = remove_roots(test, target_sets, out_dim)
+    _train, _ = remove_roots(_train, target_sets, out_dim)
+    _test, targets_3d = remove_roots(_test, target_sets, out_dim)
 
-    return train, test, mean, std, targets_3d, offset
+    return _train, _test, mean, std, targets_3d, offset
 
 
-def normalization_stats(d):
+def normalization_stats(d, replace_zeros=True):
     """ Computes mean and stdev
     
     Args
@@ -130,9 +133,16 @@ def normalization_stats(d):
         std: array with the stdev of the data for all dimensions
     """
 
-    complete_data = np.concatenate([v for k, v in d.items()], 0)
-    mean = np.nanmean(complete_data, axis=0)
-    std = np.nanstd(complete_data, axis=0)
+    if type(d) is dict:
+        d = np.concatenate([v for k, v in d.items()], 0)
+    
+    #replace zeros by nans
+    if replace_zeros:
+        d = d.astype('float')
+        d[d==0]=np.nan
+    
+    mean = np.nanmean(d, axis=0)
+    std = np.nanstd(d, axis=0)
 
     return mean, std
 
@@ -382,67 +392,79 @@ def obtain_projected_stats(
     error_log = []
 
     # run until convergence
-    #:
-    # obtain randomly projected points
-    pts_2d = process_dict(
-        project_to_random_eangle,
-        poses,
-        eangle,
-        axsorder=axsorder,
-        project=True,
-        intr=intr,
-    )
-    pts_3d = process_dict(
-        project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
-    )
-
-    pts_2d = flatten_dict(pts_2d)
-    pts_3d = flatten_dict(pts_3d)
-
-    pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
-    pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
-
-    pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
-    pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
-
-    # bootstrap mean, std
-    if count == 0:
-        train_samples_2d = pts_2d
-        mean_old_2d = np.zeros(pts_2d.shape[1])
-        std_old_2d = np.zeros(pts_2d.shape[1])
-        train_samples_3d = pts_3d
-        mean_old_3d = np.zeros(pts_3d.shape[1])
-        std_old_3d = np.zeros(pts_3d.shape[1])
-    else:
-        train_samples_2d = np.vstack((train_samples_2d, pts_2d))
-        train_samples_3d = np.vstack((train_samples_3d, pts_3d))
-
-    mean_2d = np.nanmean(train_samples_2d, axis=0)
-    std_2d = np.nanstd(train_samples_2d, axis=0)
-    mean_3d = np.nanmean(train_samples_3d, axis=0)
-    std_3d = np.nanstd(train_samples_3d, axis=0)
-
-    error = (
-        linalg.norm(mean_2d - mean_old_2d)
-        + linalg.norm(std_2d - std_old_2d)
-        + linalg.norm(mean_3d - mean_old_3d)
-        + linalg.norm(std_3d - std_old_3d)
-    )
-    error_log.append(error)
-
-    logger.info(f"Expected error for obtaining projection stats: {error}")
-    mean_old_2d = mean_2d
-    std_old_2d = std_2d
-    mean_old_3d = mean_3d
-    std_old_3d = std_3d
-    count += 1
-
-    if not os.path.exists(out_dir):
-        logger.info(f"Creating directory {os.path.abspath(out_dir)}")
-        os.makedirs(out_dir)
-
-    pickle.dump(
-        error_log,
-        open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
+    while error > th:
+        # obtain randomly projected points
+        # print(poses)
+        # import sys
+        # sys.exit()
+        pts_2d = process_dict(
+            project_to_random_eangle,
+            poses,
+            eangle,
+            axsorder=axsorder,
+            project=True,
+            intr=intr,
         )
+        pts_3d = process_dict(
+            project_to_random_eangle, 
+            poses, 
+            eangle, 
+            axsorder=axsorder, 
+            project=False
+        )
+
+        pts_2d = flatten_dict(pts_2d)
+        pts_3d = flatten_dict(pts_3d)
+
+        pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
+        pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
+
+        pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
+        pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
+
+        # bootstrap mean, std
+        if count == 0:
+            train_samples_2d = pts_2d
+            mean_old_2d = np.zeros(pts_2d.shape[1])
+            std_old_2d = np.zeros(pts_2d.shape[1])
+            train_samples_3d = pts_3d
+            mean_old_3d = np.zeros(pts_3d.shape[1])
+            std_old_3d = np.zeros(pts_3d.shape[1])
+        else:
+            train_samples_2d = np.vstack((train_samples_2d, pts_2d))
+            train_samples_3d = np.vstack((train_samples_3d, pts_3d))
+
+        mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
+        mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
+
+        error = (
+            linalg.norm(mean_2d - mean_old_2d)
+            + linalg.norm(std_2d - std_old_2d)
+            + linalg.norm(mean_3d - mean_old_3d)
+            + linalg.norm(std_3d - std_old_3d)
+        )
+        error_log.append(error)
+
+        logger.info(f"Expected error for obtaining projection stats: {error}")
+        mean_old_2d = mean_2d
+        std_old_2d = std_2d
+        mean_old_3d = mean_3d
+        std_old_3d = std_3d
+        count += 1
+
+        if not os.path.exists(out_dir):
+            logger.info(f"Creating directory {os.path.abspath(out_dir)}")
+            os.makedirs(out_dir)
+
+        #save
+        pickle.dump(
+            error_log,
+            open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
+        )
+        pickle.dump(
+            [mean_2d, std_2d, mean_3d, std_3d],
+            open(os.path.abspath(os.path.join(out_dir, '/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl')), "wb"),
+        )
+        
+        
     return mean_2d, std_2d, mean_3d, std_3d

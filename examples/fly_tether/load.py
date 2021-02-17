@@ -45,15 +45,12 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 poses3d = poses["points3d"][:899]
                 
                 for c in cam_id:
-                    data[(s, a, f + ".cam_" + str(c))] = poses3d
-                    
-                if cam_id is not None:
-                    for c in cam_id:
-                        k = (s, a, f + ".cam_" + str(c))
-                        cam_par[k] = poses[c]
-                        ind = np.arange(19) if c < 3 else np.arange(19,38)
-                        good_keypts[k] = np.zeros_like(data[k], dtype=bool)
-                        good_keypts[k][:,ind] = True
+                    k = (s, a, f + ".cam_" + str(c))
+                    data[k] = poses3d
+                    cam_par[k] = poses[c]
+                    ind = np.arange(19) if c < 3 else np.arange(19,38)
+                    good_keypts[k] = np.zeros_like(data[k], dtype=bool)
+                    good_keypts[k][:,ind] = True
 
     return data, good_keypts, cam_par
 
