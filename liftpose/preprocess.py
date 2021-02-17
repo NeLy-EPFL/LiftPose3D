@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import sys
 import os
+import copy
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -132,14 +133,16 @@ def normalization_stats(d, replace_zeros=True):
     if type(d) is dict:
         d = np.concatenate([v for k, v in d.items()], 0)
 
+    cp_d = copy.deepcopy(d)
+    
     # replace zeros by nans, so we ignore them during the mean, std calculation
     if replace_zeros:
-        d = d.astype('float')
-        d[np.abs(d)<np.finfo(float).eps] = np.nan
+        cp_d = cp_d.astype('float')
+        cp_d[np.abs(cp_d)<np.finfo(float).eps] = np.nan
 
     # TODO: Fix RuntimeWarning: Mean of empty slice
-    mean = np.nanmean(d, axis=0)
-    std = np.nanstd(d, axis=0)
+    mean = np.nanmean(cp_d, axis=0)
+    std = np.nanstd(cp_d, axis=0)
 
     return mean, std
 
@@ -173,7 +176,7 @@ def normalize(d, mean, std, replace_nans=True):
         
         if replace_nans:
             d[k] = d[k].astype('float')
-            d[k] = np.nan_to_num(d[k])
+            d[k] = np.nan_to_num(d[k]) #replace nans by zeros
 
     return d
 

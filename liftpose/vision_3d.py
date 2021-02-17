@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Dict
 from scipy.spatial.transform import Rotation as Rot
+import torch
 
 
 def reprojection_error(
@@ -230,14 +231,22 @@ def project_to_random_eangle(
 
     # generate Euler angles
     n = poses_world.shape[0]
-    alpha = np.random.uniform(low=eangle[0][0], high=eangle[0][1], size=n)
-    beta = np.random.uniform(low=eangle[1][0], high=eangle[1][1], size=n)
-    gamma = np.random.uniform(low=eangle[2][0], high=eangle[2][1], size=n)
+    alpha = uniform(low=eangle[0][0], high=eangle[0][1], size=n)
+    beta = uniform(low=eangle[1][0], high=eangle[1][1], size=n)
+    gamma = uniform(low=eangle[2][0], high=eangle[2][1], size=n)
     eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]
 
     Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, intr=intr)
 
     return Pcam
+
+
+def uniform(low=0,high=1,size=1):
+    '''Draw n uniform random numbers in [a,b]'''
+
+    u = (high-low) * torch.rand(size) + low
+    
+    return u.numpy()
 
 
 def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, intr=None):
