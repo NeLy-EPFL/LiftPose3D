@@ -218,7 +218,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
     return poses, offset
 
 
-def add_roots(d, dim_to_use, n_dim):
+def add_roots(d, dim_to_use, n_dim, base="zeros"):
     """ Add back the root dimensions
     
     Args
@@ -232,7 +232,13 @@ def add_roots(d, dim_to_use, n_dim):
 
     T = d.shape[0]
     D = n_dim
-    orig_data = np.zeros((T, D), dtype=np.float32)
+    if base == "zeros":
+        orig_data = np.zeros((T, D), dtype=np.float32)
+    elif base == "ones":
+        orig_data = np.ones((T, D), dtype=np.float32)
+    else:
+        raise NotImplementedError
+
     orig_data[:, dim_to_use] = d
 
     return orig_data
@@ -300,6 +306,8 @@ def init_keypts(train_3d):
 
 def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
+    assert isinstance(d, dict)
+    assert all([v.ndim == 3 for v in d.values()])
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
 
@@ -374,67 +382,67 @@ def obtain_projected_stats(
     error_log = []
 
     # run until convergence
-    while error > th:
-        # obtain randomly projected points
-        pts_2d = process_dict(
-            project_to_random_eangle,
-            poses,
-            eangle,
-            axsorder=axsorder,
-            project=True,
-            intr=intr,
-        )
-        pts_3d = process_dict(
-            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
-        )
+    #:
+    # obtain randomly projected points
+    pts_2d = process_dict(
+        project_to_random_eangle,
+        poses,
+        eangle,
+        axsorder=axsorder,
+        project=True,
+        intr=intr,
+    )
+    pts_3d = process_dict(
+        project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
+    )
 
-        pts_2d = flatten_dict(pts_2d)
-        pts_3d = flatten_dict(pts_3d)
+    pts_2d = flatten_dict(pts_2d)
+    pts_3d = flatten_dict(pts_3d)
 
-        pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
-        pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
+    pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
+    pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
 
-        pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
-        pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
+    pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
+    pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
 
-        # bootstrap mean, std
-        if count == 0:
-            train_samples_2d = pts_2d
-            mean_old_2d = np.zeros(pts_2d.shape[1])
-            std_old_2d = np.zeros(pts_2d.shape[1])
-            train_samples_3d = pts_3d
-            mean_old_3d = np.zeros(pts_3d.shape[1])
-            std_old_3d = np.zeros(pts_3d.shape[1])
-        else:
-            train_samples_2d = np.vstack((train_samples_2d, pts_2d))
-            train_samples_3d = np.vstack((train_samples_3d, pts_3d))
+    # bootstrap mean, std
+    if count == 0:
+        train_samples_2d = pts_2d
+        mean_old_2d = np.zeros(pts_2d.shape[1])
+        std_old_2d = np.zeros(pts_2d.shape[1])
+        train_samples_3d = pts_3d
+        mean_old_3d = np.zeros(pts_3d.shape[1])
+        std_old_3d = np.zeros(pts_3d.shape[1])
+    else:
+        train_samples_2d = np.vstack((train_samples_2d, pts_2d))
+        train_samples_3d = np.vstack((train_samples_3d, pts_3d))
 
-        mean_2d = np.nanmean(train_samples_2d, axis=0)
-        std_2d = np.nanstd(train_samples_2d, axis=0)
-        mean_3d = np.nanmean(train_samples_3d, axis=0)
-        std_3d = np.nanstd(train_samples_3d, axis=0)
+    mean_2d = np.nanmean(train_samples_2d, axis=0)
+    std_2d = np.nanstd(train_samples_2d, axis=0)
+    mean_3d = np.nanmean(train_samples_3d, axis=0)
+    std_3d = np.nanstd(train_samples_3d, axis=0)
 
-        error = (
-            linalg.norm(mean_2d - mean_old_2d)
-            + linalg.norm(std_2d - std_old_2d)
-            + linalg.norm(mean_3d - mean_old_3d)
-            + linalg.norm(std_3d - std_old_3d)
-        )
-        error_log.append(error)
+    error = (
+        linalg.norm(mean_2d - mean_old_2d)
+        + linalg.norm(std_2d - std_old_2d)
+        + linalg.norm(mean_3d - mean_old_3d)
+        + linalg.norm(std_3d - std_old_3d)
+    )
+    error_log.append(error)
 
-        logger.info(f"Expected error for obtaining projection stats: {error}")
-        mean_old_2d = mean_2d
-        std_old_2d = std_2d
-        mean_old_3d = mean_3d
-        std_old_3d = std_3d
-        count += 1
+    logger.info(f"Expected error for obtaining projection stats: {error}")
+    mean_old_2d = mean_2d
+    std_old_2d = std_2d
+    mean_old_3d = mean_3d
+    std_old_3d = std_3d
+    count += 1
 
-        if not os.path.exists(out_dir):
-            logger.info(f"Creating directory {os.path.abspath(out_dir)}")
-            os.makedirs(out_dir)
+    if not os.path.exists(out_dir):
+        logger.info(f"Creating directory {os.path.abspath(out_dir)}")
+        os.makedirs(out_dir)
 
-        pickle.dump(
-            error_log,
-            open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
+    pickle.dump(
+        error_log,
+        open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
     return mean_2d, std_2d, mean_3d, std_3d
