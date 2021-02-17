@@ -46,6 +46,7 @@ def train_np(
     test_3d: np.ndarray,
     out_dir: str,
     root: int = 0,
+    target_sets: List[List[int]] = None,
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
     training_kwargs: Dict[str, Union[str, int]] = None,
@@ -70,10 +71,11 @@ def train_np(
         test_keypts = {k: test_keypts}
 
     roots = [root]
-    target_sets = list(
-        set(range(n_joints)) - set(roots)
-    )  # every point except the root is going to be predicted
-    target_sets = [target_sets]
+    if target_sets is None:
+        target_sets = list(
+            set(range(n_joints)) - set(roots)
+        )  # every point except the root is going to be predicted
+        target_sets = [target_sets]
 
     train(
         train_2d=train_2d,
@@ -302,7 +304,71 @@ def train(
     network_main(option, augmentation)
 
 
-def test(out_dir: str) -> None:
+def set_test_data(
+    out_dir: str,
+    test_2d: np.ndarray = None,
+    test_3d: np.ndarray = None,
+    test_keypts: np.ndarray = None,
+) -> None:
+    if test_2d is None and test_3d is None and test_keypts is None:
+        return
+    test_keypts = test_keypts if test_keypts is not None else init_keypts(test_3d)
+    # create dummy train data
+    train_3d = test_3d.copy()
+    train_2d = test_2d.copy()
+    # backup the raw data
+    test_3d_raw = test_3d.copy()
+    test_2d_raw = test_2d.copy()
+    # wrap numpy input into a dictionary
+
+    k = ""
+    train_2d = {k: train_2d}
+    train_3d = {k: train_3d}
+    test_2d = {k: test_2d}
+    test_3d = {k: test_3d}
+    test_keypts = {k: test_keypts}
+    # read statistics
+    d = torch.load(os.path.join(out_dir, "stat_2d.pth.tar"))
+    mean_2d = d["mean"]
+    std_2d = d["std"]
+    target_sets = d["target_sets"]
+    roots = d["roots"]
+    in_dim = d["in_dim"]
+    d = torch.load(os.path.join(out_dir, "stat_3d.pth.tar"))
+    mean_3d = d["mean"]
+    std_3d = d["std"]
+    out_dim = d["out_dim"]
+
+    # preprocess the new 2d data
+    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
+    _, test_set_2d, _, _, _, _ = preprocess_2d(
+        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
+    )
+
+    # preprocess the new 3d data
+    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
+    (_, test_set_3d, _, _, targets_3d, _,) = preprocess_3d(
+        train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
+    )
+
+    # init default keypts in case it is None
+    test_keypts = flatten_dict(test_keypts)
+    test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
+
+    # save new 2d and 3d test data
+    torch.save(
+        [test_set_3d, test_keypts, test_3d_raw],
+        os.path.join(out_dir, "test_3d.pth.tar"),
+    )
+    torch.save([test_set_2d, test_2d_raw], os.path.join(out_dir, "test_2d.pth.tar"))
+
+
+def test(
+    out_dir: str,
+    test_2d: np.ndarray = None,
+    test_3d: np.ndarray = None,
+    test_kypts: np.ndarray = None,
+) -> None:
     """Test LiftPose3D.
         Runs pre-trained liftpose3d model (saved as ckpt_best.pth.tar, using the liftpose.main.train function.)
             on the test data (saved as test_2d.ckpt.tar and test_3d.ckpt.tar).
@@ -319,6 +385,8 @@ def test(out_dir: str) -> None:
     assert os.path.isdir(
         out_dir
     ), "{out_dir} does not exists. please call liftpose.main.train function first with the same path."
+
+    set_test_data(out_dir, test_2d, test_3d, test_kypts)
 
     logger.info("starting testing in path: {}".format(out_dir))
     option = Options().parse()

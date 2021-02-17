@@ -131,12 +131,13 @@ def normalization_stats(d, replace_zeros=True):
 
     if type(d) is dict:
         d = np.concatenate([v for k, v in d.items()], 0)
-    
-    #replace zeros by nans
+
+    # replace zeros by nans, so we ignore them during the mean, std calculation
     if replace_zeros:
         d = d.astype('float')
         d[np.abs(d)<np.finfo(float).eps] = np.nan
-    
+
+    # TODO: Fix RuntimeWarning: Mean of empty slice
     mean = np.nanmean(d, axis=0)
     std = np.nanstd(d, axis=0)
 
@@ -228,7 +229,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
     return poses, offset
 
 
-def add_roots(d, dim_to_use, n_dim):
+def add_roots(d, dim_to_use, n_dim, base="zeros"):
     """ Add back the root dimensions
     
     Args
@@ -242,7 +243,13 @@ def add_roots(d, dim_to_use, n_dim):
 
     T = d.shape[0]
     D = n_dim
-    orig_data = np.zeros((T, D), dtype=np.float32)
+    if base == "zeros":
+        orig_data = np.zeros((T, D), dtype=np.float32)
+    elif base == "ones":
+        orig_data = np.ones((T, D), dtype=np.float32)
+    else:
+        raise NotImplementedError
+
     orig_data[:, dim_to_use] = d
 
     return orig_data
@@ -310,6 +317,8 @@ def init_keypts(train_3d):
 
 def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
+    assert isinstance(d, dict)
+    assert all([v.ndim == 3 for v in d.values()])
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
 
@@ -406,11 +415,7 @@ def obtain_projected_stats(
             intr=intr,
         )
         pts_3d = process_dict(
-            project_to_random_eangle, 
-            poses, 
-            eangle, 
-            axsorder=axsorder, 
-            project=False
+            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
         )
 
         pts_2d = flatten_dict(pts_2d)
@@ -456,15 +461,24 @@ def obtain_projected_stats(
             logger.info(f"Creating directory {os.path.abspath(out_dir)}")
             os.makedirs(out_dir)
 
-        #save
+        # save
         pickle.dump(
             error_log,
             open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
+
+        # TODO remove the absolute path, this wouldn't work on other computers
         pickle.dump(
             [mean_2d, std_2d, mean_3d, std_3d],
-            open(os.path.abspath(os.path.join(out_dir, '/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl')), "wb"),
+            open(
+                os.path.abspath(
+                    os.path.join(
+                        out_dir,
+                        "/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl",
+                    )
+                ),
+                "wb",
+            ),
         )
-        
-        
+
     return mean_2d, std_2d, mean_3d, std_3d

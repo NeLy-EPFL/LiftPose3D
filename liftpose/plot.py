@@ -53,6 +53,7 @@ def plot_pose_3d(
     None.
 
     """
+    assert tar.ndim == 2
 
     tar = tar.copy()
     if normalize:  # move points toward origin for easier visualization
@@ -110,13 +111,7 @@ def plot_pose_3d(
 
 
 def plot_pose_2d(
-    ax, 
-    tar, 
-    bones, 
-    normalize=True, 
-    limb_id=None, 
-    colors=None, 
-    good_keypts=None
+    ax, tar, bones, normalize=True, limb_id=None, colors=None, good_keypts=None
 ):
     """
     Plot 2D pose
@@ -334,6 +329,7 @@ def violin_plot(
     body_length: int = None,
     units: str = None,
     ylim: List[int] = None,
+    order: List[str] = None,
 ):
     """ creates violin plot of error distribution for each joint """
     # fmt: off
@@ -367,8 +363,9 @@ def violin_plot(
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
 
+    print(d)
     # draw the violin
-    s = sns.violinplot(x="joint", y="err", data=d, color="gray")
+    s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order)
 
     # set the labels
     s.set_xticklabels(s.get_xticklabels(), rotation=30)
