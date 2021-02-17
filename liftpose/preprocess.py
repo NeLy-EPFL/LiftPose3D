@@ -137,8 +137,11 @@ def normalization_stats(d, replace_zeros=True):
         d = np.concatenate([v for k, v in d.items()], 0)
 
     # replace zeros by nans, so we ignore them during the mean, std calculation
-    d = d.astype("float")[d == 0] = np.nan if replace_zeros else d
+    if replace_zeros:
+        d = d.astype("float")
+        d[d == 0] = np.nan
 
+    # TODO: Fix RuntimeWarning: Mean of empty slice
     mean = np.nanmean(d, axis=0)
     std = np.nanstd(d, axis=0)
 
