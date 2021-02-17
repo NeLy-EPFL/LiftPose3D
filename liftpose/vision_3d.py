@@ -23,6 +23,8 @@ def reprojection_error(
 
 
 def adjust_tree(pose3d, root, child, offset) -> None:
+    ''' move each subtree by offset amount. the current node is the root. 
+        find each node looking at the child[root]'''
     pose3d[:, root] += offset
     for c in child[root]:
         adjust_tree(pose3d, c, child, offset)
@@ -35,20 +37,23 @@ def normalize_bone_length(
     bone_length: Dict[tuple, float],
     thr: float = 0,
 ) -> np.ndarray:
+    '''pose3d has shape [N, J, 3]. retargets the bones of each poses without changing the angles.
+       bone_length is a dictionary with joint ids '''
     assert pose3d.ndim == 3, f"{pose3d.ndim}"
     assert isinstance(bone_length, dict)
     assert isinstance(child, list)
 
     for c in child[root]:
-        vec = pose3d[:, c] - pose3d[:, root]
+        vec = pose3d[:, c] - pose3d[:, root] # find the current bone-length
         curr_length = np.linalg.norm(vec, axis=-1, keepdims=True)
 
         k = (c, root) if (c, root) in bone_length else (root, c)
         offset = (vec / curr_length) * (bone_length[k] - curr_length)
         # if the curr_length is too small, then normalization will just amplify the noise
+        # so just ignore it
         offset[np.squeeze(curr_length < thr)] = 0
-        adjust_tree(pose3d, c, child, offset)
-        normalize_bone_length(pose3d, c, child, bone_length)
+        adjust_tree(pose3d, c, child, offset) # move subtree by offset amount
+        normalize_bone_length(pose3d, c, child, bone_length) # continue fixing the subtree
 
     return pose3d
 
