@@ -27,7 +27,8 @@ def load_test_results(
     offset = stat_3d["offset"]
     offset = np.concatenate([v for k, v in offset.items()], 0)
     inp_offset = np.vstack(list(stat_2d["offset"].values()))
-    good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean))
+    # assuming root joints are always good_keypts
+    good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean), base="ones")
 
     # TODO make this more universal!!
     if prism:
