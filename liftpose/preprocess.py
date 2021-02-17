@@ -54,25 +54,23 @@ def preprocess_2d(
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
-
-    _train = train.copy()
-    _test = test.copy()
     
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
-    _train, _ = anchor_to_root(_train, roots, target_sets, in_dim)
-    _test, offset = anchor_to_root(_test, roots, target_sets, in_dim)    
+    train, _ = anchor_to_root(train, roots, target_sets, in_dim)
+    test, offset = anchor_to_root(test, roots, target_sets, in_dim)    
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(_train)
-    _train = normalize(_train, mean, std)
-    _test = normalize(_test, mean, std)
+        mean, std = normalization_stats(train)
+        
+    train = normalize(train, mean, std)
+    test = normalize(test, mean, std)
     
     # select coordinates to be predicted and return them as 'targets'
-    _train, _ = remove_roots(_train, target_sets, in_dim)
-    _test, targets = remove_roots(_test, target_sets, in_dim)
-
-    return _train, _test, mean, std, targets, offset
+    train, _ = remove_roots(train, target_sets, in_dim)
+    test, targets = remove_roots(test, target_sets, in_dim)
+    
+    return train, test, mean, std, targets, offset
 
 
 def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
@@ -103,24 +101,22 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
             offset: the root position for corresponding target_sets for each joint
     """
 
-    _train = train.copy()
-    _test = test.copy()
-
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-    _train, _ = anchor_to_root(_train, roots, target_sets, out_dim)
-    _test, offset = anchor_to_root(_test, roots, target_sets, out_dim)
+    train, _ = anchor_to_root(train, roots, target_sets, out_dim)
+    test, offset = anchor_to_root(test, roots, target_sets, out_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(_train)
-    _train = normalize(_train, mean, std)
-    _test = normalize(_test, mean, std)
+        mean, std = normalization_stats(train)
+        
+    train = normalize(train, mean, std)
+    test = normalize(test, mean, std)
 
     # select coordinates to be predicted and return them as 'targets_3d'
-    _train, _ = remove_roots(_train, target_sets, out_dim)
-    _test, targets_3d = remove_roots(_test, target_sets, out_dim)
-
-    return _train, _test, mean, std, targets_3d, offset
+    train, _ = remove_roots(train, target_sets, out_dim)
+    test, targets_3d = remove_roots(test, target_sets, out_dim)
+    
+    return train, test, mean, std, targets_3d, offset
 
 
 def normalization_stats(d, replace_zeros=True):
@@ -139,7 +135,7 @@ def normalization_stats(d, replace_zeros=True):
     #replace zeros by nans
     if replace_zeros:
         d = d.astype('float')
-        d[d==0]=np.nan
+        d[np.abs(d)<np.finfo(float).eps] = np.nan
     
     mean = np.nanmean(d, axis=0)
     std = np.nanstd(d, axis=0)
@@ -156,7 +152,7 @@ def center_poses(d):
     return d
 
 
-def normalize(d, mean, std):
+def normalize(d, mean, std, replace_nans=True):
     """ Normalizes a dictionary of poses
   
     Args
@@ -173,6 +169,10 @@ def normalize(d, mean, std):
     for k in d.keys():
         d[k] -= mean
         d[k] /= std
+        
+        if replace_nans:
+            d[k] = d[k].astype('float')
+            d[k] = np.nan_to_num(d[k])
 
     return d
 
@@ -367,6 +367,14 @@ def get_visible_points(d, good_keypts):
         d[k] = np.stack(d_tmp, axis=0)
 
     return d
+
+
+def weird_division(n, d):
+    '''division by zero is zero'''
+    mod = n/d
+    mod = np.nan_to_num(mod)
+    
+    return mod
 
 
 from liftpose.vision_3d import project_to_random_eangle, process_dict

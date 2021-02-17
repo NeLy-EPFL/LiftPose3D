@@ -1,6 +1,6 @@
 import numpy as np
 from liftpose.vision_3d import project_to_random_eangle
-from liftpose.preprocess import anchor_to_root, remove_roots
+from liftpose.preprocess import anchor_to_root, remove_roots, weird_division
 import torch
 
 
@@ -30,9 +30,9 @@ def random_project(eangles, axsorder, intr):
         # Standardize each dimension independently
         np.seterr(divide="ignore", invalid="ignore")
         inputs -= stats["mean_2d"]
-        inputs /= stats["std_2d"]
+        inputs = weird_division(inputs, stats["std_2d"])
         outputs -= stats["mean_3d"]
-        outputs /= stats["std_3d"]
+        outputs = weird_division(outputs, stats["std_3d"])
 
         # remove roots
         inputs, _ = remove_roots({"inputs": inputs}, target_sets, 2)
@@ -56,7 +56,7 @@ def add_noise(noise_amplitude):
     ):
         std = stats["std_2d"][targets_2d]
         inputs += torch.from_numpy(
-            np.random.normal(0, noise_amplitude / std, size=inputs.shape)
+            np.random.normal(0, weird_division(noise_amplitude, std), size=inputs.shape)
         ).float()
 
         return inputs, outputs
