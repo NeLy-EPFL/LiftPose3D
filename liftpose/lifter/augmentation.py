@@ -13,7 +13,7 @@ def random_project(eangles, axsorder, intr):
 
         # do random projection
         inputs = project_to_random_eangle(
-            outputs[None, :], eangles, axsorder, project=True, intr=intr
+            outputs[None, :].copy(), eangles, axsorder, project=True, intr=intr
         )
 
         #inputs = np.squeeze(inputs)

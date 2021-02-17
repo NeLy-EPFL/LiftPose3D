@@ -403,9 +403,6 @@ def obtain_projected_stats(
     # run until convergence
     while error > th:
         # obtain randomly projected points
-        # print(poses)
-        # import sys
-        # sys.exit()
         pts_2d = process_dict(
             project_to_random_eangle,
             poses,
@@ -467,14 +464,13 @@ def obtain_projected_stats(
             open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
 
-        # TODO remove the absolute path, this wouldn't work on other computers
         pickle.dump(
             [mean_2d, std_2d, mean_3d, std_3d],
             open(
                 os.path.abspath(
                     os.path.join(
                         out_dir,
-                        "/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl",
+                        os.path.abspath(os.path.join(out_dir, "stats.pkl")),
                     )
                 ),
                 "wb",
