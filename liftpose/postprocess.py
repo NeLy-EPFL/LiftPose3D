@@ -30,7 +30,7 @@ def load_test_results(
     # assuming root joints are always good_keypts
     good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean), base="ones")
 
-    # TODO make this more universal!!
+    # TODO make this more universal
     if prism:
         if np.sum(good_keypts[0, :15]) > 10:
             offset = np.hstack((offset[0, :15], offset[0, :15]))

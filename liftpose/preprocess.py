@@ -55,24 +55,24 @@ def preprocess_2d(
             offset: the root position for corresponding target_sets for each joint
     """
 
-    _train = train.copy()
-    _test = test.copy()
-    
+    train_cp = train.copy()
+    test_cp = test.copy()
+
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
-    _train, _ = anchor_to_root(_train, roots, target_sets, in_dim)
-    _test, offset = anchor_to_root(_test, roots, target_sets, in_dim)    
+    train_cp, _ = anchor_to_root(train_cp, roots, target_sets, in_dim)
+    test_cp, offset = anchor_to_root(test_cp, roots, target_sets, in_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(_train)
-    _train = normalize(_train, mean, std)
-    _test = normalize(_test, mean, std)
-    
-    # select coordinates to be predicted and return them as 'targets'
-    _train, _ = remove_roots(_train, target_sets, in_dim)
-    _test, targets = remove_roots(_test, target_sets, in_dim)
+        mean, std = normalization_stats(train_cp)
+    train_cp = normalize(train_cp, mean, std)
+    test_cp = normalize(test_cp, mean, std)
 
-    return _train, _test, mean, std, targets, offset
+    # select coordinates to be predicted and return them as 'targets'
+    train_cp, _ = remove_roots(train_cp, target_sets, in_dim)
+    test_cp, targets = remove_roots(test_cp, target_sets, in_dim)
+
+    return train_cp, test_cp, mean, std, targets, offset
 
 
 def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
@@ -103,24 +103,24 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
             offset: the root position for corresponding target_sets for each joint
     """
 
-    _train = train.copy()
-    _test = test.copy()
+    train_cp = train.copy()
+    test_cp = test.copy()
 
     # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-    _train, _ = anchor_to_root(_train, roots, target_sets, out_dim)
-    _test, offset = anchor_to_root(_test, roots, target_sets, out_dim)
+    train_cp, _ = anchor_to_root(train_cp, roots, target_sets, out_dim)
+    test_cp, offset = anchor_to_root(test_cp, roots, target_sets, out_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(_train)
-    _train = normalize(_train, mean, std)
-    _test = normalize(_test, mean, std)
+        mean, std = normalization_stats(train_cp)
+    train_cp = normalize(train_cp, mean, std)
+    test_cp = normalize(test_cp, mean, std)
 
     # select coordinates to be predicted and return them as 'targets_3d'
-    _train, _ = remove_roots(_train, target_sets, out_dim)
-    _test, targets_3d = remove_roots(_test, target_sets, out_dim)
+    train_cp, _ = remove_roots(train_cp, target_sets, out_dim)
+    test_cp, targets_3d = remove_roots(test_cp, target_sets, out_dim)
 
-    return _train, _test, mean, std, targets_3d, offset
+    return train_cp, test_cp, mean, std, targets_3d, offset
 
 
 def normalization_stats(d, replace_zeros=True):
@@ -135,12 +135,10 @@ def normalization_stats(d, replace_zeros=True):
 
     if type(d) is dict:
         d = np.concatenate([v for k, v in d.items()], 0)
-    
-    #replace zeros by nans
-    if replace_zeros:
-        d = d.astype('float')
-        d[d==0]=np.nan
-    
+
+    # replace zeros by nans, so we ignore them during the mean, std calculation
+    d = d.astype("float")[d == 0] = np.nan if replace_zeros else d
+
     mean = np.nanmean(d, axis=0)
     std = np.nanstd(d, axis=0)
 
@@ -406,11 +404,7 @@ def obtain_projected_stats(
             intr=intr,
         )
         pts_3d = process_dict(
-            project_to_random_eangle, 
-            poses, 
-            eangle, 
-            axsorder=axsorder, 
-            project=False
+            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
         )
 
         pts_2d = flatten_dict(pts_2d)
@@ -456,15 +450,24 @@ def obtain_projected_stats(
             logger.info(f"Creating directory {os.path.abspath(out_dir)}")
             os.makedirs(out_dir)
 
-        #save
+        # save
         pickle.dump(
             error_log,
             open(os.path.abspath(os.path.join(out_dir, "error_log.pkl")), "wb"),
         )
+
+        # TODO remove the absolute path, this wouldn't work on other computers
         pickle.dump(
             [mean_2d, std_2d, mean_3d, std_3d],
-            open(os.path.abspath(os.path.join(out_dir, '/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl')), "wb"),
+            open(
+                os.path.abspath(
+                    os.path.join(
+                        out_dir,
+                        "/data/LiftPose3D/fly_tether/angle_inv_network/stats.pkl",
+                    )
+                ),
+                "wb",
+            ),
         )
-        
-        
+
     return mean_2d, std_2d, mean_3d, std_3d
