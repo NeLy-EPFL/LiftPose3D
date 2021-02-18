@@ -48,8 +48,6 @@ def train(
 
         # make prediction with model
         inputs = Variable(inps.to(device))
-        print(inputs)
-        sys.exit()
         targets = Variable(tars.to(device))
         outputs = model(inputs)
 

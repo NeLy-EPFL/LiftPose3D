@@ -98,7 +98,7 @@ class data_loader(Dataset):
         roots = self.train_stat_2d.get("roots")
         target_sets = self.train_stat_2d.get("target_sets")
         targets_2d = self.train_stat_2d["targets_2d"]
-
+        
         return {
             "stats": {
                 "mean_2d": mean_2d,

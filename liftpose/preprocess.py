@@ -62,6 +62,9 @@ def preprocess_2d(
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
+        print((std is None))
+        import sys
+        sys.exit()
         mean, std = normalization_stats(train)
         
     train = normalize(train, mean, std)
@@ -450,7 +453,7 @@ def obtain_projected_stats(
 
         mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
         mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
-
+        
         error = (
             linalg.norm(mean_2d - mean_old_2d)
             + linalg.norm(std_2d - std_old_2d)

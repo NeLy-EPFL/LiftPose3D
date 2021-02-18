@@ -104,7 +104,7 @@ def train(
     test_keypts: Dict[str, np.ndarray] = None,
     training_kwargs: Dict[str, Union[str, int]] = None,
     augmentation: List[Callable] = None,
-    mean: Tuple = None,
+    stats: Tuple = None,
 ) -> None:
 
     """Train LiftPose3D.
@@ -172,10 +172,10 @@ def train(
     test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
     train_2d = init_data(train_3d, 2) if train_2d is None else train_2d
     mean_2d, std_2d, mean_3d, std_3d = (
-        mean if mean is not None else None,
-        None,
-        None,
-        None,
+        stats[0] if stats is not None else None,
+        stats[1] if stats is not None else None,
+        stats[2] if stats is not None else None,
+        stats[3] if stats is not None else None,
     )
     # fmt: off
     assert all(t.ndim == 3 for t in list(train_2d.values()))

@@ -9,7 +9,6 @@ def random_project(eangles, axsorder, intr):
         inputs, outputs, outputs_raw, stats, roots, target_sets, targets_2d,
     ):
         outputs = outputs_raw.cpu().data.numpy()
-        inputs = inputs.cpu().data.numpy()
 
         # do random projection
         inputs = project_to_random_eangle(
@@ -30,10 +29,6 @@ def random_project(eangles, axsorder, intr):
         # Standardize each dimension independently
         np.seterr(divide="ignore", invalid="ignore")
         inputs -= stats["mean_2d"]
-        print(inputs)
-        print(stats["mean_2d"])
-        import sys
-        sys.exit()
         inputs = weird_division(inputs, stats["std_2d"])
         outputs -= stats["mean_3d"]
         outputs = weird_division(outputs, stats["std_3d"])
