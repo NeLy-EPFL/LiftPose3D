@@ -1,8 +1,15 @@
 import numpy as np
+from numpy import linalg
 import logging
 import sys
 import os
 import copy
+
+from liftpose.vision_3d import project_to_random_eangle
+from liftpose.lifter.utils import process_dict
+
+import pickle
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -124,13 +131,23 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
 
 
 def normalization_stats(d, replace_zeros=True):
-    """ Computes mean and stdev
-    
-    Args
-        d: dictionary containing data of all experiments
+    """
+    Computes mean and stdev
+
+    Parameters
+    ----------
+    d : numpy array or dict
+        Data of poses.
+    replace_zeros : bool, optional
+        Replace zeros by nans, so we ignore them during the mean, 
+        std calculation. The default is True.
+
     Returns
-        mean: array with the mean of the data for all dimensions
-        std: array with the stdev of the data for all dimensions
+    -------
+    mean : numpy array
+        Mean of the data for all dimensions.
+    std : numpy array
+        Standard deviation of the data for all dimensions..
     """
 
     if type(d) is dict:
@@ -138,7 +155,6 @@ def normalization_stats(d, replace_zeros=True):
 
     cp_d = copy.deepcopy(d)
     
-    # replace zeros by nans, so we ignore them during the mean, std calculation
     if replace_zeros:
         cp_d = cp_d.astype('float')
         cp_d[np.abs(cp_d)<np.finfo(float).eps] = np.nan
@@ -160,15 +176,25 @@ def center_poses(d):
 
 
 def normalize(d, mean, std, replace_nans=True):
-    """ Normalizes a dictionary of poses
-  
-    Args
-        d: dictionary containing data of all experiments
-        mean: array with the mean of the data for all dimensions
-        std: array with the stdev of the data for all dimensions
-      
+    """
+    Normalizes a dictionary of poses
+
+    Parameters
+    ----------
+    d : dict
+        Data of all experiments.
+    mean : numpy array
+        Mean of the data for all dimensions.
+    std : numpy array
+        Standard deviation of the data for all dimensions.
+    replace_nans : bool, optional
+        Replace any nans in data by zeros. The default is True.
+
     Returns
-        d: dictionary containing normalized data
+    -------
+    d : dict
+        Normalized data.
+
     """
 
     np.seterr(divide="ignore", invalid="ignore")
@@ -185,16 +211,23 @@ def normalize(d, mean, std, replace_nans=True):
 
 
 def unNormalize(d_norm, mean, std):
-    """ Un-normalizes a matrix whose mean has been substracted and that has been divided by
-    standard deviation
-  
-    Args
-        d_norm: dictionary containing normalized data of all experiments
-        mean: array with the mean of the data for all dimensions
-        std: array with the stdev of the data for all dimensions
-      
+    """
+    Un-normalizes data
+
+    Parameters
+    ----------
+    d_norm : dict
+        Normalized data of all experiments.
+    mean : numpy array
+        Mean of the data for all dimensions.
+    std : numpy array
+        Standard deviation of the data for all dimensions.
+
     Returns
-        data: dictionary containing normalized data
+    -------
+    d_norm : dict
+        Un-normalized data.
+
     """
 
     d_norm *= std
@@ -401,12 +434,6 @@ def weird_division(n, d):
     return mod
 
 
-from liftpose.vision_3d import project_to_random_eangle, process_dict
-
-import pickle
-from numpy import linalg
-
-
 def obtain_projected_stats(
     poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05
 ):
@@ -418,16 +445,23 @@ def obtain_projected_stats(
     # run until convergence
     while error > th:
         # obtain randomly projected points
-        pts_2d = process_dict(
+        pts_2d, _ = process_dict(
             project_to_random_eangle,
             poses,
+            2,
             eangle,
             axsorder=axsorder,
             project=True,
             intr=intr,
         )
-        pts_3d = process_dict(
-            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
+        
+        pts_3d, _ = process_dict(
+            project_to_random_eangle, 
+            poses,
+            2,
+            eangle, 
+            axsorder=axsorder, 
+            project=False
         )
 
         pts_2d = flatten_dict(pts_2d)

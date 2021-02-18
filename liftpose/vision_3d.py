@@ -167,37 +167,6 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     return poses_proj
 
 
-def process_dict(function, d: dict, *args, **kwargs):
-    """
-    Apply a function to each array in a dictionary.
-
-    Parameters
-    ----------
-    function : Callable
-        Function to apply to all arrays in d.
-    d : dict of 3-dim numpy arrays
-        Arrays to operate on.
-    **args : TYPE
-        Arguments for function.
-
-    Returns
-    -------
-    d_new
-        Output of function.
-
-    """
-
-    d_new = {}
-    for key in d.keys():
-
-        d_new[key] = function(d[key], *args, **kwargs)
-
-    # sort dictionary
-    d_new = dict(sorted(d_new.items()))
-
-    return d_new
-
-
 def project_to_random_eangle(
     poses_world, eangle_range: dict, axsorder="xyz", project=False, intr=None
 ):
@@ -238,7 +207,7 @@ def project_to_random_eangle(
 
     Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, intr=intr)
 
-    return Pcam
+    return Pcam, eangle
 
 
 def uniform(low=0,high=1,size=1):

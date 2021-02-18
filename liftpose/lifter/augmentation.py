@@ -11,7 +11,7 @@ def random_project(eangles, axsorder, intr):
         outputs = outputs_raw.cpu().data.numpy()
 
         # do random projection
-        inputs = project_to_random_eangle(
+        inputs, _ = project_to_random_eangle(
             outputs[None, :].copy(), eangles, axsorder, project=True, intr=intr
         )
         

@@ -11,6 +11,7 @@ import torch
 
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
+from liftpose.lifter.utils import process_dict
 from liftpose.preprocess import (
     preprocess_2d,
     preprocess_3d,
@@ -19,7 +20,7 @@ from liftpose.preprocess import (
     flatten_dict,
     anchor_to_root,
 )
-from liftpose.vision_3d import project_to_random_eangle, process_dict
+from liftpose.vision_3d import project_to_random_eangle
 
 import pickle
 
