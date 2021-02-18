@@ -313,8 +313,17 @@ def get_coords_in_dim(targets, dim):
 
 def init_keypts(train_3d):
     """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
+    
     d = {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
 
+    return d
+
+
+def init_data(d_template, dim):
+    """create a new dictionary with empty arrays and last dimension dim """
+
+    d = {k: np.zeros((v.shape[0], v.shape[1], dim)) for (k, v) in d_template.items()}
+    
     return d
 
 

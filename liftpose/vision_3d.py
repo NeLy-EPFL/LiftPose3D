@@ -24,8 +24,8 @@ def reprojection_error(
 
 
 def adjust_tree(pose3d, root, child, offset) -> None:
-    """ move each subtree by offset amount. the current node is the root. 
-        find each node looking at the child[root]"""
+    """move each subtree by offset amount. the current node is the root. 
+    find each node looking at the child[root]"""
     pose3d[:, root] += offset
     for c in child[root]:
         adjust_tree(pose3d, c, child, offset)

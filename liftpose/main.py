@@ -15,9 +15,9 @@ from liftpose.preprocess import (
     preprocess_2d,
     preprocess_3d,
     init_keypts,
+    init_data,
     flatten_dict,
     anchor_to_root,
-    get_visible_points,
 )
 from liftpose.vision_3d import project_to_random_eangle, process_dict
 
@@ -170,6 +170,7 @@ def train(
     # init default keypts in case it is None
     train_keypts = init_keypts(train_3d) if train_keypts is None else train_keypts
     test_keypts = init_keypts(test_3d) if test_keypts is None else test_keypts
+    train_2d = init_data(train_3d, 2) if train_2d is None else train_2d
     mean_2d, std_2d, mean_3d, std_3d = (
         mean if mean is not None else None,
         None,
@@ -181,12 +182,17 @@ def train(
     assert all(t.ndim == 3 for t in list(test_2d.values()))
     assert all(t.ndim == 3 for t in list(train_2d.values()))
     assert all(t.ndim == 3 for t in list(test_3d.values()))
+    
+    #check if number of dimensions is consistent
     assert len(set([v.shape[-1] for v in train_2d.values()])) == 1
     assert len(set([v.shape[-1] for v in train_3d.values()])) == 1
     assert len(set([v.shape[-1] for v in test_2d.values()])) == 1
     assert len(set([v.shape[-1] for v in test_3d.values()])) == 1
+    
+    #check if the number of timepoints/keypoints is consistent
     assert all([t3d.shape[0] == t2d.shape[0] for (t3d,t2d) in zip(list(train_3d.values()), list(train_2d.values()))])
     assert all([t3d.shape[1] == t2d.shape[1] for (t3d,t2d) in zip(list(train_3d.values()), list(train_2d.values()))])
+    
     assert all([kp.shape == t.shape for (kp,t) in zip(list(test_3d.values()), list(test_keypts.values()))])
     assert len(roots) != 0
     assert len(target_sets) != 0
