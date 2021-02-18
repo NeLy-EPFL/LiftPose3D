@@ -15,7 +15,7 @@ def random_project(eangles, axsorder, intr):
         inputs = project_to_random_eangle(
             outputs[None, :].copy(), eangles, axsorder, project=True, intr=intr
         )
-
+        
         #inputs = np.squeeze(inputs)
         inputs = inputs.reshape((1, inputs.size))
         outputs = outputs.reshape((1, outputs.size))
@@ -30,6 +30,10 @@ def random_project(eangles, axsorder, intr):
         # Standardize each dimension independently
         np.seterr(divide="ignore", invalid="ignore")
         inputs -= stats["mean_2d"]
+        print(inputs)
+        print(stats["mean_2d"])
+        import sys
+        sys.exit()
         inputs = weird_division(inputs, stats["std_2d"])
         outputs -= stats["mean_3d"]
         outputs = weird_division(outputs, stats["std_3d"])

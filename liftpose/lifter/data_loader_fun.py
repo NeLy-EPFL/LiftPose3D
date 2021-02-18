@@ -68,7 +68,7 @@ class data_loader(Dataset):
             outputs = torch.from_numpy(self.train_out[index]).float()
             outputs_raw = torch.from_numpy(self.train_out_raw[index]).float()
             inputs = torch.from_numpy(self.train_inp[index]).float()
-
+        
             if self.augmentation is not None:
                 for aug in self.augmentation:
                     inputs, outputs = aug(
