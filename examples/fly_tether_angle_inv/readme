@@ -1,4 +1,4 @@
-sample_cameras.ipynb - visualise the allowed camera angles with respect to the position of the fly in world coordinates
+sample_cameras.ipynb - visualise the allowed camera angles with respect to the position of the fly in world coordinates (uses pose.pkl)
 
 angle_invariant_lifter.ipynb - train angle-invariant lifter network
 
