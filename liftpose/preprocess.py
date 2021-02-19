@@ -69,9 +69,6 @@ def preprocess_2d(
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        print((std is None))
-        import sys
-        sys.exit()
         mean, std = normalization_stats(train)
         
     train = normalize(train, mean, std)
