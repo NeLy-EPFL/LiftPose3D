@@ -47,3 +47,19 @@ def read_data(session_id, cam_id):
 
 def read_cam(session_id, cam_id):
     return scipy.io.loadmat(f'/home/user/Dropbox/calibration_e{session_id}/hires_cam{cam_id+1}_params_rRDistort.mat')
+
+
+import os
+import matplotlib.pyplot as plt
+def plot_pose_2d(frame_id, cam_id, ax, mat, cam_list):
+    idx = mat[0]['data_sampleID'][frame_id][0]
+    p = f'/data/rat7M_e0/sample0_{idx}_Camera{cam_list[cam_id]}.png'
+    if os.path.isfile(p):
+        #print('hit')
+        try:
+            ax.set_data(plt.imread(p))
+            return ax
+        except:
+            return ax.imshow(plt.imread(p))
+    else:
+        return ax

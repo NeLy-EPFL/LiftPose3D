@@ -363,7 +363,6 @@ def violin_plot(
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
 
-    print(d)
     # draw the violin
     s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order)
 

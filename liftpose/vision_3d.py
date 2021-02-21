@@ -4,6 +4,47 @@ from scipy.spatial.transform import Rotation as Rot
 import torch
 
 
+def procrustes(predicted, target):
+    """
+    Pose error: MPJPE after rigid alignment (scale, rotation, and translation),
+    often referred to as "Protocol #2" in many papers.
+    """
+    assert predicted.shape == target.shape
+
+    muX = np.mean(target, axis=1, keepdims=True)
+    muY = np.mean(predicted, axis=1, keepdims=True)
+
+    X0 = target - muX
+    Y0 = predicted - muY
+
+    normX = np.sqrt(np.sum(X0 ** 2, axis=(1, 2), keepdims=True))
+    normY = np.sqrt(np.sum(Y0 ** 2, axis=(1, 2), keepdims=True))
+
+    X0 /= normX
+    Y0 /= normY
+
+    H = np.matmul(X0.transpose(0, 2, 1), Y0)
+    U, s, Vt = np.linalg.svd(H)
+    V = Vt.transpose(0, 2, 1)
+    R = np.matmul(V, U.transpose(0, 2, 1))
+
+    # Avoid improper rotations (reflections), i.e. rotations with det(R) = -1
+    sign_detR = np.sign(np.expand_dims(np.linalg.det(R), axis=1))
+    V[:, :, -1] *= sign_detR
+    s[:, -1] *= sign_detR.flatten()
+    R = np.matmul(V, U.transpose(0, 2, 1))  # Rotation
+
+    tr = np.expand_dims(np.sum(s, axis=1, keepdims=True), axis=2)
+
+    a = tr * normX / normY  # Scale
+    t = muX - a * np.matmul(muY, R)  # Translation
+
+    # Perform rigid transformation on the input
+    predicted_aligned = a * np.matmul(predicted, R) + t
+
+    return predicted_aligned
+
+
 def reprojection_error(
     poses_3d: np.ndarray,
     poses_2d: np.ndarray,
@@ -17,9 +58,9 @@ def reprojection_error(
     assert tvec.ndim == 1 or tvec.ndim == 2
     assert intr.ndim == 2
 
-    poses_3d = world_to_camera(poses_3d, R, tvec)
+    # poses_3d = world_to_camera(poses_3d, R, tvec)
     proj_2d = project_to_camera(poses_3d, intr)
-    assert proj_2d.dim == 3
+    assert proj_2d.ndim == 3
     return np.linalg.norm(poses_2d - proj_2d, axis=2)
 
 
@@ -241,11 +282,11 @@ def project_to_random_eangle(
     return Pcam
 
 
-def uniform(low=0,high=1,size=1):
-    '''Draw n uniform random numbers in [a,b]'''
+def uniform(low=0, high=1, size=1):
+    """Draw n uniform random numbers in [a,b]"""
 
-    u = (high-low) * torch.rand(size) + low
-    
+    u = (high - low) * torch.rand(size) + low
+
     return u.numpy()
 
 
@@ -350,118 +391,6 @@ def intrinsic_matrix(fx, fy, cx, cy):
     intr = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1],], dtype=float,)
 
     return intr
-
-
-def procrustes(X, Y, scaling=True, reflection="best"):
-    """
-    A port of MATLAB's `procrustes` function to Numpy.
-
-    Procrustes analysis determines a linear transformation (translation,
-    reflection, orthogonal rotation and scaling) of the points in Y to best
-    conform them to the points in matrix X, using the sum of squared errors
-    as the goodness of fit criterion.
-
-        d, Z, [tform] = procrustes(X, Y)
-
-    Inputs:
-    ------------
-    X, Y    
-        matrices of target and input coordinates. they must have equal
-        numbers of  points (rows), but Y may have fewer dimensions
-        (columns) than X.
-
-    scaling 
-        if False, the scaling component of the transformation is forced
-        to 1
-
-    reflection
-        if 'best' (default), the transformation solution may or may not
-        include a reflection component, depending on which fits the data
-        best. setting reflection to True or False forces a solution with
-        reflection or no reflection respectively.
-
-    Outputs
-    ------------
-    d       
-        the residual sum of squared errors, normalized according to a
-        measure of the scale of X, ((X - X.mean(0))**2).sum()
-
-    Z
-        the matrix of transformed Y-values
-
-    tform   
-        a dict specifying the rotation, translation and scaling that
-        maps X --> Y
-
-    """
-
-    n, m = X.shape
-    ny, my = Y.shape
-
-    muX = X.mean(0)
-    muY = Y.mean(0)
-
-    X0 = X - muX
-    Y0 = Y - muY
-
-    ssX = (X0 ** 2.0).sum()
-    ssY = (Y0 ** 2.0).sum()
-
-    # centred Frobenius norm
-    normX = np.sqrt(ssX)
-    normY = np.sqrt(ssY)
-
-    # scale to equal (unit) norm
-    X0 /= normX
-    Y0 /= normY
-
-    if my < m:
-        Y0 = np.concatenate((Y0, np.zeros(n, m - my)), 0)
-
-    # optimum rotation matrix of Y
-    A = np.dot(X0.T, Y0)
-    U, s, Vt = np.linalg.svd(A, full_matrices=False)
-    V = Vt.T
-    T = np.dot(V, U.T)
-
-    if reflection != "best":
-
-        # does the current solution use a reflection?
-        have_reflection = np.linalg.det(T) < 0
-
-        # if that's not what was specified, force another reflection
-        if reflection != have_reflection:
-            V[:, -1] *= -1
-            s[-1] *= -1
-            T = np.dot(V, U.T)
-
-    traceTA = s.sum()
-
-    if scaling:
-
-        # optimum scaling of Y
-        b = traceTA * normX / normY
-
-        # standarised distance between X and b*Y*T + c
-        d = 1 - traceTA ** 2
-
-        # transformed coords
-        Z = normX * traceTA * np.dot(Y0, T) + muX
-
-    else:
-        b = 1
-        d = 1 + ssY / ssX - 2 * traceTA * normY / normX
-        Z = normY * np.dot(Y0, T) + muX
-
-    # transformation matrix
-    if my < m:
-        T = T[:my, :]
-    c = muX - b * np.dot(muY, T)
-
-    # transformation values
-    tform = {"rotation": T, "scale": b, "translation": c}
-
-    return d, Z, tform
 
 
 def find_neighbours(k, pts, target_pts, nn):

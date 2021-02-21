@@ -14,8 +14,8 @@ def random_project(eangles, axsorder, intr):
         inputs = project_to_random_eangle(
             outputs[None, :].copy(), eangles, axsorder, project=True, intr=intr
         )
-        
-        #inputs = np.squeeze(inputs)
+
+        # inputs = np.squeeze(inputs)
         inputs = inputs.reshape((1, inputs.size))
         outputs = outputs.reshape((1, outputs.size))
 

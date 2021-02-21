@@ -22,6 +22,8 @@ def load_test_results(
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]
     tar_std = stat_3d["std"]
+    tar_mean[np.isnan(tar_mean)] = 0
+    tar_std[np.isnan(tar_std)] = 1
     targets_2d = stat_2d["targets_2d"]
     targets_3d = stat_3d["targets_3d"]
     offset = stat_3d["offset"]
@@ -46,20 +48,21 @@ def load_test_results(
     tar = add_roots(tar, targets_3d, len(tar_mean))
     out = add_roots(out, targets_3d, len(tar_mean))
     inp = add_roots(inp, targets_2d, len(inp_mean))
-
+    print(out[:, 2])
     # unnormalise
     tar = unNormalize(tar, tar_mean, tar_std)
     out = unNormalize(out, tar_mean, tar_std)
     inp = unNormalize(inp, inp_mean, inp_std)
+    print(out[:, 2])
 
     # translate legs back to their original places
     tar += offset
     out += offset
     inp += inp_offset
-
+    print(out[:, 2])
     assert stat_2d["in_dim"] == 2
     inp = inp.reshape(inp.shape[0], -1, 2)
-
+    print(inp[:, 2])
     if stat_3d["out_dim"] == 1:
         out = np.concatenate([inp, out[:, :, np.newaxis]], axis=2)
         tar = np.concatenate([inp, tar[:, :, np.newaxis]], axis=2)
@@ -70,6 +73,6 @@ def load_test_results(
         raise NotImplementedError
 
     good_keypts = good_keypts.reshape((good_keypts.shape[0], -1, stat_3d["out_dim"]))
-
+    print(out[:, 2])
     return tar, out, good_keypts
 

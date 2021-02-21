@@ -55,25 +55,22 @@ def preprocess_2d(
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
-    
+
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, in_dim)    
+    test, offset = anchor_to_root(test, roots, target_sets, in_dim)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        print((std is None))
-        import sys
-        sys.exit()
         mean, std = normalization_stats(train)
-        
+
     train = normalize(train, mean, std)
     test = normalize(test, mean, std)
-    
+
     # select coordinates to be predicted and return them as 'targets'
     train, _ = remove_roots(train, target_sets, in_dim)
     test, targets = remove_roots(test, target_sets, in_dim)
-    
+
     return train, test, mean, std, targets, offset
 
 
@@ -112,14 +109,14 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
     # Standardize each dimension independently
     if (mean is None) or (std is None):
         mean, std = normalization_stats(train)
-        
+
     train = normalize(train, mean, std)
     test = normalize(test, mean, std)
 
     # select coordinates to be predicted and return them as 'targets_3d'
     train, _ = remove_roots(train, target_sets, out_dim)
     test, targets_3d = remove_roots(test, target_sets, out_dim)
-    
+
     return train, test, mean, std, targets_3d, offset
 
 
@@ -137,11 +134,11 @@ def normalization_stats(d, replace_zeros=True):
         d = np.concatenate([v for k, v in d.items()], 0)
 
     cp_d = copy.deepcopy(d)
-    
+
     # replace zeros by nans, so we ignore them during the mean, std calculation
     if replace_zeros:
-        cp_d = cp_d.astype('float')
-        cp_d[np.abs(cp_d)<np.finfo(float).eps] = np.nan
+        cp_d = cp_d.astype("float")
+        cp_d[np.abs(cp_d) < np.finfo(float).eps] = np.nan
 
     # TODO: Fix RuntimeWarning: Mean of empty slice
     mean = np.nanmean(cp_d, axis=0)
@@ -176,10 +173,10 @@ def normalize(d, mean, std, replace_nans=True):
     for k in d.keys():
         d[k] -= mean
         d[k] /= std
-        
+
         if replace_nans:
-            d[k] = d[k].astype('float')
-            d[k] = np.nan_to_num(d[k]) #replace nans by zeros
+            d[k] = d[k].astype("float")
+            d[k] = np.nan_to_num(d[k])  # replace nans by zeros
 
     return d
 
@@ -316,7 +313,7 @@ def get_coords_in_dim(targets, dim):
 
 def init_keypts(train_3d):
     """create a new dictionary with the same (k,v) pairs. v has dtype bool"""
-    
+
     d = {k: np.ones_like(v, dtype=bool) for (k, v) in train_3d.items()}
 
     return d
@@ -326,7 +323,7 @@ def init_data(d_template, dim):
     """create a new dictionary with empty arrays and last dimension dim """
 
     d = {k: np.zeros((v.shape[0], v.shape[1], dim)) for (k, v) in d_template.items()}
-    
+
     return d
 
 
@@ -394,10 +391,10 @@ def get_visible_points(d, good_keypts):
 
 
 def weird_division(n, d):
-    '''division by zero is zero'''
-    mod = n/d
+    """division by zero is zero"""
+    mod = n / d
     mod = np.nan_to_num(mod)
-    
+
     return mod
 
 
@@ -453,7 +450,7 @@ def obtain_projected_stats(
 
         mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
         mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
-        
+
         error = (
             linalg.norm(mean_2d - mean_old_2d)
             + linalg.norm(std_2d - std_old_2d)
@@ -484,8 +481,7 @@ def obtain_projected_stats(
             open(
                 os.path.abspath(
                     os.path.join(
-                        out_dir,
-                        os.path.abspath(os.path.join(out_dir, "stats.pkl")),
+                        out_dir, os.path.abspath(os.path.join(out_dir, "stats.pkl")),
                     )
                 ),
                 "wb",
