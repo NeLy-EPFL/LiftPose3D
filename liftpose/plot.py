@@ -7,9 +7,29 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
+import matplotlib.animation
+
+from typing import Optional, List, Callable
 
 
-from typing import Optional, List
+def plot_video_3d(fig, ax, n: int, fps: int, draw_function: Callable, name: str):
+    """
+    draw_function should take matplotlib axis object and frame id 
+    def f(ax3d, idx):
+        plot_pose_3d(ax=ax3d, tar=test_3d_gt[idx],
+                 pred=test_3d_pred_aligned[idx],
+                 bones=par_data["vis"]["bones"], 
+                 limb_id=par_data["vis"]["limb_id"], 
+                 colors=par_data["vis"]["colors"], 
+                 normalize=True)
+    plot_video_3d(fig, ax3d, n=2, fps=1, draw_function=f, name='kek.mp4')
+    """
+    writer = matplotlib.animation.FFMpegWriter(fps=fps)
+    with writer.saving(fig, name, dpi=100):
+        for i in range(n):
+            draw_function(ax, i)
+            writer.grab_frame()
+            ax.clear()
 
 
 def plot_pose_3d(
