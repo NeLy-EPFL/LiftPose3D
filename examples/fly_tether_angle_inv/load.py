@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 import pickle
+import copy
 
 
 def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
@@ -42,22 +43,17 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
 
                 # load
                 poses = pickle.load(open(fname_, "rb"))
-                poses3d = poses["points3d"][:899]
+                dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]
+                poses3d = poses["points3d"][:899, dimensions]
                 
                 for c in cam_id:
-                    data[(s, a, f + ".cam_" + str(c))] = poses3d
-                    
-                if cam_id is not None:
-                    for c in cam_id:
-                        k = (s, a, f + ".cam_" + str(c))
-                        cam_par[k] = poses[c]
-                        ind = np.arange(19) if c < 3 else np.arange(19,38)
-                        good_keypts[k] = np.zeros_like(data[k], dtype=bool)
-                        good_keypts[k][:,ind] = True
+                    k = (s, a, f + ".cam_" + str(c))
+                    ind = np.arange(15) if c < 3 else np.arange(15,30)
+                    data[k] = copy.deepcopy(poses3d)
+                    cam_par[k] = poses[c]
+                    good_keypts[k] = np.zeros_like(data[k], dtype=bool)
+                    good_keypts[k][:,ind] = True
 
-    data = dict(sorted(data.items()))
-    good_keypts = dict(sorted(good_keypts.items()))
-    cam_par = dict(sorted(cam_par.items()))
     return data, good_keypts, cam_par
 
 
@@ -92,10 +88,10 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
 
                 poses = pickle.load(open(fname_, "rb"))
                 poses2d = poses["points2d"]
-
+                dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]  
+                
                 for c in cam_id:
                     #ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899]
+                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899, dimensions]
 
-    data = dict(sorted(data.items()))
     return data

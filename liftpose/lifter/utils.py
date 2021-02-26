@@ -13,45 +13,6 @@ def abs_error(tar, out, dim):
     return distance
 
 
-def process_dict(function, d: dict, n_out: int, *args, **kwargs):
-    """
-    Apply a function to each array in a dictionary.
-
-    Parameters
-    ----------
-    function : Callable
-        Function to apply to all arrays in d.
-    d : dict of 3-dim numpy arrays
-        Arrays to operate on.
-    n_out : int
-        Number of outputs of function
-    *args : 
-        Arguments of function.
-    **kwargs :
-        Keyword arguments of function
-
-    Returns
-    -------
-    d_new
-        Output of function.
-
-    """
-
-    if n_out > 1:
-        d_new = [{} for i in range(n_out)]
-    else:
-        d_new = {}
-        
-    for key in d.keys():
-
-        d_tmp = function(d[key], *args, **kwargs)
-        
-        for i in range(n_out):
-            d_new[i][key] = d_tmp[i]
-
-    return d_new
-
-
 def get_coords_in_dim(targets, dim):
     """
     Get keypoint indices in spatial dimension 'dim'
@@ -81,6 +42,37 @@ def get_coords_in_dim(targets, dim):
         )
     return dim_to_use
 
+
+def anchor_to_root(poses, roots, target_sets, dim):
+    """
+    Center points in targset sets around roots
+    
+    Args
+        poses: dictionary of experiments each with array of size n_frames x n_dimensions
+        roots: list of dimensions to be pulled to the origin
+        target_sets: list of lists of indexes that are computer relative to respective roots
+        dim: spatial dimension of data (1, 2 or 3)
+  
+    Returns
+        poses: dictionary of anchored poses
+        offset: offset of each root from origin
+    """
+
+    assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
+
+    offset = {}
+    for k in poses.keys():
+        offset[k] = np.zeros_like(poses[k])
+        for i, root in enumerate(roots):
+            for j in [root] + target_sets[i]:
+                offset[k][:, dim * j : dim * (j + 1)] += poses[k][
+                    :, dim * root : dim * (root + 1)
+                ]
+
+    for k in poses.keys():
+        poses[k] -= offset[k]
+
+    return poses, offset
 
 
 def remove_roots(data, targets, n_dim, vis=None):

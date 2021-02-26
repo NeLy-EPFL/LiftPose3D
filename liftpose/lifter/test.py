@@ -3,9 +3,8 @@ import sys
 
 import liftpose.lifter.utils as utils
 import numpy as np
-from liftpose.preprocess import normalize, unNormalize
+from liftpose.preprocess import unNormalize
 from torch.autograd import Variable
-from tqdm import tqdm
 import torch
 import warnings
 

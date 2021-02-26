@@ -115,8 +115,9 @@ def world_to_camera(
             poses_cam[i, :] = np.matmul(R[i // s[1]], poses_world[i, :])
     else:
         poses_cam = np.matmul(R, poses_world.T).T
-
-    poses_cam += tvec
+    
+    if tvec is not None:
+        poses_cam += tvec
     poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam
@@ -145,7 +146,7 @@ def camera_to_world(
     return poses_world
 
 
-def project_to_camera(poses: np.ndarray, intr: np.ndarray):
+def project_to_camera(poses: np.ndarray, intr: np.ndarray=None):
     """
     Project poses to camera frame
 
@@ -159,16 +160,57 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     s = poses.shape
 
     poses = np.reshape(poses, [s[0] * s[1], 3])
-    poses_proj = np.matmul(intr, poses.T).T
-    poses_proj = poses_proj / poses_proj[:, [2]]
-    poses_proj = poses_proj[:, :2]
-    poses_proj = poses_proj.reshape([s[0], s[1], 2])
 
-    return poses_proj
+    if intr is not None:
+        poses = np.matmul(intr, poses.T).T
+        poses = poses / poses[:, [2]]
+    poses = poses[:, :2]
+    poses = poses.reshape([s[0], s[1], 2])
+
+    return poses
+
+
+def process_dict(function, d: dict, n_out: int, *args, **kwargs):
+    """
+    Apply a function to each array in a dictionary.
+
+    Parameters
+    ----------
+    function : Callable
+        Function to apply to all arrays in d.
+    d : dict of 3-dim numpy arrays
+        Arrays to operate on.
+    n_out : int
+        Number of outputs of function
+    *args : 
+        Arguments of function.
+    **kwargs :
+        Keyword arguments of function
+
+    Returns
+    -------
+    d_new
+        Output of function.
+
+    """
+
+    if n_out > 1:
+        d_new = [{} for i in range(n_out)]
+    else:
+        d_new = {}
+        
+    for key in d.keys():
+
+        d_tmp = function(d[key], *args, **kwargs)
+        
+        for i in range(n_out):
+            d_new[i][key] = d_tmp[i]
+
+    return d_new
 
 
 def project_to_random_eangle(
-    poses_world, eangle_range: dict, axsorder="xyz", project=False, intr=None
+    poses_world, eangle, axsorder="xyz", project=False, tvec=None, intr=None
 ):
     """
     Project to a random Euler angle within specified intervals.
@@ -194,10 +236,6 @@ def project_to_random_eangle(
     """
     assert poses_world.ndim == 3
 
-    # selecta camera to project
-    whichcam = np.random.randint(len(eangle_range))
-    eangle = eangle_range[whichcam]
-
     # generate Euler angles
     n = poses_world.shape[0]
     alpha = uniform(low=eangle[0][0], high=eangle[0][1], size=n)
@@ -205,7 +243,7 @@ def project_to_random_eangle(
     gamma = uniform(low=eangle[2][0], high=eangle[2][1], size=n)
     eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]
 
-    Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, intr=intr)
+    Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, tvec=tvec, intr=intr)
 
     return Pcam, eangle
 
@@ -218,7 +256,7 @@ def uniform(low=0,high=1,size=1):
     return u.numpy()
 
 
-def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, intr=None):
+def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, tvec=None, intr=None):
     """
     Project to specified Euler angle
 
@@ -246,13 +284,10 @@ def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, intr=N
     R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
 
     # obtain 3d pose in camera coordinates
-    # TODO remove the hard-coded value
-    Pcam = world_to_camera(poses_world, R, np.array([0, 0, 117]))
+    Pcam = world_to_camera(poses_world, R, tvec)
 
     # project to camera axis
     if project:
-        if intr is None:
-            intr = intrinsic_matrix(1, 1, 0, 0)
         Pcam = project_to_camera(Pcam, intr)
 
     return Pcam

@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 import pickle
+import copy
 
 
 def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
@@ -47,7 +48,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 for c in cam_id:
                     k = (s, a, f + ".cam_" + str(c))
                     ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[k] = poses3d
+                    data[k] = copy.deepcopy(poses3d)
                     cam_par[k] = poses[c]
                     good_keypts[k] = np.zeros_like(data[k], dtype=bool)
                     good_keypts[k][:,ind] = True
