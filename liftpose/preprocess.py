@@ -192,9 +192,11 @@ def pose_norm(d, dim=2):
     
     for k in d.keys():
         
-        d[k] = d[k].reshape(d[k].shape[0], d[k].shape[1]//dim, dim)
-        d[k] /= np.linalg.norm(d[k], ord='fro', axis=(1,2), keepdims=True)
-        d[k] = d[k].reshape(d[k].shape[0], d[k].shape[1]*d[k].shape[2])
+        tmp = d[k].copy()
+        tmp = tmp.reshape(tmp.shape[0], tmp.shape[1]//dim, dim)
+        tmp[np.isnan(tmp)] = 0
+        tmp /= np.linalg.norm(tmp, ord='fro', axis=(1,2), keepdims=True)
+        d[k] = tmp.reshape(tmp.shape[0], tmp.shape[1]*tmp.shape[2])
         
     return d
 
@@ -242,6 +244,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
             for j in [root] + target_sets[i]:
                 offset[k][:, dim * j : dim * (j + 1)] \
                     += poses[k][:, dim * root : dim * (root + 1)]
+                # print(offset[k])
     
     for k in poses.keys():
         poses[k] -= offset[k]
@@ -454,7 +457,11 @@ def obtain_projected_stats(
         #if there are multiple cameras, loop over them
         for whichcam in range(len(eangles)):
             eangle = eangles[whichcam]
-            ind = np.array(vis[whichcam]).astype(bool)
+
+            if tvec is not None:
+                _tvec = tvec[whichcam]
+            if intr is not None:
+                _intr = intr[whichcam]
             
             # obtain randomly projected points
             pts_2d, _ = process_dict(
@@ -464,8 +471,8 @@ def obtain_projected_stats(
                 eangle,
                 axsorder=axsorder,
                 project=True,
-                tvec=tvec,
-                intr=intr,
+                tvec=_tvec,
+                intr=_intr,
                 )
             
             pts_3d, _ = process_dict(
@@ -478,8 +485,10 @@ def obtain_projected_stats(
                 )
         
             #zero invisible points
-            for k in pts_2d.keys():
-                pts_2d[k][:,~ind,:] = 0
+            if vis is not None:
+                ind = np.array(vis[whichcam]).astype(bool)
+                for k in pts_2d.keys():
+                    pts_2d[k][:,~ind,:] = 0
   
             pts_2d = flatten_dict(pts_2d)
             pts_3d = flatten_dict(pts_3d)

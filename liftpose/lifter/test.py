@@ -45,6 +45,7 @@ def test(test_loader, model, criterion, stat, predict=False):
             # undo normalisation to calculate accuracy in real units
             dim = stat["out_dim"]
             dimensions = stat["targets_3d"]
+            
             tar = unNormalize(
                 targets.data.cpu().numpy().astype(float),
                 stat["mean"][dimensions],

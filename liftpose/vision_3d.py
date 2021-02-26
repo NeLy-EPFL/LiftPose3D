@@ -210,7 +210,7 @@ def process_dict(function, d: dict, n_out: int, *args, **kwargs):
 
 
 def project_to_random_eangle(
-    poses_world, eangle, axsorder="xyz", project=False, tvec=None, intr=None
+    poses_world, eangle, axsorder, project=False, tvec=None, intr=None
 ):
     """
     Project to a random Euler angle within specified intervals.
@@ -256,7 +256,7 @@ def uniform(low=0,high=1,size=1):
     return u.numpy()
 
 
-def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, tvec=None, intr=None):
+def project_to_eangle(poses_world, eangle, axsorder, project=False, tvec=None, intr=None):
     """
     Project to specified Euler angle
 
