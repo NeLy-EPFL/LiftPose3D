@@ -1,12 +1,13 @@
 import numpy as np
 from liftpose.vision_3d import project_to_random_eangle, normalize_bone_length
 from liftpose.preprocess import anchor_to_root, remove_roots, weird_division, pose_norm
+from liftpose.lifter.utils import get_coords_in_dim
 import torch
 
 
 def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
     def random_project_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets, targets_2d,
+        inputs, outputs, outputs_raw, stats, roots, target_sets,
     ):
         outputs = outputs_raw.cpu().data.numpy()
         
@@ -72,19 +73,20 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
 
 def add_noise(noise_amplitude):
     def add_noise_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets, targets_2d,
-    ):
+        inputs, outputs, outputs_raw, stats, roots, target_sets
+        ):
+        """ Add Gaussian noise during training. See above for arguments."""
+        targets_2d = get_coords_in_dim(target_sets, 2)
         std = stats["std_2d"][targets_2d]
-        inputs += torch.from_numpy(
-            np.random.normal(0, weird_division(noise_amplitude, std), size=inputs.shape)
-        ).float()
+        std = torch.from_numpy(weird_division(noise_amplitude, std)).float()
+        inputs += torch.normal(0, std=std) 
 
         return inputs, outputs
 
     return add_noise_dispatch
 
 
-def perturb_pose(perturb, eangles, axsorder, intr, child, bones, avg_bone_len, std_bone_len):
+def perturb_pose(perturb, child, bones, avg_bone_len, std_bone_len):
     def perturb_pose_dispatch(
         inputs, outputs, outputs_raw, stats, roots, target_sets
         ):
@@ -109,31 +111,7 @@ def perturb_pose(perturb, eangles, axsorder, intr, child, bones, avg_bone_len, s
         
         outputs = outputs.reshape((1, outputs.size))
         
-        # do random projection
-        # inputs, _ = project_to_random_eangle(
-        #     outputs[None, :].copy(), eangles, axsorder, project=True, intr=intr
-        # )
-
-        # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-        # inputs, _ = anchor_to_root({"inputs": inputs}, roots, target_sets, 2)
-        outputs, _ = anchor_to_root({"outputs": outputs}, roots, target_sets, 3)
-        # outputs = outputs["inputs"]
-        outputs = outputs["outputs"]
-
-        # Standardize each dimension independently
-        np.seterr(divide="ignore", invalid="ignore")
-        # inputs -= stats["mean_2d"]
-        # inputs = weird_division(inputs, stats["std_2d"])
-        outputs -= stats["mean_3d"]
-        outputs = weird_division(outputs, stats["std_3d"])
-
-        # remove roots
-        # inputs, _ = remove_roots({"inputs": inputs}, target_sets, 2)
-        outputs, _ = remove_roots({"outputs": outputs}, target_sets, 3)
-        outputs = outputs["outputs"]
-
         # get torch tensors
-        # inputs = torch.from_numpy(inputs[0, :]).float()
         outputs = torch.from_numpy(outputs[0, :]).float()
         
         return inputs, outputs

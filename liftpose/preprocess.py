@@ -460,8 +460,12 @@ def obtain_projected_stats(
 
             if tvec is not None:
                 _tvec = tvec[whichcam]
+            else:
+                _tvec = None
             if intr is not None:
                 _intr = intr[whichcam]
+            else:
+                _intr = None
             
             # obtain randomly projected points
             pts_2d, _ = process_dict(

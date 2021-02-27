@@ -197,7 +197,7 @@ def train(
     assert len(roots) != 0
     assert len(target_sets) != 0
     assert len(roots) == len(target_sets) # number of root joint and number of targert sets are equivalent
-
+    
     # create out_dir if it does not exists
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")

@@ -97,7 +97,6 @@ class data_loader(Dataset):
         std_3d = self.train_stat_3d["std"]
         roots = self.train_stat_2d.get("roots")
         target_sets = self.train_stat_2d.get("target_sets")
-        targets_2d = self.train_stat_2d["targets_2d"]
 
         return {
             "stats": {
@@ -107,8 +106,7 @@ class data_loader(Dataset):
                 "std_3d": std_3d,
             },
             "roots": roots,
-            "target_sets": target_sets,
-            "targets_2d": targets_2d,
+            "target_sets": target_sets
         }
 
     def __len__(self):
