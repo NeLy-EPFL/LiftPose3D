@@ -88,10 +88,10 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # points3d = points3d[:-20,:,:]
     # points3d_names_id = points3d_names_id[:-20]
 
-    # # temp TODO
+    # temp TODO
     # transfer points to new origin
-    # new_origin = np.mean((points3d[:,5,:],points3d[:,10,:],points3d[:,20,:],points3d[:,25,:]),axis=0)
-    # points3d = points3d - np.expand_dims(new_origin, 1)
+    new_origin = np.mean((points3d[:,5,:],points3d[:,10,:],points3d[:,20,:],points3d[:,25,:]),axis=0)
+    points3d = points3d - np.expand_dims(new_origin, 1)
     # # temp TODO
     # points3d = points3d[31:49, :, :]
     # points3d_names_id = points3d_names_id[31:49]
@@ -104,13 +104,13 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     # points3d = np.concatenate([points3d]*N)
     # points3d_names_id = np.concatenate([points3d_names_id]*N)
     # np.save('/media/mahdi/LaCie/Mahdi/AniPose/VV/trial_6/DLC_animations/victor_final/{}_repeated_31_48_{}_{}_{}_'.format(N,fly_number, behaviour, video_sequence_number) + 'AniPose_points3d.npy', points3d)
-
+    # np.save('/media/mahdi/LaCie/Mahdi/data/clipped_NEW/fly_2_clipped/AG/4/VV/points3D_refined.npy', points3d)
     # # temp TODO repeat only a chunck of video in the MIDDLE
     # frame_start = 56
     # frame_end = 132
-    # # transfer points to new origin
-    # new_origin = np.mean((points3d[:, 5, :], points3d[:, 10, :], points3d[:, 20, :], points3d[:, 25, :]), axis=0)
-    # points3d = points3d - np.expand_dims(new_origin, 1)
+    # transfer points to new origin
+    new_origin = np.mean((points3d[:, 5, :], points3d[:, 10, :], points3d[:, 20, :], points3d[:, 25, :]), axis=0)
+    points3d = points3d - np.expand_dims(new_origin, 1)
     # # temp TODO
     # points3d_middle = points3d[(frame_start-1):frame_end, :, :]
     # points3d_names_id_middle = points3d_names_id[(frame_start-1):frame_end]
@@ -338,6 +338,8 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
         # ax.set_ylim((50, 500))
         # ax.set_zlim((-25, 150))
 
+        # rotate the 3d plot
+        ax.view_init(elev=45., azim=150)
         return title, graph_FL, graph_ML, graph_HL, graph_FR, graph_MR, graph_HR, graph_Lhead, graph_back_L, graph_back_R,  im_LV, title_LV, im_RV, title_RV, im_VV, title_VV, graph_keypoints_scatter, im_LV_predictions, im_RV_predictions, im_VV_predictions, graph_abdomen, graph_neck_proboscis
 
     fig = plt.figure(figsize=(16, 12))
@@ -353,11 +355,11 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
 
     title = ax.set_title('points3d')
 
-    graph_FL, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='gray')
+    graph_FL, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='gray', linewidth=8)
     graph_ML, = ax.plot(x[0,5:10], y[0,5:10], z[0,5:10], linestyle="-", marker="", color='gray')
     graph_HL, = ax.plot(x[0,10:15], y[0,10:15], z[0,10:15], linestyle="-", marker="", color='gray')
 
-    graph_FR, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='k')
+    graph_FR, = ax.plot(x[0,:5], y[0,:5], z[0,:5], linestyle="-", marker="", color='k', linewidth=8)
     graph_MR, = ax.plot(x[0,5:10], y[0,5:10], z[0,5:10], linestyle="-", marker="", color='k')
     graph_HR, = ax.plot(x[0,10:15], y[0,10:15], z[0,10:15], linestyle="-", marker="", color='k')
 
@@ -445,7 +447,7 @@ def main(fly_number,behaviour,video_sequence_number, AniPose_filter_enable=False
     Writer = matplotlib.animation.writers['ffmpeg']
     writer = Writer(fps=2, metadata=dict(artist='Me'))
     if AniPose_filter_enable==False:
-        ani.save('{}/VV/points3d_animation.mp4'.format(home_dir), writer=writer)
+        ani.save('{}/VV/points3d_animation_azimuth_150_degree.mp4'.format(home_dir), writer=writer)
         print('{}/VV/points3d_animation.mp4'.format(home_dir) + ' successfully saved.')
 
     else:
@@ -462,9 +464,9 @@ if __name__ == "__main__":
     # video_sequence_number=range(1,20+1,1)
 
     AniPose_filter_enable = False
-    fly_number= [1]
+    fly_number= [2]
     behaviour=['AG']
-    video_sequence_number= [2]
+    video_sequence_number= [4]
     # VV_net_name = 'resnet152_VV2DposeOct21shuffle1_300000'
     # LV_net_name = 'resnet152_LV2DposeOct23shuffle1_490000'
 
