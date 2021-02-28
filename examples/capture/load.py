@@ -43,10 +43,8 @@ def load_data(par_train):
                 test_3d.append(pts3d)
                 test_2d.append(pts2d)
             
-    #train_2d = np.concatenate(train_2d, axis=0)
-    #train_3d = np.concatenate(train_3d, axis=0)
-    train_2d = train_2d[0]
-    train_3d = train_3d[0]
+    train_2d = np.concatenate(train_2d, axis=0)
+    train_3d = np.concatenate(train_3d, axis=0)
     test_2d = np.concatenate(test_2d, axis=0)
     test_3d = np.concatenate(test_3d, axis=0)
     train_keypoints = np.logical_not(np.isnan(train_3d))
@@ -70,6 +68,6 @@ def load_data(par_train):
     
     print('OK')
     
-    return train_3d, train_2d, test_3d, test_2d, cams
+    return train_3d, train_2d, train_keypoints, test_3d, test_2d, test_keypoints, cams
 
 
