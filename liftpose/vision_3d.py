@@ -157,6 +157,7 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray=None):
     Returns
         poses_proj: 2D poses projected to camera plane
     """
+    assert len(poses.shape) == 3
     s = poses.shape
 
     poses = np.reshape(poses, [s[0] * s[1], 3])

@@ -53,6 +53,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                     cam_par[k] = poses[c]
                     good_keypts[k] = np.zeros_like(data[k], dtype=bool)
                     good_keypts[k][:,ind] = True
+                    data[k][~good_keypts[k]] = 0
 
     return data, good_keypts, cam_par
 

@@ -244,7 +244,6 @@ def anchor_to_root(poses, roots, target_sets, dim):
             for j in [root] + target_sets[i]:
                 offset[k][:, dim * j : dim * (j + 1)] \
                     += poses[k][:, dim * root : dim * (root + 1)]
-                # print(offset[k])
     
     for k in poses.keys():
         poses[k] -= offset[k]
@@ -450,14 +449,13 @@ def obtain_projected_stats(
         
         return stats
         
-
     # run until convergence
     while error > th:
         
         #if there are multiple cameras, loop over them
         for whichcam in range(len(eangles)):
             eangle = eangles[whichcam]
-
+            
             if tvec is not None:
                 _tvec = tvec[whichcam]
             else:
