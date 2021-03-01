@@ -22,7 +22,7 @@ class Options:
         self.parser.add_argument('--load',           type=str, default=None, help='path to load a pretrained checkpoint')
         self.parser.add_argument('--test',           dest='test', action='store_true', help='test')
         self.parser.add_argument('--resume',         dest='resume', action='store_true', help='resume to train')
-        self.parser.add_argument('--predict',        dest='predict', action='store_true', help='predict without computing test error')        
+        self.parser.add_argument('--predict',        dest='predict', action='store_true', help='predict without computing test error')
 
         # ===============================================================
         #                     Model options
@@ -34,13 +34,14 @@ class Options:
         # ===============================================================
         #                     Running options
         # ===============================================================
-        # self.parser.add_argument('--eangle',         type=list,   defaule=None) 
+        # self.parser.add_argument('--eangle',         type=list,   defaule=None)
         self.parser.add_argument('--noise',          type=float,  default=None)
         self.parser.add_argument('--lr',             type=float,  default=1.0e-3)
         self.parser.add_argument('--lr_decay',       type=int,    default=5000, help='# steps of lr decay')
         self.parser.add_argument('--lr_gamma',       type=float,  default=0.90)
         self.parser.add_argument('--epochs',         type=int,    default=30)
-        self.parser.add_argument('--dropout',        type=float,  default=0.5, help='dropout probability, 1.0 to make no dropout')
+        self.parser.add_argument('--dropout',        type=float,  default=0.5, help='dropout probability, 0.0 to make no dropout')
+        self.parser.add_argument('--drop_input',        type=float,  default=0.0, help='dropout probability for the input, 0.0 to make no dropout')
         self.parser.add_argument('--batch_size',     type=int,    default=64)
         self.parser.add_argument('--job',            type=int,    default=8, help='# subprocesses to use for data loading')
         self.parser.add_argument('--no_max',         dest='max_norm', action='store_false', help='if use max_norm clip on grad')
@@ -67,5 +68,5 @@ class Options:
             raise Exception('Specify trained network using option --load')
         self.opt.is_train = False if self.opt.test else True
         self.opt.out_dir = out_dir
-        
+
         return self.opt

@@ -4,6 +4,16 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import torch.nn as nn
+import torch.nn.functional as F
+import random
+import numpy as np
+import torch
+
+
+# deterministic training
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
 
 
 def weight_init(m):
@@ -43,20 +53,23 @@ class Linear(nn.Module):
 
 
 class LinearModel(nn.Module):
-    
-    #define the components of the network
-    def __init__(self,
-                 linear_size=1024,
-                 num_stage=2,
-                 p_dropout=0.5,
-                 input_size=24,
-                 output_size=12):
+
+    # define the components of the network
+    def __init__(
+        self,
+        linear_size=1024,
+        num_stage=2,
+        p_dropout=0.5,
+        input_size=24,
+        output_size=12,
+        drop_inp=0,
+    ):
         super(LinearModel, self).__init__()
 
         self.linear_size = linear_size
         self.p_dropout = p_dropout
         self.num_stage = num_stage
-        self.input_size =  input_size
+        self.input_size = input_size
         self.output_size = output_size
 
         # process input to linear size
@@ -75,9 +88,12 @@ class LinearModel(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.dropout = nn.Dropout(self.p_dropout)
 
+        self.drop_inp = nn.Dropout(p=drop_inp)
+
     # this function assembles the network
     def forward(self, x):
         # pre-processing
+        x = self.drop_inp(x)  # HACK HACK HACK
         y = self.w1(x)
         y = self.batch_norm1(y)
         y = self.relu(y)

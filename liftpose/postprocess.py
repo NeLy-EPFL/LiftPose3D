@@ -30,7 +30,7 @@ def load_test_results(
     offset = np.concatenate([v for k, v in offset.items()], 0)
     inp_offset = np.vstack(list(stat_2d["offset"].values()))
     # assuming root joints are always good_keypts
-    good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean), base="ones")
+    good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean), base="zeros")
 
     # TODO make this more universal
     if prism:
@@ -48,21 +48,17 @@ def load_test_results(
     tar = add_roots(tar, targets_3d, len(tar_mean))
     out = add_roots(out, targets_3d, len(tar_mean))
     inp = add_roots(inp, targets_2d, len(inp_mean))
-    print(out[:, 2])
     # unnormalise
     tar = unNormalize(tar, tar_mean, tar_std)
     out = unNormalize(out, tar_mean, tar_std)
     inp = unNormalize(inp, inp_mean, inp_std)
-    print(out[:, 2])
 
     # translate legs back to their original places
     tar += offset
     out += offset
     inp += inp_offset
-    print(out[:, 2])
     assert stat_2d["in_dim"] == 2
     inp = inp.reshape(inp.shape[0], -1, 2)
-    print(inp[:, 2])
     if stat_3d["out_dim"] == 1:
         out = np.concatenate([inp, out[:, :, np.newaxis]], axis=2)
         tar = np.concatenate([inp, tar[:, :, np.newaxis]], axis=2)
@@ -73,6 +69,5 @@ def load_test_results(
         raise NotImplementedError
 
     good_keypts = good_keypts.reshape((good_keypts.shape[0], -1, stat_3d["out_dim"]))
-    print(out[:, 2])
     return tar, out, good_keypts
 

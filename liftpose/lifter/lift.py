@@ -44,7 +44,9 @@ def network_main(opt, augmentation=None):
     log.save_options(opt, opt.out_dir)
 
     # create and initialise model
-    model = LinearModel(input_size=input_size, output_size=output_size)
+    model = LinearModel(
+        input_size=input_size, output_size=output_size, drop_inp=opt.drop_input
+    )
     model = model.to(device)
     model.apply(weight_init)
     criterion = nn.MSELoss(reduction="mean").to(device)
@@ -118,10 +120,6 @@ def network_main(opt, augmentation=None):
             },
             open(os.path.join(opt.out_dir, "test_results.pth.tar"), "wb"),
         )
-
-        # if not opt.predict:
-        #    logger.info("{:.4f}".format(err_test))
-
     else:
         # loader for training
         train_loader = DataLoader(

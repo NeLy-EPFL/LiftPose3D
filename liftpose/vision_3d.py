@@ -58,7 +58,7 @@ def reprojection_error(
     assert tvec.ndim == 1 or tvec.ndim == 2
     assert intr.ndim == 2
 
-    # poses_3d = world_to_camera(poses_3d, R, tvec)
+    poses_3d = world_to_camera(poses_3d, R, tvec)
     proj_2d = project_to_camera(poses_3d, intr)
     assert proj_2d.ndim == 3
     return np.linalg.norm(poses_2d - proj_2d, axis=2)

@@ -357,7 +357,8 @@ def violin_plot(
     assert (test_3d_gt.shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
     # fmt: on
 
-    err_norm = np.linalg.norm((test_3d_gt - test_3d_pred), axis=2)
+    #err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
+    err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
     # remove the outliers
     err_norm_sp = err_norm.copy()
     for j in range(err_norm.shape[1]):
@@ -384,7 +385,7 @@ def violin_plot(
     d = d.loc[d["err"] < q["err"]]
 
     # draw the violin
-    s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order)
+    s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order, bw=0.4)
 
     # set the labels
     s.set_xticklabels(s.get_xticklabels(), rotation=30)

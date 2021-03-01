@@ -43,14 +43,14 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 # load
                 poses = pickle.load(open(fname_, "rb"))
                 poses3d = poses["points3d"][:899]
-                
+
                 for c in cam_id:
                     k = (s, a, f + ".cam_" + str(c))
-                    ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[k] = poses3d
+                    ind = np.arange(15) if c < 3 else np.arange(19,19+15)
+                    data[k] = np.copy(poses3d[:, ind])
                     cam_par[k] = poses[c]
-                    good_keypts[k] = np.zeros_like(data[k], dtype=bool)
-                    good_keypts[k][:,ind] = True
+                    good_keypts[k] = np.ones_like(data[k], dtype=bool)
+                    #good_keypts[k][:,ind] = True
 
     return data, good_keypts, cam_par
 
@@ -58,7 +58,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
 def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
     """
     Load 2D data
-    
+
     Args
         path: string. Directory where to load the data from,
         subjects: List of strings coding for strings in filename
@@ -88,7 +88,7 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 poses2d = poses["points2d"]
 
                 for c in cam_id:
-                    #ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899]
+                    ind = np.arange(0,15) if c < 3 else np.arange(19,19+15)
+                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899][:, ind]
 
     return data

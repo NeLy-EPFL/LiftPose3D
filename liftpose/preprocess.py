@@ -169,15 +169,12 @@ def normalize(d, mean, std, replace_nans=True):
     """
 
     np.seterr(divide="ignore", invalid="ignore")
-
     for k in d.keys():
         d[k] -= mean
         d[k] /= std
-
         if replace_nans:
             d[k] = d[k].astype("float")
             d[k] = np.nan_to_num(d[k])  # replace nans by zeros
-
     return d
 
 
@@ -215,6 +212,8 @@ def anchor_to_root(poses, roots, target_sets, dim):
     """
     assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
     assert all([p.ndim == 2 for p in list(poses.values())])
+
+
 
     offset = {}
     for k in poses.keys():

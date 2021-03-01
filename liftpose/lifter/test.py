@@ -39,7 +39,7 @@ def test(test_loader, model, criterion, stat, predict=False):
         if not predict:
             outputs[~good_keypts] = 0
             targets[~good_keypts] = 0
-            
+
             loss = criterion(targets, outputs)
             losses.update(loss.item(), inputs.size(0))
 
@@ -101,7 +101,7 @@ def test(test_loader, model, criterion, stat, predict=False):
     all_dist[all_dist == 0] = np.nan
     warnings.filterwarnings("ignore", category=RuntimeWarning)
     joint_err = np.nanmean(all_dist, axis=0)
-    warnings.filterwarnings("default", category=RuntimeWarning) 
+    warnings.filterwarnings("default", category=RuntimeWarning)
     ttl_err = np.nanmean(joint_err)
 
     # logger.info("test error: {}".format(ttl_err))

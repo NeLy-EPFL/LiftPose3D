@@ -13,12 +13,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/NeLy-EPFL/LiftPose3D",
     install_requires=[
+        "scipy==1.2.0", # from scipy.transform import Rot
         "numpy",
         "networkx",
         "matplotlib",
         "torchvision",
         "tqdm",
-        "progress",
-        "scipy",
     ],
 )
