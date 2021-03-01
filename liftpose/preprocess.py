@@ -143,7 +143,7 @@ def normalization_stats(d, replace_zeros=True):
     # TODO: Fix RuntimeWarning: Mean of empty slice
     import warnings
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', r'RuntimeWarning: Mean of empty slice')
+        warnings.filterwarnings('ignore')
         mean = np.nanmean(cp_d, axis=0)
         std = np.nanstd(cp_d, axis=0)
 
