@@ -26,14 +26,15 @@ def load_data(par_train):
 
             #pts2d = mat[cam_id]['data_2d'].reshape(-1, 20, 2)
             pts3d = mat[cam_id]['data_3d'].reshape(-1, 20, 3)
-            pts3d_tmp = world_to_camera(pts3d.copy(), c['r'].T, c['t'])
-            pts2d = project_to_camera(pts3d_tmp, c['K'].T)
+            pts3d = world_to_camera(pts3d, c['r'].T, c['t'])
+            pts2d = project_to_camera(pts3d, c['K'].T)
             # bone length normalization
             #pts3d = normalize_bone_length(pts3d.copy(), root=par["roots"][0], child=par_data["vis"]["child"], bone_length=bone_length, thr=10)
         
-            cams['R'].append(c['r'].T)
-            cams['tvec'].append(c['t'])
-            cams['intr'].append(c['K'].T)
+            if session_id in par_train["test_session_id"]:
+                cams['R'].append(c['r'].T)
+                cams['tvec'].append(c['t'])
+                cams['intr'].append(c['K'].T)
 
             if session_id in par_train["train_session_id"]:
                 train_2d.append(pts2d)

@@ -1,5 +1,5 @@
 import numpy as np
-from liftpose.vision_3d import project_to_random_eangle, normalize_bone_length
+from liftpose.vision_3d import project_to_random_eangle, normalize_bone_length, project_to_camera
 from liftpose.preprocess import anchor_to_root, remove_roots, weird_division, pose_norm
 from liftpose.lifter.utils import get_coords_in_dim
 import torch
@@ -69,6 +69,52 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
         return inputs, outputs
 
     return random_project_dispatch
+
+
+def project_to_cam():
+    def project_to_cam_dispatch(
+        inputs, outputs, outputs_raw, stats, roots, target_sets
+        ):
+        
+        outputs = outputs_raw.cpu().data.numpy()
+        
+        inputs = project_to_camera(outputs[None, :], intr=None)
+        
+        #inputs = np.squeeze(inputs)
+        inputs = inputs.reshape((1, inputs.size))
+        outputs = outputs.reshape((1, outputs.size))
+
+        # anchor points to body-coxa (to predict legjoints wrt body-coxas)
+        inputs, _ = anchor_to_root({"inputs": inputs}, roots, target_sets, 2)
+        outputs, _ = anchor_to_root({"outputs": outputs}, roots, target_sets, 3)
+        
+        #normalize pose
+        inputs = pose_norm(inputs)
+
+        inputs = inputs["inputs"]
+        outputs = outputs["outputs"]
+
+        # Standardize each dimension independently
+        np.seterr(divide="ignore", invalid="ignore")
+        inputs -= stats["mean_2d"]
+        inputs = weird_division(inputs, stats["std_2d"])
+        outputs -= stats["mean_3d"]
+        outputs = weird_division(outputs, stats["std_3d"])
+
+        # remove roots
+        inputs, _ = remove_roots({"inputs": inputs}, target_sets, 2)
+        outputs, _ = remove_roots({"outputs": outputs}, target_sets, 3)
+
+        inputs = inputs["inputs"]
+        outputs = outputs["outputs"]
+
+        # get torch tensors
+        inputs = torch.from_numpy(inputs[0, :]).float()
+        outputs = torch.from_numpy(outputs[0, :]).float()
+        
+        return inputs, outputs
+    
+    return project_to_cam_dispatch
 
 
 def add_noise(noise_amplitude):
