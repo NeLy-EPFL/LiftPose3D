@@ -71,10 +71,9 @@ def test(test_loader, model, criterion, stat, predict=False):
             all_target.append(targets.data.cpu().numpy())
             all_input.append(inputs.data.cpu().numpy())
             """
+
             for k in range(n_pts):
-                distance[:, k] = np.sqrt(
-                    np.sum(abserr[:, dim * k : dim * (k + 1)], axis=1)
-                )
+                distance[:, k] = np.mean(abserr[:, dim * k : dim * (k + 1)], axis=1)
 
             all_dist.append(distance)
             all_target.append(targets.data.cpu().numpy())

@@ -453,7 +453,7 @@ def obtain_projected_stats(
     while error > th:
         
         #if there are multiple cameras, loop over them
-        for whichcam in range(len(eangles)):
+        for whichcam in eangles.keys():
             eangle = eangles[whichcam]
             
             if tvec is not None:

@@ -15,8 +15,12 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
         if len(eangles)>1:
             whichcam = keys[-1]
             eangle = eangles[whichcam]
-            _tvec = tvec[whichcam]
-            _intr = intr[whichcam]        
+            if (tvec is not None) & (intr is not None):
+                _tvec = tvec[whichcam]
+                _intr = intr[whichcam]
+            else:
+                _tvec = tvec
+                _intr = intr
         else:
             _tvec = tvec
             _intr = intr
