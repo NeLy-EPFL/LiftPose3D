@@ -113,7 +113,13 @@ def plot_pose_3d(
 
 
 def plot_pose_2d(
-    ax, tar, bones, normalize=True, limb_id=None, colors=None, good_keypts=None
+    ax, 
+    tar, 
+    bones,
+    normalize=True, 
+    limb_id=None, 
+    colors=None, 
+    good_keypts=None
 ):
     """
     Plot 2D pose

@@ -7,32 +7,30 @@ import torch
 
 def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
     def random_project_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets,
+        inputs, outputs, outputs_raw, keys, stats, roots, target_sets,
     ):
         outputs = outputs_raw.cpu().data.numpy()
         
-        # selecta camera to project
-        whichcam = int(torch.randint(len(eangles),(1,1)))
-        eangle = eangles[whichcam]
-        
-        if tvec is not None:
+        # select a camera to project
+        if len(eangles)>1:
+            whichcam = keys[-1]
+            eangle = eangles[whichcam]
             _tvec = tvec[whichcam]
+            _intr = intr[whichcam]        
         else:
-            _tvec = None
-        if intr is not None:
-            _intr = intr[whichcam]
-        else:
-            _intr = None
+            _tvec = tvec
+            _intr = intr
 
         # do random projection
         inputs, _ = project_to_random_eangle(
             outputs[None, :].copy(), eangle, axsorder, project=True, tvec=_tvec, intr=_intr
         )
         
-        #zero invisible points
-        if vis is not None:
-            ind = np.array(vis[whichcam]).astype(bool)
-            inputs[:,~ind,:] = 0
+        if len(eangles)>1:
+            #zero invisible points
+            if vis is not None:
+                ind = np.array(vis[whichcam]).astype(bool)
+                inputs[:,~ind,:] = 0
         
         #inputs = np.squeeze(inputs)
         inputs = inputs.reshape((1, inputs.size))
@@ -73,7 +71,7 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
 
 def project_to_cam():
     def project_to_cam_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets
+        inputs, outputs, outputs_raw, keys, stats, roots, target_sets
         ):
         
         outputs = outputs_raw.cpu().data.numpy()
@@ -119,7 +117,7 @@ def project_to_cam():
 
 def add_noise(noise_amplitude):
     def add_noise_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets
+        inputs, outputs, outputs_raw, keys, stats, roots, target_sets
         ):
         """ Add Gaussian noise during training. See above for arguments."""
         targets_2d = get_coords_in_dim(target_sets, 2)
@@ -134,7 +132,7 @@ def add_noise(noise_amplitude):
 
 def perturb_pose(perturb, child, bones, avg_bone_len, std_bone_len):
     def perturb_pose_dispatch(
-        inputs, outputs, outputs_raw, stats, roots, target_sets
+        inputs, outputs, outputs_raw, keys, stats, roots, target_sets
         ):
         """Perturb pose around mean pose."""
 

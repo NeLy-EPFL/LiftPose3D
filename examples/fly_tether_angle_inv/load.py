@@ -47,13 +47,13 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 poses3d = poses["points3d"][:899, dimensions]
                 
                 for c in cam_id:
-                    k = (s, a, f + ".cam_" + str(c))
+                    k = (s, a, f, c)
                     ind = np.arange(15) if c < 3 else np.arange(15,30)
-                    data[k] = copy.deepcopy(poses3d)
+                    data[k] = copy.deepcopy(poses3d[:,ind,:])
                     cam_par[k] = poses[c]
-                    good_keypts[k] = np.zeros_like(data[k], dtype=bool)
-                    good_keypts[k][:,ind] = True
-                    data[k][~good_keypts[k]] = 0
+                    good_keypts[k] = np.ones_like(data[k], dtype=bool)
+                    # good_keypts[k][:,ind] = True
+                    # data[k][~good_keypts[k]] = 0
 
     return data, good_keypts, cam_par
 
@@ -74,25 +74,29 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
     fnames = glob.glob(path)
 
     data = {}
-    for subject in subjects:
-        for action in actions:
+    for s in subjects:
+        for a in actions:
             fname = fnames.copy()
 
-            if subject != "all":
-                fname = [file for file in fname if str(subject) in file]
-            if action != "all":
-                fname = [file for file in fname if action in file]
+            if s != "all":
+                fname = [file for file in fname if str(s) in file]
+            if a != "all":
+                fname = [file for file in fname if a in file]
 
             assert len(fname) != 0, "No files found. Check path!"
             for fname_ in fname:
-                f = os.path.basename(fname_)
+                f = os.path.basename(fname_)[
+                    :-4
+                ]  # [:-4] is to get rid of .pkl extension
 
                 poses = pickle.load(open(fname_, "rb"))
-                poses2d = poses["points2d"]
-                dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]  
+                
+                dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]
+                poses2d = poses["points2d"][:,:,dimensions,:]
                 
                 for c in cam_id:
-                    #ind = np.arange(19) if c < 3 else np.arange(19,38)
-                    data[(subject, action, f[:-4] + ".cam_" + str(c))] = poses2d[c][:899, dimensions]
-
+                    k = (s, a, f, c)
+                    ind = np.arange(15) if c < 3 else np.arange(15,30)
+                    data[k] = poses2d[c][:899,ind,:]                 
+                    
     return data
