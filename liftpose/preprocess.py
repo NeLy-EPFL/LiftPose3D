@@ -141,8 +141,11 @@ def normalization_stats(d, replace_zeros=True):
         cp_d[np.abs(cp_d) < np.finfo(float).eps] = np.nan
 
     # TODO: Fix RuntimeWarning: Mean of empty slice
-    mean = np.nanmean(cp_d, axis=0)
-    std = np.nanstd(cp_d, axis=0)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', r'RuntimeWarning: Mean of empty slice')
+        mean = np.nanmean(cp_d, axis=0)
+        std = np.nanstd(cp_d, axis=0)
 
     return mean, std
 
