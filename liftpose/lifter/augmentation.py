@@ -22,6 +22,7 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
                 _tvec = tvec
                 _intr = intr
         else:
+            eangle = eangles[0]
             _tvec = tvec
             _intr = intr
 
