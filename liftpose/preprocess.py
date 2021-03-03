@@ -26,17 +26,17 @@ def preprocess_2d(
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
         3. Remove root joints
-        
+
         Args:
             train: Dict[Tuple:np.array[float]]
-                A dictionary where keys correspond to experiment names and 
-                values are numpy arrays in the shape of [T J], where T 
-                corresponds to time and J is number of joints times in_dim. 
+                A dictionary where keys correspond to experiment names and
+                values are numpy arrays in the shape of [T J], where T
+                corresponds to time and J is number of joints times in_dim.
             test: Dict[Tuple:np.array[float]]
                 test data
             roots: List[int]
                 Single depth list consisting of root joints. Corresponding
-                target set will predicted with respect to the root joint. 
+                target set will predicted with respect to the root joint.
                 Cannot be empty.
             target_sets: List[List[Int]
                 Joints to be predicted with respect to roots.
@@ -44,7 +44,7 @@ def preprocess_2d(
                 network will predict the relative location Joint 2 and 3 with respect to Joint 0.
                 Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
                 Cannot be empty.
-            in_dim: number of dimensions for the 2d data 
+            in_dim: number of dimensions for the 2d data
                 (should be 2 if predicting depth from 2d pose).
 
         Return:
@@ -79,12 +79,12 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
         3. Remove root joints
-        
+
         Args:
             train: Zero-mean and unit variance training data
             test: Zero-mean and unit variance test data
             roots: Single depth list consisting of root joints. Corresponding
-                target set will predicted with respect to the root joint. 
+                target set will predicted with respect to the root joint.
                 Cannot be empty.
             target_sets: List[List[Int]
                 Joints to be predicted with respect to roots.
@@ -122,7 +122,7 @@ def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None)
 
 def normalization_stats(d, replace_zeros=True):
     """ Computes mean and stdev
-    
+
     Args
         d: dictionary containing data of all experiments
     Returns
@@ -144,7 +144,7 @@ def normalization_stats(d, replace_zeros=True):
     import warnings
 
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore")
+        warnings.filterwarnings('ignore')
         mean = np.nanmean(cp_d, axis=0)
         std = np.nanstd(cp_d, axis=0)
 
@@ -162,12 +162,12 @@ def center_poses(d):
 
 def normalize(d, mean, std, replace_nans=True):
     """ Normalizes a dictionary of poses
-  
+
     Args
         d: dictionary containing data of all experiments
         mean: array with the mean of the data for all dimensions
         std: array with the stdev of the data for all dimensions
-      
+
     Returns
         d: dictionary containing normalized data
     """
@@ -185,12 +185,12 @@ def normalize(d, mean, std, replace_nans=True):
 def unNormalize(d_norm, mean, std):
     """ Un-normalizes a matrix whose mean has been substracted and that has been divided by
     standard deviation
-  
+
     Args
         d_norm: dictionary containing normalized data of all experiments
         mean: array with the mean of the data for all dimensions
         std: array with the stdev of the data for all dimensions
-      
+
     Returns
         data: dictionary containing normalized data
     """
@@ -203,13 +203,13 @@ def unNormalize(d_norm, mean, std):
 
 def anchor_to_root(poses, roots, target_sets, dim):
     """ Center points in targset sets around roots
-    
+
     Args
         poses: dictionary of experiments each with array of size n_frames x n_dimensions
         roots: list of dimensions to be pulled to the origin
         target_sets: list of lists of indexes that are computer relative to respective roots
         dim: spatial dimension of data (1, 2 or 3)
-  
+
     Returns
         poses: dictionary of anchored poses
         offset: offset of each root from origin
@@ -235,12 +235,12 @@ def anchor_to_root(poses, roots, target_sets, dim):
 
 def add_roots(d, dim_to_use, n_dim, base="zeros"):
     """ Add back the root dimensions
-    
+
     Args
         d: array of size n_frames x (n_dim-n_roots)
-        dim_to_use: list of indices of dimenions that are not roots 
+        dim_to_use: list of indices of dimenions that are not roots
         n_dim: integer number of dimensions including roots
-    
+
     Returns
         orig_data: array of size n_frames x n_dim
     """
@@ -261,13 +261,13 @@ def add_roots(d, dim_to_use, n_dim, base="zeros"):
 
 def remove_roots(d, targets, n_dim, vis=None):
     """
-    # TODO 
-  
+    # TODO
+
     Args
         d: dictionary of experiments each with array of size n_frames x n_dimensions
         targets: list of list of dimensions to be considered
         n_dim: number of spatial dimensions (e.g., 1,2 or 3)
-        
+
     Returns
         data: dictionary of experiments with roots removed
         dim_to_use: list of dimensions in use for lifting
@@ -285,11 +285,11 @@ def remove_roots(d, targets, n_dim, vis=None):
 
 def get_coords_in_dim(targets, dim):
     """ Get keypoint indices in spatial dimension 'dim'
-    
+
     Args
         targets: list of lists of keypoints to be converted
         dim: spatial dimension of data (1, 2 or 3)
-        
+
     Returns
         dim_to_use: list of keypoint indices in dimension dim
     """
@@ -365,7 +365,7 @@ def remove_dimensions(d, dims_to_remove):
 
 def get_visible_points(d, good_keypts):
     """ Restricts a dictionary of poses only to th visible points.
-    
+
 
     Parameters
     ----------

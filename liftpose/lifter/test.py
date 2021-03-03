@@ -101,8 +101,8 @@ def test(test_loader, model, criterion, stat, predict=False):
     all_dist[all_dist == 0] = np.nan
     warnings.filterwarnings("ignore", category=RuntimeWarning)
     joint_err = np.nanmean(all_dist, axis=0)
-    warnings.filterwarnings("default", category=RuntimeWarning)
     ttl_err = np.nanmean(joint_err)
+    warnings.filterwarnings("default", category=RuntimeWarning)
 
     # logger.info("test error: {}".format(ttl_err))
     return (
