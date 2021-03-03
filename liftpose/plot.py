@@ -351,20 +351,10 @@ def get_violin_ylabel(body_length, units):
 def pred_and_gt_to_pandas(
     test_3d_gt, test_3d_pred, test_keypoints, joints_name, body_length
 ):
-<<<<<<< HEAD
-=======
-    """ creates violin plot of error distribution for each joint """
-    # fmt: off
-    assert test_3d_gt.shape[1] == len(joints_name), f"given 3d data has {test_3d_gt.shape[1]} joints however joints_name only has {len(joints_name)} names"
-    assert (test_3d_gt.shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
-    # fmt: on
+    # remove the outliers
+    #err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
 
     err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
->>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
-    # remove the outliers
-    err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
-
-    #err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
 
     err_norm_sp = err_norm.copy()
     for j in range(err_norm.shape[1]):
@@ -390,7 +380,6 @@ def pred_and_gt_to_pandas(
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
 
-<<<<<<< HEAD
     return d
 
 
@@ -431,10 +420,6 @@ def violin_plot(
     s = sns.violinplot(
         x="joint", y="err", hue="hue", data=d, color="gray", order=order, bw=0.4
     )
-=======
-    # draw the violin
-    s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order, bw=0.4)
->>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
 
     # set the labels
     s.set_xticklabels(s.get_xticklabels(), rotation=30)

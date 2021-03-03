@@ -30,10 +30,6 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
         inputs, _ = project_to_random_eangle(
             outputs[None, :].copy(), eangle, axsorder, project=True, tvec=_tvec, intr=_intr
         )
-<<<<<<< HEAD
-
-        # inputs = np.squeeze(inputs)
-=======
         
         if len(eangles)>1:
             #zero invisible points
@@ -42,7 +38,6 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
                 inputs[:,~ind,:] = 0
         
         #inputs = np.squeeze(inputs)
->>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
         inputs = inputs.reshape((1, inputs.size))
         outputs = outputs.reshape((1, outputs.size))
 
