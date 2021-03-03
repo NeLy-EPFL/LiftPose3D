@@ -59,6 +59,13 @@ def preprocess_2d(
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
+<<<<<<< HEAD
+=======
+    
+    #normalize pose
+    train = pose_norm(train)
+    test  = pose_norm(test)
+>>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
@@ -131,7 +138,7 @@ def normalization_stats(d, replace_zeros=True):
     """
 
     if type(d) is dict:
-        d = np.concatenate([v for k, v in d.items()], 0)
+        d = np.concatenate([v for k, v in d.items()], 0)   
 
     cp_d = copy.deepcopy(d)
 
@@ -147,6 +154,9 @@ def normalization_stats(d, replace_zeros=True):
         warnings.filterwarnings('ignore')
         mean = np.nanmean(cp_d, axis=0)
         std = np.nanstd(cp_d, axis=0)
+    
+    mean = np.nan_to_num(mean)
+    std = np.nan_to_num(std, nan=1.0)
 
     return mean, std
 
@@ -179,6 +189,19 @@ def normalize(d, mean, std, replace_nans=True):
         if replace_nans:
             d[k] = d[k].astype("float")
             d[k] = np.nan_to_num(d[k])  # replace nans by zeros
+    return d
+
+
+def pose_norm(d, dim=2):
+    
+    for k in d.keys():
+        
+        tmp = d[k].copy()
+        tmp = tmp.reshape(tmp.shape[0], tmp.shape[1]//dim, dim)
+        tmp[np.isnan(tmp)] = 0
+        tmp /= np.linalg.norm(tmp, ord='fro', axis=(1,2), keepdims=True)
+        d[k] = tmp.reshape(tmp.shape[0], tmp.shape[1]*tmp.shape[2])
+        
     return d
 
 
@@ -216,20 +239,19 @@ def anchor_to_root(poses, roots, target_sets, dim):
     """
     assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
     assert all([p.ndim == 2 for p in list(poses.values())])
-
+    
     offset = {}
     for k in poses.keys():
 
         offset[k] = np.zeros_like(poses[k])
         for i, root in enumerate(roots):
             for j in [root] + target_sets[i]:
-                offset[k][:, dim * j : dim * (j + 1)] += poses[k][
-                    :, dim * root : dim * (root + 1)
-                ]
-
+                offset[k][:, dim * j : dim * (j + 1)] \
+                    += poses[k][:, dim * root : dim * (root + 1)]
+    
     for k in poses.keys():
         poses[k] -= offset[k]
-
+        
     return poses, offset
 
 
@@ -406,15 +428,34 @@ from numpy import linalg
 
 
 def obtain_projected_stats(
-    poses, eangle, axsorder, intr, roots, target_sets, out_dir, th=0.05
+    pts3d,
+    eangles, 
+    axsorder,
+    vis, 
+    tvec,
+    intr, 
+    roots, 
+    target_sets,
+    out_dir,
+    load_existing=True,
+    th=0.05
 ):
 
     error = np.inf
     count = 0
     error_log = []
-
+    
+    logger.info("Bootstrapping mean and variance...")
+    
+    if load_existing:
+        stats = pickle.load(open(os.path.join(out_dir, "stats.pkl"),'rb'))
+        logger.info("Loaded existing data.")
+        
+        return stats
+        
     # run until convergence
     while error > th:
+<<<<<<< HEAD
         # obtain randomly projected points
         pts_2d = process_dict(
             project_to_random_eangle,
@@ -452,6 +493,77 @@ def obtain_projected_stats(
         mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
         mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
 
+=======
+        
+        #if there are multiple cameras, loop over them
+        for whichcam in eangles.keys():
+            eangle = eangles[whichcam]
+            
+            if tvec is not None:
+                _tvec = tvec[whichcam]
+            else:
+                _tvec = None
+            if intr is not None:
+                _intr = intr[whichcam]
+            else:
+                _intr = None
+            
+            # obtain randomly projected points
+            pts_2d, _ = process_dict(
+                project_to_random_eangle,
+                pts3d,
+                2,
+                eangle,
+                axsorder=axsorder,
+                project=True,
+                tvec=_tvec,
+                intr=_intr,
+                )
+            
+            pts_3d, _ = process_dict(
+                project_to_random_eangle, 
+                pts3d, 
+                2,
+                eangle,
+                axsorder=axsorder, 
+                project=False
+                )
+        
+            #zero invisible points
+            if vis is not None:
+                ind = np.array(vis[whichcam]).astype(bool)
+                for k in pts_2d.keys():
+                    pts_2d[k][:,~ind,:] = 0
+  
+            pts_2d = flatten_dict(pts_2d)
+            pts_3d = flatten_dict(pts_3d)
+            
+            pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
+            pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
+            
+            pts_2d = pose_norm(pts_2d)
+            
+            pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
+            pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
+
+            # bootstrap mean, std
+            if count == 0:
+                train_samples_2d = pts_2d
+                mean_old_2d = np.zeros(pts_2d.shape[1])
+                std_old_2d = np.zeros(pts_2d.shape[1])
+                train_samples_3d = pts_3d
+                mean_old_3d = np.zeros(pts_3d.shape[1])
+                std_old_3d = np.zeros(pts_3d.shape[1])
+            else:
+                train_samples_2d = np.vstack((train_samples_2d, pts_2d))
+                train_samples_3d = np.vstack((train_samples_3d, pts_3d))
+                
+            count += 1
+
+        mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=True)
+        mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=True)
+            
+>>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
         error = (
             linalg.norm(mean_2d - mean_old_2d)
             + linalg.norm(std_2d - std_old_2d)
@@ -465,7 +577,6 @@ def obtain_projected_stats(
         std_old_2d = std_2d
         mean_old_3d = mean_3d
         std_old_3d = std_3d
-        count += 1
 
         if not os.path.exists(out_dir):
             logger.info(f"Creating directory {os.path.abspath(out_dir)}")
