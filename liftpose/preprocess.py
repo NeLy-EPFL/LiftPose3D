@@ -59,13 +59,7 @@ def preprocess_2d(
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
-<<<<<<< HEAD
-=======
     
-    #normalize pose
-    train = pose_norm(train)
-    test  = pose_norm(test)
->>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
@@ -455,45 +449,6 @@ def obtain_projected_stats(
         
     # run until convergence
     while error > th:
-<<<<<<< HEAD
-        # obtain randomly projected points
-        pts_2d = process_dict(
-            project_to_random_eangle,
-            poses,
-            eangle,
-            axsorder=axsorder,
-            project=True,
-            intr=intr,
-        )
-        pts_3d = process_dict(
-            project_to_random_eangle, poses, eangle, axsorder=axsorder, project=False
-        )
-
-        pts_2d = flatten_dict(pts_2d)
-        pts_3d = flatten_dict(pts_3d)
-
-        pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
-        pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
-
-        pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
-        pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
-
-        # bootstrap mean, std
-        if count == 0:
-            train_samples_2d = pts_2d
-            mean_old_2d = np.zeros(pts_2d.shape[1])
-            std_old_2d = np.zeros(pts_2d.shape[1])
-            train_samples_3d = pts_3d
-            mean_old_3d = np.zeros(pts_3d.shape[1])
-            std_old_3d = np.zeros(pts_3d.shape[1])
-        else:
-            train_samples_2d = np.vstack((train_samples_2d, pts_2d))
-            train_samples_3d = np.vstack((train_samples_3d, pts_3d))
-
-        mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=False)
-        mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=False)
-
-=======
         
         #if there are multiple cameras, loop over them
         for whichcam in eangles.keys():
@@ -563,7 +518,6 @@ def obtain_projected_stats(
         mean_2d, std_2d = normalization_stats(train_samples_2d, replace_zeros=True)
         mean_3d, std_3d = normalization_stats(train_samples_3d, replace_zeros=True)
             
->>>>>>> c7c02553135b4aea36a90fc1c84c06062bbee474
         error = (
             linalg.norm(mean_2d - mean_old_2d)
             + linalg.norm(std_2d - std_old_2d)
