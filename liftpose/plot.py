@@ -340,32 +340,20 @@ def get_violin_ylabel(body_length, units):
     return "Error (unitless)"
 
 
-def violin_plot(
-    ax,
-    test_3d_gt: np.ndarray,
-    test_3d_pred: np.ndarray,
-    test_keypoints: np.ndarray,
-    joints_name: List[str],
-    body_length: int = None,
-    units: str = None,
-    ylim: List[int] = None,
-    order: List[str] = None,
+def pred_and_gt_to_pandas(
+    test_3d_gt, test_3d_pred, test_keypoints, joints_name, body_length
 ):
-    """ creates violin plot of error distribution for each joint """
-    # fmt: off
-    assert test_3d_gt.shape[1] == len(joints_name), f"given 3d data has {test_3d_gt.shape[1]} joints however joints_name only has {len(joints_name)} names"
-    assert (test_3d_gt.shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
-    # fmt: on
+    # remove the outliers
+    err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
 
     #err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
-    err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
-    # remove the outliers
+
     err_norm_sp = err_norm.copy()
     for j in range(err_norm.shape[1]):
         q = np.quantile(err_norm[:, j], 0.95)
         err_norm_sp[err_norm_sp[:, j] > q, j] = q
 
-    # TODO vectorize the following loop
+    # TODO vectorize the loop
     e_list = list()
     n_list = list()
     for i in range(err_norm_sp.shape[0]):
@@ -384,8 +372,46 @@ def violin_plot(
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
 
+    return d
+
+
+def violin_plot(
+    ax,
+    test_3d_gt: np.ndarray,
+    test_3d_pred: np.ndarray,
+    test_keypoints: np.ndarray,
+    joints_name: List[str],
+    body_length: int = None,
+    units: str = None,
+    ylim: List[int] = None,
+    order: List[str] = None,
+    hue_names: List[str] = None
+):
+    """ creates violin plot of error distribution for each joint """
+    if isinstance(test_3d_pred, np.ndarray):
+        test_3d_pred = [test_3d_pred]
+    # fmt: off
+    #assert test_3d_pred[0].shape[1] == len(joints_name), f"given 3d data has {test_3d_pred[0].shape[1]} joints however joints_name only has {len(joints_name)} names"
+    #assert (test_3d_pred[0].shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
+    # fmt: on
+
+    pandas_list = [
+        pred_and_gt_to_pandas(
+            test_3d_gt, test_3d_pred[i], test_keypoints, joints_name, body_length
+        )
+        for i in range(len(test_3d_pred))
+    ]
+
+    for i, p in enumerate(pandas_list):
+        p["hue"] = hue_names[i] if hue_names is not None else str(i)
+
+    import pandas as pd
+    d = pd.concat(pandas_list)
+
     # draw the violin
-    s = sns.violinplot(x="joint", y="err", data=d, color="gray", order=order, bw=0.4)
+    s = sns.violinplot(
+        x="joint", y="err", hue="hue", data=d, color="gray", order=order, bw=0.4
+    )
 
     # set the labels
     s.set_xticklabels(s.get_xticklabels(), rotation=30)

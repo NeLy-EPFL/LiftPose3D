@@ -148,3 +148,7 @@ __pycache__
 
 # output files
 out/
+.pkl
+.pth.tar
+.zip
+

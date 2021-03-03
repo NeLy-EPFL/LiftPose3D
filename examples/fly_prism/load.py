@@ -41,11 +41,11 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
         
                 #load
                 poses = pickle.load(open(fname_, "rb"))
-                poses3d = poses['points3d']
+                poses3d = np.copy(poses['points3d'])
 
                 #collect data
                 seqname = os.path.basename( fname_ )  
-                data[ (subject, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
+                data[ (subject, action, seqname[:-4]) ] = np.copy(poses3d) #[:-4] is to get rid of .pkl extension
                 
                 if 'good_keypts' in poses.keys():
                     good_keypts[ (subject, action, seqname[:-4]) ] = np.tile(poses['good_keypts'][:,:,None], reps=(1,1,3))
@@ -95,7 +95,7 @@ def load_2D(path, par=None, cam_id=0, subjects='all', actions='all'):
                 poses = poses['points2d']
                     
                 #reshape data
-                poses_cam = poses[cam_id,:,:,:]
+                poses_cam = poses[cam_id]
 
                 #collect data
                 data[ (subject, action, seqname[:-4]) ] = poses_cam

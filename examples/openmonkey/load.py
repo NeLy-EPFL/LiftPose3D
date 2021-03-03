@@ -10,6 +10,7 @@ from collections import defaultdict
 from matplotlib import pyplot as plt
 
 
+# read camera matrices
 def get_cameras(btch):
     with open(
         "/data/LiftFly3D/openmonkey/OMS_Dataset/Batch{}/intrinsic.txt".format(btch)
@@ -198,10 +199,13 @@ def get_btch(btch):
         # indices where image_id is seen
         q = np.where(image_id_list == image_id)[0]
         for i in range(q.shape[0]):
+            # description of the data can be found here: https://github.com/OpenMonkeyStudio/OMS_Data
             frame, cmr, crop_x, crop_y, h, w = parameters["crop"][q[i]]
+            # remove data with bad 3d points
             if not is_good_data(btch, frame):
                 continue
-
+            
+            # init data dict
             k = (btch, frame, str(cmr))
             Data[k] = {
                 "points3d": np.zeros((13, 3)),
@@ -216,12 +220,6 @@ def get_btch(btch):
             for jt in range(13):
                 Data[k]["points3d_world"][jt] = annotations["coords"][ii + jt, 1:4]
 
-            # bone-length normalize
-            pt3d = Data[k]["points3d_world"]
-            Data[k]["points3d_world"] = normalize_bone_length(
-                pt3d, edges, bone_length, parents, leaves
-            )
-
             # rotate 3d points and project
             for jt in range(13):
                 if Data[k]["points3d_world"][jt] is not None:
@@ -235,6 +233,16 @@ def get_btch(btch):
                         cameras, str(cmr), Data[k]["points3d_world"][jt]
                     )
 
+            # bone-length normalize
+            pt3d = Data[k]["points3d_world"]
+            Data[k]["points3d_world"] = normalize_bone_length(
+                pt3d, edges, bone_length, parents, leaves
+            )
+            pt3d = Data[k]["points3d"]
+            Data[k]["points3d"] = normalize_bone_length(
+                pt3d, edges, bone_length, parents, leaves)
+    
+    '''
     # project to the missing cameras
     k_list = list(Data.keys())
     for k in k_list:
@@ -248,6 +256,7 @@ def get_btch(btch):
                     "points3d": np.zeros((13, 3)),
                     "points3d_world": np.zeros((13, 3)),
                     "points2d": np.zeros((13, 2)),
+                    "points2d_marker": np.zeros((13, 2)),
                     "points2d_distort": np.zeros((13, 2)),
                     "crop": None,
                 }
@@ -259,25 +268,33 @@ def get_btch(btch):
                     Data[k_new]["points3d"][jt] = rotate_point(
                         cameras, str(cmr), Data[k]["points3d_world"][jt]
                     )
+    '''
+    
 
-    """
-    # set poisnts2d
+
+    # set points2d
     # taken from img_label_visualizer.py from https://github.com/OpenMonkeyStudio/OMS_Data
     data = loadmat(f"/data/LiftFly3D/openmonkey/OMS_Dataset/Data.mat")
     name = data["T"][0][0]["name"]
     label = data["T"][0][0]["data"]
-    
 
     # fill points2d
     for i, n in enumerate(name):
         n = n[0][0]
         batch_id, frame_id, cam_id = parse_img_name(n)
         k = (batch_id, frame_id, str(cam_id))
-        cam = cameras[cam_id]
         if btch == batch_id and k in Data.keys():
-            Data[k]["points2d"] = get_pts2d(i, label)
-            Data[k]["points2d"] = cv2.undistortPoints(Data[k]["points2d"][:,None,:], cam['K'], distCoeffs=np.array([cam["d1"], cam["d2"], 0, 0]), P=cam['K'])
-    """
+            cam = cameras[cam_id]
+            Data[k]["points2d_marker"] = get_pts2d(i, label)
+            Data[k]["points2d_marker"] = cv2.undistortPoints(
+                Data[k]["points2d_marker"][:, None, :],
+                cam["K"],
+                distCoeffs=np.array([cam["d1"], cam["d2"], 0, 0]),
+                P=cam["K"],
+            )
+            Data[k]["points2d_marker"] = Data[k]["points2d_marker"].reshape((13,2))
+    
+
     return Data, cameras
 
 

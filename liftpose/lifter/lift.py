@@ -45,7 +45,10 @@ def network_main(opt, augmentation=None):
 
     # create and initialise model
     model = LinearModel(
-        input_size=input_size, output_size=output_size, drop_inp=opt.drop_input
+        input_size=input_size,
+        output_size=output_size,
+        p_dropout=opt.dropout,
+        drop_inp=opt.drop_input,
     )
     model = model.to(device)
     model.apply(weight_init)

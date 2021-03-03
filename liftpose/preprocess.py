@@ -142,8 +142,9 @@ def normalization_stats(d, replace_zeros=True):
 
     # TODO: Fix RuntimeWarning: Mean of empty slice
     import warnings
+
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', r'RuntimeWarning: Mean of empty slice')
+        warnings.filterwarnings("ignore")
         mean = np.nanmean(cp_d, axis=0)
         std = np.nanstd(cp_d, axis=0)
 
@@ -215,8 +216,6 @@ def anchor_to_root(poses, roots, target_sets, dim):
     """
     assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
     assert all([p.ndim == 2 for p in list(poses.values())])
-
-
 
     offset = {}
     for k in poses.keys():

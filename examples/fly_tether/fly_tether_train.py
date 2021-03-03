@@ -1,4 +1,4 @@
-from load import *
+from load_tether import *
 import torch
 import yaml
 import logging
@@ -12,7 +12,7 @@ tqdm.get_lock().locks = []
 
 # decleare data parameters
 par_train = {  'data_dir'       : '/data/LiftPose3D_2602/fly_tether/data_DF3D/', # change the path
-               'out_dir'        : '/data/LiftPose3D/fly_tether/cams_test/',
+               'out_dir'        : 'out_drop',
                'train_subjects' : [1,2,3,4,5],
                'test_subjects'  : [6,7],
                'actions'        : ['all'],
@@ -20,7 +20,7 @@ par_train = {  'data_dir'       : '/data/LiftPose3D_2602/fly_tether/data_DF3D/',
 
 
 # merge with training parameters
-par_data = yaml.full_load(open('examples/fly_tether/param.yaml', "rb"))
+par_data = yaml.full_load(open('param.yaml', "rb"))
 par = {**par_data["data"], **par_train}
 # Load 2D data
 train_2d = load_2D(
@@ -57,11 +57,6 @@ test_3d, test_keypts, rcams_test = load_3D(
 train_3d = world_to_camera_dict(train_3d, rcams_train)
 test_3d = world_to_camera_dict(test_3d, rcams_test)
 
-for k in train_3d.keys():
-    train_3d[k][np.logical_not(train_keypts[k])] = np.nan
-for k in test_3d.keys():
-    test_3d[k][np.logical_not(test_keypts[k])] = np.nan
-
 from liftpose.postprocess import load_test_results
 from liftpose.main import test as lp3d_test
 from liftpose.main import train as lp3d_train
@@ -74,5 +69,5 @@ lp3d_train(train_2d=train_2d, test_2d=test_2d,
            roots=par['roots'],
            target_sets=par['target_sets'],
            out_dir=par['out_dir'],
-           training_kwargs={"epochs":100, "job":1, "lr_decay":100000, "lr_gamma":0.5})
+           training_kwargs={"epochs":100, "job":1, "lr_decay":100000, "lr_gamma":0.5, "drop_input":0.1, "dropout":0.1})
 

@@ -402,7 +402,7 @@ def test(
 
     assert os.path.isdir(
         out_dir
-    ), "{out_dir} does not exists. please call liftpose.main.train function first with the same path."
+    ), f"{out_dir} does not exists. please call liftpose.main.train function first with the same path."
 
     set_test_data(out_dir, test_2d, test_3d, test_kypts)
 
