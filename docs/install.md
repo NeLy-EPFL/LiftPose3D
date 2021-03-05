@@ -20,4 +20,4 @@ Then, you can install the liftpose package using pip
 ```pip install -e .```
 
 Additionaly, you might need to setup your [GPU drivers](https://www.nvidia.com/Download/index.aspx), and install [the specific version of Pytorch](https://pytorch.org/get-started/previous-versions/), compatible with your driver versions in order to use your GPU.
-You can check if your GPU setup is working properly by running  ```python -m "import torch; torch.cuda.is_available()"``` on your terminal.
+You can check if your GPU setup is working properly by running  ```python -c "import torch; torch.cuda.is_available()"``` on your terminal. The terminal should print ```True``` in case of a successful installation.
