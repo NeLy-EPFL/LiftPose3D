@@ -61,9 +61,7 @@ def get_cameras(btch):
 
 
 leaves = [0, 4, 6, 9, 11, 12]
-#          0  1  2  3  4  5  6  7   8  9  10 11 12
 parents = [1, 2, 7, 2, 3, 2, 5, -1, 7, 8, 7, 10, 7]
-# Annotations
 edges = [
     (0, 1),
     (1, 2),
@@ -79,6 +77,7 @@ edges = [
     (7, 12),
 ]
 
+# tempalte body lengths
 bone_length = np.array(
     [
         0.20820029,
@@ -122,6 +121,7 @@ def normalize_bone_length(pose3d, edges, bone_length, parents, leaves):
     return pose3d_normalized
 
 
+# use only these img_id's for the test set
 image_id_list = [
     [7380, 8100],
     [8480, 9280],
@@ -204,7 +204,7 @@ def get_btch(btch):
             # remove data with bad 3d points
             if not is_good_data(btch, frame):
                 continue
-            
+
             # init data dict
             k = (btch, frame, str(cmr))
             Data[k] = {
@@ -233,16 +233,7 @@ def get_btch(btch):
                         cameras, str(cmr), Data[k]["points3d_world"][jt]
                     )
 
-            # bone-length normalize
-            pt3d = Data[k]["points3d_world"]
-            Data[k]["points3d_world"] = normalize_bone_length(
-                pt3d, edges, bone_length, parents, leaves
-            )
-            pt3d = Data[k]["points3d"]
-            Data[k]["points3d"] = normalize_bone_length(
-                pt3d, edges, bone_length, parents, leaves)
-    
-    '''
+
     # project to the missing cameras
     k_list = list(Data.keys())
     for k in k_list:
@@ -268,8 +259,18 @@ def get_btch(btch):
                     Data[k_new]["points3d"][jt] = rotate_point(
                         cameras, str(cmr), Data[k]["points3d_world"][jt]
                     )
-    '''
-    
+
+    # normalize bone-length
+    k_list = list(Data.keys())
+    for k in k_list:                 
+        # bone-length normalize
+        pt3d = Data[k]["points3d_world"]
+        Data[k]["points3d_world"] = normalize_bone_length(
+            pt3d, edges, bone_length, parents, leaves
+        )
+        pt3d = Data[k]["points3d"]
+        Data[k]["points3d"] = normalize_bone_length(
+            pt3d, edges, bone_length, parents, leaves)
 
 
     # set points2d
@@ -293,7 +294,7 @@ def get_btch(btch):
                 P=cam["K"],
             )
             Data[k]["points2d_marker"] = Data[k]["points2d_marker"].reshape((13,2))
-    
+
 
     return Data, cameras
 

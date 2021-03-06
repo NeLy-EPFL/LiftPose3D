@@ -51,7 +51,7 @@ def train_np(
     target_sets: List[List[int]] = None,
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
-    training_kwargs: Dict[str, Union[str, int]] = None,
+    training_kwargs: Dict[str, Union[str, int]] = {},
     augmentation: List[Callable] = None,
 ) -> None:
 
@@ -303,7 +303,8 @@ def train(
     option.out_dir = os.path.abspath(out_dir)
 
     # overwrite training options with training_kwargs if given
-    option.__dict__.update(training_kwargs) if training_kwargs is not None else None
+    assert all([k in option.__dict__ for k in training_kwargs.keys()])
+    option.__dict__.update(training_kwargs)
 
     logger.debug("\n==================Options=================")
     logger.debug(pformat(vars(option), indent=4))
@@ -412,198 +413,6 @@ def test(
     option.out = os.path.abspath(out_dir)  # TODO do we need to set out?
     option.out_dir = os.path.abspath(out_dir)
     option.test = True
-    option.load = glob.glob(os.path.join(out_dir, "ckpt_best.pth.tar"))[0]
+    option.load = os.path.join(out_dir, "ckpt_best.pth.tar")
     option.predict = False
     network_main(option)
-
-
-import scipy.io
-
-
-def read_data(session_id, cam_id):
-    return scipy.io.loadmat(
-        f"/home/user/Dropbox/data_3d_e{str(session_id)}/{str(session_id)}_cam{str(cam_id+1)}_data.mat"
-    )
-
-
-def read_cam(session_id, cam_id):
-    return scipy.io.loadmat(
-        f"/home/user/Dropbox/calibration_e{session_id}/hires_cam{cam_id+1}_params_rRDistort.mat"
-    )
-
-
-import numpy as np
-
-
-def world_to_camera2(P, R, T):
-    """
-  Rotate/translate 3d poses to camera viewpoint
-  Args
-    P: Nx3 points in world coordinates
-    R: 3x3 Camera rotation matrix
-    T: 3x1 Camera translation parameters
-  Returns
-    transf: Nx2 points on camera
-  """
-
-    ndim = P.shape[1]
-    P = np.reshape(P, [-1, 3])
-
-    assert len(P.shape) == 2
-    assert P.shape[1] == 3
-
-    P_rot = np.matmul(R, P.T).T + T
-
-    return np.reshape(P_rot, [-1, ndim])
-
-
-if __name__ == "__main__":
-    import torch
-    import yaml
-    import logging
-    from imp import reload
-    import matplotlib.pyplot as plt
-    import yaml
-    import numpy as np
-    import cv2
-    import os
-    from tqdm import tqdm
-    from matplotlib import pyplot as plt
-
-    plt.style.use(["dark_background"])
-
-    tqdm.get_lock().locks = []
-    reload(logging)
-    logger = logging.getLogger(__name__).setLevel(logging.INFO)
-
-    import scipy.io
-    from liftpose.vision_3d import normalize_bone_length
-
-    # decleare data parameters
-    # out 00 -> without bln, 0.004
-    par_train = {
-        "data_dir": "",  # change the path
-        "out_dir": "/home/user/Desktop/LiftPose3D/examples/capture/out_test_set_data/",
-        "train_session_id": [1, 2, 3],
-        "test_session_id": [0],
-        "test_cam_id": [3],
-    }
-
-    # merge with training parameters
-    par_data = yaml.full_load(
-        open("/home/user/Desktop/LiftPose3D/examples/capture/param.yaml", "rb")
-    )
-    par = {**par_data["data"], **par_train}
-
-    # meta = mat73.loadmat('nolj_Recording_day8_caff1_nolj_imputed.mat')
-    # naming scheme used in the capture dataset for different cameras
-    cam_list = ["R", "L", "E", "U", "S", "U2"]
-
-    bone_length = {
-        (0, 3): 80.98554459477106,
-        (3, 5): 112.90207543313412,
-        (5, 8): 28.733636975647393,
-        (5, 9): 34.84953102842617,
-        (10, 11): 15.956945352305892,
-        (3, 12): 29.946991312076776,
-        (3, 13): 19.409450872458986,
-        (10, 12): 40.857306953944935,
-        (13, 14): 37.08634981412786,
-        (14, 15): 20.954239695086592,
-        (8, 17): 35.39218881579121,
-        (9, 16): 25.59466626887338,
-        (17, 18): 31.033650232299784,
-        (16, 19): 25.244471236727712,
-    }
-
-    train_session_id = par_train["train_session_id"]
-    test_session_id = par_train["test_session_id"]
-    test_cam_id = par_train["test_cam_id"]
-
-    # mat = [read_data(session_id, cid) for (cid,_) in enumerate(cam_list)]
-    train_2d, train_3d, test_2d, test_3d = list(), list(), list(), list()
-    train_ind, test_ind = np.zeros((54000), dtype=bool), np.zeros((54000), dtype=bool)
-
-    train_ind[2000:] = True
-    test_ind[:2000] = True
-
-    train_keypoints = list()
-    test_keypoints = list()
-    session_id_list = np.unique(
-        par_train["train_session_id"] + par_train["test_session_id"]
-    )
-    for session_id in session_id_list:
-        mat = [read_data(session_id, cid) for (cid, _) in enumerate(cam_list)]
-        for cam_id in range(len(cam_list)):
-            mat = [read_data(session_id, cid) for (cid, _) in enumerate(cam_list)]
-            c = read_cam(session_id, cam_id)
-            pts3d = mat[cam_id]["data_3d"].reshape(-1, 20, 3)
-            pts3d = pts3d.reshape(-1, 3)
-
-            pts2d = mat[cam_id]["data_2d"].reshape(-1, 20, 2)
-            distort = np.array([c["RDistort"][0][0], c["RDistort"][0][1], 0, 0])
-            pts2d = cv2.undistortPoints(
-                src=pts2d.reshape(-1, 2)[:, None, :],
-                cameraMatrix=c["K"].T,
-                distCoeffs=distort,
-                P=c["K"].T,
-            )
-            pts2d = pts2d.reshape(54000, 20, 2)
-            # pts2d, _ = cv2.projectPoints(pts3d, rvec=c['r'].T, tvec=c['t'], cameraMatrix=c['K'].T, distCoeffs=None)
-            # pts2d = pts2d.reshape(-1, 20, 2)
-            if session_id in train_session_id:
-                train_2d.append(pts2d[train_ind])
-            if session_id in test_session_id and cam_id in test_cam_id:
-                test_2d.append(pts2d[test_ind])
-
-            # bone length normalization
-            pts3d = world_to_camera2(pts3d, c["r"].T, c["t"])
-            pts3d = pts3d.reshape(-1, 20, 3)
-            pts3d = normalize_bone_length(
-                pts3d.copy(),
-                root=par["roots"][0],
-                child=par_data["vis"]["child"],
-                bone_length=bone_length,
-                thr=10,
-            )
-
-            if session_id in train_session_id:
-                train_3d.append(pts3d[train_ind])
-            if session_id in test_session_id and cam_id in test_cam_id:
-                test_3d.append(pts3d[test_ind])
-
-    train_2d = np.concatenate(train_2d, axis=0)
-    train_3d = np.concatenate(train_3d, axis=0)
-    test_2d = np.concatenate(test_2d, axis=0)
-    test_3d = np.concatenate(test_3d, axis=0)
-    train_keypoints = np.logical_not(np.isnan(train_3d))
-    test_keypoints = np.logical_not(np.isnan(test_3d))
-
-    # if more than one third is missing remove it
-    train_keypoints[np.sum(np.logical_not(train_keypoints), axis=(1, 2)) > 20] = False
-    test_keypoints[np.sum(np.logical_not(test_keypoints), axis=(1, 2)) > 20] = False
-
-    # if the root is none, then ignore that point, otherwise we cannot anchor
-    train_keypoints[np.any(np.isnan(train_2d[:, 3]), axis=-1)] = False
-    test_keypoints[np.any(np.isnan(test_2d[:, 3]), axis=-1)] = False
-
-    from liftpose.postprocess import load_test_results
-    from liftpose.main import test as lp3d_test
-
-    test_2d_new = np.copy(test_2d)
-    # test_2d_new[:, [10,11]] = np.nan
-    lp3d_test(
-        par["out_dir"],
-        test_2d=np.copy(test_2d_new),
-        test_3d=np.copy(test_3d),
-        test_kypts=test_keypoints,
-    )
-    data = torch.load(os.path.join(par["out_dir"], "test_results.pth.tar"))
-    stat_2d, stat_3d = (
-        torch.load(os.path.join(par["out_dir"], "stat_2d.pth.tar")),
-        torch.load(os.path.join(par["out_dir"], "stat_3d.pth.tar")),
-    )
-    test_3d_gt, test_3d_pred_full, good_keypts = load_test_results(
-        data, stat_2d, stat_3d
-    )
-

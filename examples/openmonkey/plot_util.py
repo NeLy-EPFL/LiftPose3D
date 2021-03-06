@@ -14,7 +14,7 @@ def plot_cameras_err(ax, err, mi, ma, cameras, curr_camera):
         s = ax.scatter(C[0], C[1], C[2], color=col, alpha=1 if c in color else 0.1)
         
 def get_err(pt, pt_pred):
-    return np.linalg.norm(pt - pt_pred, axis=-1).mean()
+    return np.abs(pt - pt_pred).mean()
 
 def err_for_frame(Data, cameras, frame_id, test_3d_gt, test_3d_pred):
     err = dict()
