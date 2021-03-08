@@ -110,6 +110,16 @@ We define two short configuration files. First one is always named as param.yaml
   
   Once the training is done, you can visualize the loss curves by reading the training logs and calling the function. The training information is saved under the ```train_log.txt```, which can easily be read using a csv reader. Alternatively, we already provide functions to read and visualize the file.
   
+  ```python
+  from liftpose.plot import read_log_train, plot_log_train
+  epoch, lr, loss_train, loss_test, err_test = read_log_train(par['out_dir'])
+  plot_log_train(plt.gca(), loss_train, loss_test, epoch)
+  ```
+  This will plot the training and test losses during the training.
+  <p align="center">
+   <img src="https://user-images.githubusercontent.com/20509861/110373519-dfc60380-804f-11eb-9bbe-6db6f17c5fc6.png" width="360">
+  </p>
+
   
 ## Testing the network
   import liftpose.main.test as liftpose3d_test
