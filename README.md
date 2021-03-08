@@ -3,7 +3,7 @@
   <img src="images/fig1ad.png" width="720">
 </p>
 
-The tool for transforming a single 2D pose to 3D coordinates using a deep neural network.
+The tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network.
 
 For the theoretical background and for more details on the following examples have a look at our paper:
 [LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
