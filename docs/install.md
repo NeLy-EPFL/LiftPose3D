@@ -15,7 +15,7 @@ Once installed, activate the environment, using
 
 ```conda activate liftpose```.
 
-Then, you can install the liftpose package using pip
+Then, you can install the liftpose package using pip, first making sure you are in the root folder and then running
 
 ```pip install -e .```.
 
