@@ -10,7 +10,7 @@ For the theoretical background and for more details on the following examples ha
 
 1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
 2. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
-3. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
+3. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
 ## Configuration file (param.yaml)
 We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training. You can safely remove vis subheading and still train and test with liftpose3d. 
