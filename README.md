@@ -1,9 +1,9 @@
 # LiftPose3D
 <p align="center">
-  <img src="images/fig1ad.png" width="720">
+  <img src="https://user-images.githubusercontent.com/20509861/110372676-e43dec80-804e-11eb-925c-21c94575c5b6.png" width="360">
 </p>
 
-The tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network.
+A tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network.
 
 For the theoretical background and for more details on the following examples have a look at our paper:
 [LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
