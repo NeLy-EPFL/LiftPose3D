@@ -6,6 +6,7 @@ For the theoretical background and for more details on the following examples ha
 [LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
 
 ## Starting-Up
+0. [LiftPose3D Paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
 1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
 2. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
 3. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
