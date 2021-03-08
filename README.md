@@ -99,7 +99,7 @@ The following python scripts are valid uses of liftpose3d.
   liftpose3d_train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
   ```
   This will result in the same training as with the previous example. Currently we support train_3d and test_3d to have 1 or 3 dimensions.
-  During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write 
+  During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write intermediate     results into the output folder.
   
 ## Inspecting the training  
   
