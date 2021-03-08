@@ -6,23 +6,11 @@
 The tool for transforming a single 2D pose to 3D coordinates using a deep neural network.
 
 For the theoretical background and for more details on the following examples have a look at our paper:
-[LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/)
+[LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
 
-```
-@inproceedings{GosztolaiGunel20LiftPose3D,
-  author    = {Adam Gosztolai and
-               Semih Günel and
-               Marco Pietro Abrate and
-               Daniel Morales and 
-               Victor Lobato Rios and
-               Helge Rhodin and
-               PascalFua and
-               Pavan Ramdya},
-  title     = {LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments},
-  bookTitle = {bioRxiv},
-  year      = {2020}
-}
-```
+1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
+2. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
+3. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
 
 ## Configuration file (param.yaml)
 We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training. You can safely remove vis subheading and still train and test with liftpose3d. 
@@ -124,3 +112,4 @@ The following python scripts are valid uses of liftpose3d.
 
 ## More complicated use cases
   You can adjust all the necessary parameters of the training .
+
