@@ -16,3 +16,4 @@ dependencies:
   - pyyaml
   - opencv
   - seaborn
+  - ffmpeg
