@@ -36,9 +36,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
             assert len(fname) != 0, "No files found. Check path!"
 
             for fname_ in fname:
-                f = os.path.basename(fname_)[
-                    :-4
-                ]  # [:-4] is to get rid of .pkl extension
+                f = os.path.basename(fname_)[:-4]
 
                 # load
                 poses = pickle.load(open(fname_, "rb"))
