@@ -21,6 +21,7 @@ def preprocess_2d(
     in_dim: int,
     mean=None,
     std=None,
+    norm_2d=False
 ):
     """ Preprocess 2D data
         1. Center points in target_sets sets around roots
@@ -60,6 +61,10 @@ def preprocess_2d(
     train, _ = anchor_to_root(train, roots, target_sets, in_dim)
     test, offset = anchor_to_root(test, roots, target_sets, in_dim)
     
+    #normalize pose
+    if norm_2d:
+        train = pose_norm(train)
+        test = pose_norm(test)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):

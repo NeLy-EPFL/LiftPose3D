@@ -150,7 +150,7 @@ def world_to_camera(
 
     assert poses_world.shape[1] == 3
 
-    if len(R) == poses_world.shape[0] // s[1]:
+    if len(R) == s[0]:
         poses_cam = np.zeros_like(poses_world)
         for i in range(poses_world.shape[0]):
             poses_cam[i, :] = np.matmul(R[i // s[1]], poses_world[i, :])
@@ -245,8 +245,11 @@ def process_dict(function, d: dict, n_out: int, *args, **kwargs):
 
         d_tmp = function(d[key], *args, **kwargs)
         
-        for i in range(n_out):
-            d_new[i][key] = d_tmp[i]
+        if n_out > 1:
+            for i in range(n_out):
+                d_new[i][key] = d_tmp[i]
+        else:
+            d_new[key] = d_tmp
 
     return d_new
 
@@ -331,7 +334,7 @@ def project_to_eangle(poses_world, eangle, axsorder, project=False, tvec=None, i
     # project to camera axis
     if project:
         Pcam = project_to_camera(Pcam, intr)
-
+        
     return Pcam
 
 

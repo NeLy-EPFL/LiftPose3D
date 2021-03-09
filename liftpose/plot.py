@@ -351,8 +351,6 @@ def get_violin_ylabel(body_length, units):
 def pred_and_gt_to_pandas(
     test_3d_gt, test_3d_pred, test_keypoints, joints_name, body_length
 ):
-    # remove the outliers
-    #err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
 
     err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
 
