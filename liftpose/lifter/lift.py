@@ -31,7 +31,7 @@ def network_main(opt, augmentation=None):
     logging.info(f"Training on the device: {device}")
 
     start_epoch = 0
-    err_best = 1000
+    err_best = 9999999999
     glob_step = 0
     lr_now = opt.lr
 
