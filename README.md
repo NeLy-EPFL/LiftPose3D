@@ -136,7 +136,7 @@ We define two short configuration files. First one is always named as param.yaml
   plt.figure(figsize=(5,5), dpi=100)
 
   names = par_data["vis"]["names"]
-  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=l)
+  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=names)
   ```
   
   <p align="center">
