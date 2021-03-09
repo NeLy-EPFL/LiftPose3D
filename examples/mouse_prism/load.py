@@ -40,7 +40,6 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
             for fname_ in fname:
         
                 #load
-                print(fname_)
                 poses = pickle.load(open(fname_, "rb"))
                 poses3d = poses['points3d']
                 
