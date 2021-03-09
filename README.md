@@ -55,6 +55,8 @@ The following python scripts are valid uses of liftpose3d.
   This will result in the same training as with the previous example. Currently we support train_3d and test_3d to have 1 or 3 dimensions.
   During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write intermediate     results into the output folder.
   
+  You can have a closer look at the ```train``` function, [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
+  
 
 ## Configuration file (param.yaml)
 We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training. You can safely remove vis subheading and still train and test with liftpose3d. 
@@ -120,8 +122,19 @@ We define two short configuration files. First one is always named as param.yaml
 
   
 ## Testing the network
+  You can test the network.
+  ```python
   import liftpose.main.test as liftpose3d_test
+  liftpose3d_test(par['out_dir'])
+  ```
+  This will run the network with the test data provided during the ```liftpose3d_train``` call. It will save the results inside the ```test_results.pkl``` file. 
+  In case you want to test the network in new data, you can run
   
+  ```python
+  import liftpose.main.test as liftpose3d_test
+  liftpose3d_test(par['out_dir'], test_2d, test_3d)
+  ```
+  where you provide the ```test_2d``` and ```test_3d``` numpy arrays. This will overwrite the previous ```test_results.pkl``` file, if there is any.
 ## Visualizing the 3D pose
 
 ## More complicated use cases
