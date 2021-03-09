@@ -5,7 +5,7 @@
   <img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/110424218-bc787400-80a2-11eb-8164-61a5bf1085fe.gif">
 </p>
 
-A tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network. Current way to acquire 3D pose is by multi-view triangulation of deep network-based 2D pose estimates. This requires multiple, synchronised cameras and elaborate calibration protocols. LiftPose3D overcomes these barriers by reconstructing 3D poses from a single 2D camera view. For the theoretical background and for more details, please have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
+LiftPose3D is a tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network. Current way to acquire 3D pose is by multi-view triangulation of deep network-based 2D pose estimates. This requires multiple, synchronised cameras and elaborate calibration protocols. LiftPose3D overcomes these barriers by reconstructing 3D poses from a single 2D camera view. For the theoretical background and for more details, please have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
 
 ## Starting-Up
 1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
@@ -14,7 +14,7 @@ A tool for transforming a single 2D pose to 3D coordinates on labaratory animals
 4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
 ## Training
-You can train LiftPose3D to estimate a missing third dimensions from a 2d landmarks found in the image. LiftPose3D accepts data in two different formats. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. Or, a single dictionary, where the keys are strings and values are numpy arrays. 
+You can train LiftPose3D to estimate a missing third dimensions from the 2D landmarks found in the image. LiftPose3D accepts data in two different formats. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. Or, a single dictionary, where the keys are strings and values are numpy arrays. 
 
 The following python scripts are valid uses of liftpose3d.
 
