@@ -4,7 +4,7 @@ from scipy.spatial.transform import Rotation as Rot
 import torch
 
 
-def procrustes(predicted, target):
+def pairwise_procrustes(predicted, target):
     """
     Pose error: MPJPE after rigid alignment (scale, rotation, and translation),
     often referred to as "Protocol #2" in many papers.
@@ -150,14 +150,15 @@ def world_to_camera(
 
     assert poses_world.shape[1] == 3
 
-    if len(R) == poses_world.shape[0] // s[1]:
+    if len(R) == s[0]:
         poses_cam = np.zeros_like(poses_world)
         for i in range(poses_world.shape[0]):
             poses_cam[i, :] = np.matmul(R[i // s[1]], poses_world[i, :])
     else:
         poses_cam = np.matmul(R, poses_world.T).T
-
-    poses_cam += tvec
+    
+    if tvec is not None:
+        poses_cam += tvec
     poses_cam = np.reshape(poses_cam, s)
 
     return poses_cam
@@ -186,7 +187,7 @@ def camera_to_world(
     return poses_world
 
 
-def project_to_camera(poses: np.ndarray, intr: np.ndarray):
+def project_to_camera(poses: np.ndarray, intr: np.ndarray=None):
     """
     Project poses to camera frame
 
@@ -197,18 +198,21 @@ def project_to_camera(poses: np.ndarray, intr: np.ndarray):
     Returns
         poses_proj: 2D poses projected to camera plane
     """
+    assert len(poses.shape) == 3
     s = poses.shape
 
     poses = np.reshape(poses, [s[0] * s[1], 3])
-    poses_proj = np.matmul(intr, poses.T).T
-    poses_proj = poses_proj / poses_proj[:, [2]]
-    poses_proj = poses_proj[:, :2]
-    poses_proj = poses_proj.reshape([s[0], s[1], 2])
 
-    return poses_proj
+    if intr is not None:
+        poses = np.matmul(intr, poses.T).T
+        poses = poses / poses[:, [2]]
+    poses = poses[:, :2]
+    poses = poses.reshape([s[0], s[1], 2])
+
+    return poses
 
 
-def process_dict(function, d: dict, *args, **kwargs):
+def process_dict(function, d: dict, n_out: int, *args, **kwargs):
     """
     Apply a function to each array in a dictionary.
 
@@ -218,8 +222,12 @@ def process_dict(function, d: dict, *args, **kwargs):
         Function to apply to all arrays in d.
     d : dict of 3-dim numpy arrays
         Arrays to operate on.
-    **args : TYPE
-        Arguments for function.
+    n_out : int
+        Number of outputs of function
+    *args : 
+        Arguments of function.
+    **kwargs :
+        Keyword arguments of function
 
     Returns
     -------
@@ -228,19 +236,26 @@ def process_dict(function, d: dict, *args, **kwargs):
 
     """
 
-    d_new = {}
+    if n_out > 1:
+        d_new = [{} for i in range(n_out)]
+    else:
+        d_new = {}
+        
     for key in d.keys():
 
-        d_new[key] = function(d[key], *args, **kwargs)
-
-    # sort dictionary
-    d_new = dict(sorted(d_new.items()))
+        d_tmp = function(d[key], *args, **kwargs)
+        
+        if n_out > 1:
+            for i in range(n_out):
+                d_new[i][key] = d_tmp[i]
+        else:
+            d_new[key] = d_tmp
 
     return d_new
 
 
 def project_to_random_eangle(
-    poses_world, eangle_range: dict, axsorder="xyz", project=False, intr=None
+    poses_world, eangle, axsorder, project=False, tvec=None, intr=None
 ):
     """
     Project to a random Euler angle within specified intervals.
@@ -266,10 +281,6 @@ def project_to_random_eangle(
     """
     assert poses_world.ndim == 3
 
-    # selecta camera to project
-    whichcam = np.random.randint(len(eangle_range))
-    eangle = eangle_range[whichcam]
-
     # generate Euler angles
     n = poses_world.shape[0]
     alpha = uniform(low=eangle[0][0], high=eangle[0][1], size=n)
@@ -277,9 +288,9 @@ def project_to_random_eangle(
     gamma = uniform(low=eangle[2][0], high=eangle[2][1], size=n)
     eangle = [[alpha[i], beta[i], gamma[i]] for i in range(n)]
 
-    Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, intr=intr)
+    Pcam = project_to_eangle(poses_world, eangle, axsorder, project=project, tvec=tvec, intr=intr)
 
-    return Pcam
+    return Pcam, eangle
 
 
 def uniform(low=0, high=1, size=1):
@@ -290,7 +301,7 @@ def uniform(low=0, high=1, size=1):
     return u.numpy()
 
 
-def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, intr=None):
+def project_to_eangle(poses_world, eangle, axsorder, project=False, tvec=None, intr=None):
     """
     Project to specified Euler angle
 
@@ -318,15 +329,12 @@ def project_to_eangle(poses_world, eangle, axsorder="xyz", project=False, intr=N
     R = Rot.from_euler(axsorder, eangle, degrees=True).as_matrix()
 
     # obtain 3d pose in camera coordinates
-    # TODO remove the hard-coded value
-    Pcam = world_to_camera(poses_world, R, np.array([0, 0, 117]))
+    Pcam = world_to_camera(poses_world, R, tvec)
 
     # project to camera axis
     if project:
-        if intr is None:
-            intr = intrinsic_matrix(1, 1, 0, 0)
         Pcam = project_to_camera(Pcam, intr)
-
+        
     return Pcam
 
 
@@ -391,6 +399,7 @@ def intrinsic_matrix(fx, fy, cx, cy):
     intr = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1],], dtype=float,)
 
     return intr
+
 
 
 def find_neighbours(k, pts, target_pts, nn):
@@ -508,3 +517,115 @@ def apply_linear_map(A, X):
     B = B.reshape(n_frames, n_joints, n_dim)
 
     return B
+
+
+def procrustes(X, Y, scaling=True, reflection="best"):
+    """
+    A port of MATLAB's `procrustes` function to Numpy.
+
+    Procrustes analysis determines a linear transformation (translation,
+    reflection, orthogonal rotation and scaling) of the points in Y to best
+    conform them to the points in matrix X, using the sum of squared errors
+    as the goodness of fit criterion.
+
+        d, Z, [tform] = procrustes(X, Y)
+
+    Inputs:
+    ------------
+    X, Y    
+        matrices of target and input coordinates. they must have equal
+        numbers of  points (rows), but Y may have fewer dimensions
+        (columns) than X.
+
+    scaling 
+        if False, the scaling component of the transformation is forced
+        to 1
+
+    reflection
+        if 'best' (default), the transformation solution may or may not
+        include a reflection component, depending on which fits the data
+        best. setting reflection to True or False forces a solution with
+        reflection or no reflection respectively.
+
+    Outputs
+    ------------
+    d       
+        the residual sum of squared errors, normalized according to a
+        measure of the scale of X, ((X - X.mean(0))**2).sum()
+
+    Z
+        the matrix of transformed Y-values
+
+    tform   
+        a dict specifying the rotation, translation and scaling that
+        maps X --> Y
+
+    """
+
+    n, m = X.shape
+    ny, my = Y.shape
+
+    muX = X.mean(0)
+    muY = Y.mean(0)
+
+    X0 = X - muX
+    Y0 = Y - muY
+
+    ssX = (X0 ** 2.0).sum()
+    ssY = (Y0 ** 2.0).sum()
+
+    # centred Frobenius norm
+    normX = np.sqrt(ssX)
+    normY = np.sqrt(ssY)
+
+    # scale to equal (unit) norm
+    X0 /= normX
+    Y0 /= normY
+
+    if my < m:
+        Y0 = np.concatenate((Y0, np.zeros(n, m - my)), 0)
+
+    # optimum rotation matrix of Y
+    A = np.dot(X0.T, Y0)
+    U, s, Vt = np.linalg.svd(A, full_matrices=False)
+    V = Vt.T
+    T = np.dot(V, U.T)
+
+    if reflection != "best":
+
+        # does the current solution use a reflection?
+        have_reflection = np.linalg.det(T) < 0
+
+        # if that's not what was specified, force another reflection
+        if reflection != have_reflection:
+            V[:, -1] *= -1
+            s[-1] *= -1
+            T = np.dot(V, U.T)
+
+    traceTA = s.sum()
+
+    if scaling:
+
+        # optimum scaling of Y
+        b = traceTA * normX / normY
+
+        # standarised distance between X and b*Y*T + c
+        d = 1 - traceTA ** 2
+
+        # transformed coords
+        Z = normX * traceTA * np.dot(Y0, T) + muX
+
+    else:
+        b = 1
+        d = 1 + ssY / ssX - 2 * traceTA * normY / normX
+        Z = normY * np.dot(Y0, T) + muX
+
+    # transformation matrix
+    if my < m:
+        T = T[:my, :]
+    c = muX - b * np.dot(muY, T)
+
+    # transformation values
+    tform = {"rotation": T, "scale": b, "translation": c}
+
+    return d, Z, tform

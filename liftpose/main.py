@@ -107,6 +107,7 @@ def train(
     training_kwargs: Dict[str, Union[str, int]] = {},
     augmentation: List[Callable] = None,
     stats: Tuple = None,
+    norm_2d = False,
 ) -> None:
 
     """Train LiftPose3D.
@@ -199,7 +200,7 @@ def train(
     assert len(roots) != 0
     assert len(target_sets) != 0
     assert len(roots) == len(target_sets) # number of root joint and number of targert sets are equivalent
-
+    
     # create out_dir if it does not exists
     if not os.path.exists(out_dir):
         logger.info(f"Creating directory {os.path.abspath(out_dir)}")
@@ -222,7 +223,7 @@ def train(
     train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
 
     train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
-        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
+        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d, norm_2d=norm_2d
     )
 
     # preprocess 3d

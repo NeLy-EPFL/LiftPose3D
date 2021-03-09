@@ -3,9 +3,8 @@ import sys
 
 import liftpose.lifter.utils as utils
 import numpy as np
-from liftpose.preprocess import normalize, unNormalize
+from liftpose.preprocess import unNormalize
 from torch.autograd import Variable
-from tqdm import tqdm
 import torch
 import warnings
 
@@ -46,6 +45,7 @@ def test(test_loader, model, criterion, stat, predict=False):
             # undo normalisation to calculate accuracy in real units
             dim = stat["out_dim"]
             dimensions = stat["targets_3d"]
+            
             tar = unNormalize(
                 targets.data.cpu().numpy().astype(float),
                 stat["mean"][dimensions],
@@ -71,10 +71,9 @@ def test(test_loader, model, criterion, stat, predict=False):
             all_target.append(targets.data.cpu().numpy())
             all_input.append(inputs.data.cpu().numpy())
             """
+
             for k in range(n_pts):
-                distance[:, k] = np.sqrt(
-                    np.sum(abserr[:, dim * k : dim * (k + 1)], axis=1)
-                )
+                distance[:, k] = np.mean(abserr[:, dim * k : dim * (k + 1)], axis=1)
 
             all_dist.append(distance)
             all_target.append(targets.data.cpu().numpy())
