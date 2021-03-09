@@ -231,7 +231,6 @@ def get_btch(btch, data_dir):
                         cameras, str(cmr), Data[k]["points3d_world"][jt]
                     )
 
-
     # project to the missing cameras
     k_list = list(Data.keys())
     for k in k_list:
