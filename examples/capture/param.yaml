@@ -3,7 +3,8 @@ data:
   in_dim: 2 # 2
   out_dim: 3 # 1 or 3.
   roots: [3] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
-  target_sets: [[0,5,8,9,10,11,12,13,14,15,16,17,18,19]]
+  target_sets: [[0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]]
+
 
 vis: 
     bones: [[0,  3], #0

@@ -43,6 +43,7 @@ def plot_pose_3d(
     good_keypts=None,
     show_pred_always=False,
     show_gt_always=False,
+    legend=False,
 ):
     """
     Plot 3D pose
@@ -116,7 +117,8 @@ def plot_pose_3d(
     # (p2,) = ax.plot(pts, pts, pts, "b-")
     (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
     # (p4,) = ax.plot(pts, pts, pts, "b--", dashes=(2, 2))
-    ax.legend(
+    if legend:
+        ax.legend(
         [(p1), (p3)],
         ["Triangulated 3D pose", "LiftPose3D prediction"]
         if pred is not None
@@ -125,13 +127,19 @@ def plot_pose_3d(
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
         frameon=False,
-    )
-    p1.remove()
-    p3.remove()
+        )
+        p1.remove()
+        p3.remove()
 
 
 def plot_pose_2d(
-    ax, tar, bones, normalize=True, limb_id=None, colors=None, good_keypts=None
+    ax, 
+    tar, 
+    bones,
+    normalize=True, 
+    limb_id=None, 
+    colors=None, 
+    good_keypts=None
 ):
     """
     Plot 2D pose
@@ -343,8 +351,6 @@ def get_violin_ylabel(body_length, units):
 def pred_and_gt_to_pandas(
     test_3d_gt, test_3d_pred, test_keypoints, joints_name, body_length
 ):
-    # remove the outliers
-    #err_norm = np.linalg.norm(test_3d_gt - test_3d_pred, axis=-1)
     err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
 
     err_norm_sp = err_norm.copy()

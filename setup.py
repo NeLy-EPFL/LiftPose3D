@@ -11,5 +11,5 @@ setuptools.setup(
     description="Monocular 3D pose Estimation on Labatoary Animals",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/NeLy-EPFL/LiftPose3D",
+    url="https://github.com/NeLy-EPFL/LiftPose3D"
 )
