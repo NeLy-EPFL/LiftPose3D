@@ -59,7 +59,7 @@ The following python scripts are valid uses of liftpose3d.
   
 
 ## Configuration file (param.yaml)
-We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training. You can safely remove vis subheading and still train and test with liftpose3d. 
+We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training, you can have a closer look at ```plot_pose_3d``` function to see how the bone and color parameters are used. You can safely remove vis subheading and still train and test with liftpose3d. 
   ```yaml
   data:
       roots: [0]
