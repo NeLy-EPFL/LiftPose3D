@@ -1,8 +1,9 @@
 # LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments
 
 ![video_5](https://user-images.githubusercontent.com/20509861/110424090-876c2180-80a2-11eb-87cc-38309236bf83.gif)
-
-<img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/110424218-bc787400-80a2-11eb-8164-61a5bf1085fe.gif">
+<p align="center">
+  <img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/110424218-bc787400-80a2-11eb-8164-61a5bf1085fe.gif">
+</p>
 
 A tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network. Current way to acquire 3D pose is by multi-view triangulation of deep network-based 2D pose estimates. This requires multiple, synchronised cameras and elaborate calibration protocols. LiftPose3D overcomes these barriers by reconstructing 3D poses from a single 2D camera view. For the theoretical background and for more details, please have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
 
