@@ -116,12 +116,7 @@ We define two short configuration files. First one is always named as param.yaml
   
   ```python
   from liftpose.postprocess import load_test_results
-  data = torch.load(os.path.join(par['out_dir'], "test_results.pth.tar"))
-  stat_2d, stat_3d = (
-    torch.load(os.path.join(par['out_dir'], "stat_2d.pth.tar")),
-    torch.load(os.path.join(par['out_dir'], "stat_3d.pth.tar")),
-  )
-  test_3d_gt, test_3d_pred, _ = load_test_results(data, stat_2d, stat_3d)
+  test_3d_gt, test_3d_pred, _ = load_test_results(par['out_dir'])
   ```
   This will return two numpy arrays, ```test_3d_gt``` and ```test_3d_pred```. test_3d_gt is the same array as test_3d, whereas ```test_3d_pred``` has the predictions from the LiftPose3D. You can test the error in your predictions simply by doing 
   ```python
@@ -133,10 +128,7 @@ We define two short configuration files. First one is always named as param.yaml
   
  ```python
   from liftpose.plot import violin_plot
-  plt.figure(figsize=(5,5), dpi=100)
-
-  names = par_data["vis"]["names"]
-  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=names)
+  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=par_data["vis"]["names"])
   ```
   
   <p align="center">
