@@ -23,19 +23,19 @@ Under the hood, liftpose.main.train_np transforms it's input into a dictionary f
 The following python scripts are valid uses of liftpose3d.
 
   ```python
-  import liftpose.main.train_np as liftpose3d_train
+  import liftpose.main.train_np
   import numpy.random.rand
   n_points, n_joints = 100, 5
   train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
   train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
   
-  liftpose3d_train(train_2d, test_2d, train_3d, test_3d)
+  train_np(train_2d, test_2d, train_3d, test_3d)
   ```
   
   This call train a deep neural network to predict the 3d pose, given 2d pose, and will save results in the 'out' folder, relative to the path where liftpose3d is called.
   
   ```python
-  import liftpose.main.train as liftpose3d_train
+  import liftpose.main.train
   import numpy.random.rand
   n_points, n_joints = 100, 5
   train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
@@ -50,7 +50,7 @@ The following python scripts are valid uses of liftpose3d.
   roots = [0]
   target_sets = [1,2,3,4]
   
-  liftpose3d_train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
+  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
   ```
   This will result in the same training as with the previous example. Currently we support train_3d and test_3d to have 1 or 3 dimensions.
   During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write intermediate     results into the output folder.
