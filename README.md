@@ -14,11 +14,7 @@ A tool for transforming a single 2D pose to 3D coordinates on labaratory animals
 4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
 ## Training
-You can train LiftPose3D to estimate a missing third dimensions from a 2d landmarks found in the image. LiftPose3D accepts data in two different formats. 
-1. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. 
-2. A single dictionary, where the keys are strings and values are numpy arrays 
-
-Under the hood, liftpose.main.train_np transforms it's input into a dictionary file and passes it to liftpose.main.train.
+You can train LiftPose3D to estimate a missing third dimensions from a 2d landmarks found in the image. LiftPose3D accepts data in two different formats. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. Or, a single dictionary, where the keys are strings and values are numpy arrays. 
 
 The following python scripts are valid uses of liftpose3d.
 
@@ -56,6 +52,8 @@ The following python scripts are valid uses of liftpose3d.
   During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write intermediate     results into the output folder.
   
   You can have a closer look at the ```train``` function, [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
+  
+  TODO: define roots and target_Sets
   
 
 ## Configuration file (param.yaml)
