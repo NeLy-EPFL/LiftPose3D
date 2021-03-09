@@ -152,7 +152,22 @@ We define two short configuration files. First one is always named as param.yaml
   np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
   ```
 ## Visualizing the 3D pose
+Once you read the network predictions on the test data, you can visualize the target and prediction test data using the provided 3d visualization function, which uses the bone and color information you provided in the configuration file to draw the animal:
+ ```python
+fig = plt.figure(figsize=plt.figaspect(1), dpi=100)
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(elev=-75, azim=-90)
 
+t = 0
+plot_pose_3d(ax=ax, tar=test_3d_gt[t], 
+            pred=test_3d_pred[t], 
+            bones=par_data["vis"]["bones"], 
+            limb_id=par_data["vis"]["limb_id"], 
+            colors=par_data["vis"]["colors"])
+ ```
+ This should output something similar to :
+ 
 ## More complicated use cases
   You can adjust all the necessary parameters of the training .
 
+from liftpose.plot import plot_pose_3d
