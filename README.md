@@ -148,7 +148,7 @@ We define two short configuration files. First one is always named as param.yaml
   test_3d_gt, test_3d_pred, _ = load_test_results(data, stat_2d, stat_3d)
   ```
   This will return two numpy arrays, ```test_3d_gt``` and ```test_3d_pred```. test_3d_gt is the same array as test_3d, whereas ```test_3d_pred``` has the predictions from the LiftPose3D. You can test the error in your predictions simply by doing 
-  ```
+  ```python
   np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
   ```
 ## Visualizing the 3D pose
