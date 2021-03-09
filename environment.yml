@@ -1,11 +1,10 @@
-name: liftpose
+name: liftpose3
 channels:
   - pytorch
-  - conda-forge
   - anaconda
   - defaults
 dependencies:
-  - scipy==1.4.0
+  - scipy>=1.4.0
   - numpy==1.16.1
   - networkx
   - matplotlib 
