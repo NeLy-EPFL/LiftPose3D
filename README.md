@@ -167,10 +167,8 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
   <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110427610-5131a080-80a8-11eb-81bc-b11867ee0e9f.png">
   </p>
 
-## More complicated use cases
+## TODO More complicated use cases
 1. Augmentations
 2. Training arguments, opts
   You can adjust all the necessary parameters of the training .
 3. good_keypts
-
-from liftpose.plot import plot_pose_3d
