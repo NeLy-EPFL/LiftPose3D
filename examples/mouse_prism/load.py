@@ -40,6 +40,7 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
             for fname_ in fname:
         
                 #load
+                print(fname_)
                 poses = pickle.load(open(fname_, "rb"))
                 poses3d = poses['points3d']
                 
@@ -53,12 +54,6 @@ def load_3D( path, par=None, cam_id=None, subjects='all', actions='all' ):
                     dimensions = [i for i in range(par['ndims']) if i not in par['dims_to_exclude']]   
                     poses3d = poses3d[:, dimensions,:]
                     
-                #reshape data
-                '''
-                poses3d = np.reshape(poses3d, 
-                                    (poses3d.shape[0], poses3d.shape[1]*poses3d.shape[2]))
-                '''
-                
                 #collect data
                 seqname = os.path.basename( fname_ )  
                 data[ (subject, action, seqname[:-4]) ] = poses3d #[:-4] is to get rid of .pkl extension
@@ -125,10 +120,6 @@ def load_2D(path, par=None, cam_id=0, subjects='all', actions='all'):
                     
                 #reshape data
                 poses_cam = poses[cam_id,:,:,:]
-                '''
-                poses_cam = np.reshape(poses_cam, 
-                        (poses.shape[1], poses.shape[2]*poses.shape[3]))    
-                '''
         
                 #collect data
                 data[ (subject, action, seqname[:-4]) ] = poses_cam

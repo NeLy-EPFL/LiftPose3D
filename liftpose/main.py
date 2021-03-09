@@ -104,7 +104,7 @@ def train(
     out_dir: str = 'out',
     train_keypts: Dict[str, np.ndarray] = None,
     test_keypts: Dict[str, np.ndarray] = None,
-    training_kwargs: Dict[str, Union[str, int]] = None,
+    training_kwargs: Dict[str, Union[str, int]] = {},
     augmentation: List[Callable] = None,
     stats: Tuple = None,
 ) -> None:

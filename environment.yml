@@ -17,3 +17,4 @@ dependencies:
   - opencv
   - seaborn
   - ffmpeg
+  - pandas
