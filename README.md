@@ -1,156 +1,164 @@
-# LiftPose3D
+# LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments
+
+<!--- ![video_5](https://user-images.githubusercontent.com/20509861/110424090-876c2180-80a2-11eb-87cc-38309236bf83.gif) --->
 <p align="center">
-  <img src="images/fig1ad.png" width="720">
+  <img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/110424218-bc787400-80a2-11eb-8164-61a5bf1085fe.gif">
 </p>
 
-The tool for transforming 2D keypoints from a single viewpoint to 3D coordinates using deep neural networks.
+A tool for transforming a single 2D pose to 3D coordinates on labaratory animals using a deep neural network. Current way to acquire 3D pose is by multi-view triangulation of deep network-based 2D pose estimates. This requires multiple, synchronised cameras and elaborate calibration protocols. LiftPose3D overcomes these barriers by reconstructing 3D poses from a single 2D camera view. For the theoretical background and for more details, please have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
 
-For the theoretical background and for more details on the following examples have a look at our paper:
-[LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments](https://www.biorxiv.org/)
+## Starting-Up
+1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
+2. [LiftPose3D Paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
+3. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
+4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
+
+## Training
+You can train LiftPose3D to estimate a missing third dimensions from a 2d landmarks found in the image. LiftPose3D accepts data in two different formats. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. Or, a single dictionary, where the keys are strings and values are numpy arrays. 
+
+The following python scripts are valid uses of liftpose3d.
+
+  ```python
+  import liftpose.main.train_np
+  import numpy.random.rand
+  n_points, n_joints = 100, 5
+  train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
+  train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
+  
+  train_np(train_2d, test_2d, train_3d, test_3d)
+  ```
+  
+  This call train a deep neural network to predict the 3d pose, given 2d pose, and will save results in the 'out' folder, relative to the path where liftpose3d is called.
+  
+  ```python
+  import liftpose.main.train
+  import numpy.random.rand
+  n_points, n_joints = 100, 5
+  train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
+  train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
+  
+  train_2d = {"some_string": train_2d}
+  train_3d = {"some_string": train_3d}
+  
+  test_2d = {"some_other_string": test_2d}
+  test_3d = {"some_other_string": test_3d}
+  
+  roots = [0]
+  target_sets = [1,2,3,4]
+  
+  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
+  ```
+  This will result in the same training as with the previous example. Currently we support train_3d and test_3d to have 1 or 3 dimensions.
+  During training, liftpose3d will log minimal information, such as IO information or start of the network training. Furthermore it will write intermediate     results into the output folder.
+  
+  You can have a closer look at the ```train``` function, [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
+  
+  TODO: define roots and target_Sets
+  
+
+## Configuration file (param.yaml)
+We define two short configuration files. First one is always named as param.yaml and placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training, you can have a closer look at ```plot_pose_3d``` function to see how the bone and color parameters are used. You can safely remove vis subheading and still train and test with liftpose3d. 
+  ```yaml
+  data:
+      roots: [0]
+      target_sets: [[1, 2, 3, 4]]
+
+  vis:
+      colors: [[186, 30, 49]]
+      bones: [[0, 1], [1, 2], [2, 3], [3, 4]]
+      limb_id: [0, 0, 0, 0, 0]
+  ```
+  
+  Second, we define the root folder for the data and the output folder are defined in a different python dictionary, inside the training script/notebook. This dictionary further defines the and used by load.py script which loads the necessary data for the. 
+  
+  ```python
+  par_train = {'data_dir'       : '/data/LiftPose3D/fly_tether/data_DF3D/',
+               'out_dir'        : './out/',
+               'train_subjects' : [1],
+               'test_subjects'  : [6],
+               'actions'        : ['all'],
+               'cam_id'         : [0,1,2,4,5,6]
+               }
+  ```
+  
+
+## Inspecting the training  
+  
+  Once the training is done, you can visualize the loss curves by reading the training logs and calling the function. The training information is saved under the ```train_log.txt```, which can easily be read using a csv reader. Alternatively, we already provide functions to read and visualize the file.
+  
+  ```python
+  from liftpose.plot import read_log_train, plot_log_train
+  epoch, lr, loss_train, loss_test, err_test = read_log_train(par['out_dir'])
+  plot_log_train(plt.gca(), loss_train, loss_test, epoch)
+  ```
+  This will plot the training and test losses during the training.
+  <p align="center">
+   <img src="https://user-images.githubusercontent.com/20509861/110373519-dfc60380-804f-11eb-9bbe-6db6f17c5fc6.png" width="360">
+  </p>
+
+  
+## Testing the network
+  You can test the network.
+  ```python
+  import liftpose.main.test as liftpose3d_test
+  liftpose3d_test(par['out_dir'])
+  ```
+  This will run the network with the test data provided during the ```liftpose3d_train``` call. It will save the results inside the ```test_results.pkl``` file. 
+  In case you want to test the network in new data, you can run
+  
+  ```python
+  import liftpose.main.test as liftpose3d_test
+  liftpose3d_test(par['out_dir'], test_2d, test_3d)
+  ```
+  where you provide the ```test_2d``` and ```test_3d``` numpy arrays. This will overwrite the previous ```test_results.pkl``` file, if there is any.
+  
+  We also provide a simple interface for loading the test results from the ```test_results.pkl``` file. 
+  
+  ```python
+  from liftpose.postprocess import load_test_results
+  test_3d_gt, test_3d_pred, _ = load_test_results(par['out_dir'])
+  ```
+  This will return two numpy arrays, ```test_3d_gt``` and ```test_3d_pred```. test_3d_gt is the same array as test_3d, whereas ```test_3d_pred``` has the predictions from the LiftPose3D. You can test the error in your predictions simply by doing 
+  ```python
+  np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
+  ```
+  
+  you can also use the violin plot code provided with liftpose3d to plot the error distribution: 
+  
+  
+ ```python
+  from liftpose.plot import violin_plot
+  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=par_data["vis"]["names"])
+  ```
+  
+  <p align="center">
+  <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110426701-d61bba80-80a6-11eb-885c-b73012c17fd3.png">
+  </p>
 
 
-Don't forget to cite us if you find our work useful:
+## Visualizing the 3D pose
+Once you read the network predictions on the test data, you can visualize the target and prediction test data using the provided 3d visualization function, which uses the bone and color information you provided in the configuration file to draw the animal:
+ ```python
+fig = plt.figure(figsize=plt.figaspect(1), dpi=100)
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(elev=-75, azim=-90)
 
-```
-@inproceedings{GosztolaiGunel20LiftPose3D,
-  author    = {Adam Gosztolai and
-               Semih Günel and
-               Marco Pietro Abrate and
-               Daniel Morales and 
-               Victor Lobato Rios and
-               Helge Rhodin and
-               PascalFua and
-               Pavan Ramdya},
-  title     = {LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments},
-  bookTitle = {bioRxiv},
-  year      = {2020}
-}
-```
+t = 0
+plot_pose_3d(ax=ax, tar=test_3d_gt[t], 
+            pred=test_3d_pred[t], 
+            bones=par_data["vis"]["bones"], 
+            limb_id=par_data["vis"]["limb_id"], 
+            colors=par_data["vis"]["colors"])
+ ```
+ This should output something similar to:
+ TODO: replace with a better pictuere
+ 
+   <p align="center">
+  <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110427610-5131a080-80a8-11eb-81bc-b11867ee0e9f.png">
+  </p>
 
-There are only a few steps you should follow to use our code.
-
-## Data format
-
-Ensure that you provide your data as a Python dictionary and saved as a pickle file. Our code uses the following dictionary keys:
-
-**1. 3D poses**: This is the ground truth and it is mandatory if you want to train a network.
-
-```'points3d'```: a numpy array of dimension AxBx3 containing the 3D coordinates in a global reference frame, where A is the number of frames, B is the number of keypoints and the last 3 dimensionss are the x, y, z coordinates. 
-
-**2. 2D poses**: These are typically 2D pose predictions from markerless pose estimation software (DeepFly3D, DeepLabCut, DeepPoseKit etc.). If you use this key, follow example **I** for more details. If you do not use this key, the 2D poses will need to be found by projection in order to train the network. See examples **II** for more details. If you want to use a pretrained network for prediction, you only need this key. See examples **III** for details.
-
-```'points2d'```: a numpy array of dimension CxAxBx2 containing the 2D coordinates in camera centric reference frame, where C is the number of cameras and A, B as before.
-
-**3. Keypoints to be used for training**: If you use this key, you can specify which dimensions at every frame are used for training. See example **II** for more details.
-
-```'good_keypts'```: boolean array of dimension AxBx3, where an entry 1 means that the coordinate is to be used for training, 0 means it is to be ommitted from training.
-
-**4. Camera parameters**: parameters of cameras used during training. If this is not used, then projections will be onto the Cartesian axes. See examples **II**.
-
-```n``` (where n is the camera number): a dictionary with keys 'R' (3x3 rotation matrix), 'tvec' (1x3 translation vector), 'vis' (1x#number of dimensions boolean vector of visible points from camera n)
-
-Refer to files in ```/sample data``` folder for examples.
-
-## Configuration file
-
-To run the pipeline, the following parameters need to be defined in a file named ```params.yaml```, or similar.
-
-**Mandatory**:
-- [x] *data_dir*: folder to load data from (e.g., '/data/LiftPose3D/fly_ventral_highres/network/')
-- [x] *in_dim*: input dimension (typically 2)
-- [x] *out_dim*: output dimension (typically 1 - depth only - or 3 - full 3D)
-- [x] *target_sets*: dependent keypoints to compute relative to a root (e.g., [[ 1,  2,  3,  4],  [6,  7,  8,  9]])
-- [x] *roots*: root points (e.g., [0, 5], length must equal to the length of target_sets)
-
-**Optional**:
-- [ ] *train_subjects*: individuals used for training (string to seach for in filenames)
-- [ ] *test_subjects*: individuals used for testing (string to seach for in filenames)
-- [ ] *actions*: behaviors used (string to seach for in filenames)
-- [ ] *template_dir*: '/data/LiftPose3D/fly_ventral_highres/network/'
-- [ ] *interval*: interval of frames to consider (e.g., [400,800])
-- [ ] *dims_to_exclude*: keypoint dimensions to ignore in dataset (e.g., [4,7,8])
-
-## Preprocessing 
-
-Every example below contains preprocessing as the first step. If you want to train a network, preprocessing needs to contain the following operations (1) load 3D data - output, (2) load 2D data or project 3D data - input, (3, optional) transform from 3D points in world to camera axes - when using multiple cameras, (4) compute the the distance of dependent points (target_sets) from root points (roots), (5) standardize, (6) remove roots.
-
-You can use or modify one of our existing ```LiftPose3D_preprocess.py``` scripts in the example folders.
-
-To run preprocessing in the following, execute your 
-
-```python LiftPose3D_preprocess.py params.yaml```. 
-
-## Network training
-
-After preprocessing, you are ready for training and testing your network or you can just use a pre-trained network for prediction.
-
-To train a network, run
-
-```python LiftFly3D_main.py --data_dir /directory_to_save_output --out /directory_to_save_output```
-
-This will output a ```ckpt_best.pth.tar``` (lowest error network) as well as a ```log_train.txt``` (a log file containing errors during the training)
-
-To test the network, run
-
-```python 2_LiftFly3D_main.py --data_dir /directory_to_save_output --out /directory_to_save_output --test --load /directory_to_save_output/ckpt_best.pth.tar```
-
-The output will be saved as ```test_results.pth.tar```.
-
-To predict using a pre-trained network (when you don't have a training dataset), run
-
-```python 2_LiftFly3D_main.py --data_dir /directory_to_save_output --out /directory_to_save_output --predict --load /directory_to_save_output/ckpt_best.pth.tar```
-
-The output will be saved as ```test_results.pth.tar```.
-
-To add a Gaussian noise during training add ```--noise 3```, where 3 is the standard deviation of the noise. This can be used to scale the resolution of the network, see examples **III** for mode details.
-
-Refer to ```/src/opt.py``` for more options. 
-
-## Examples
-
-<p align="center">
-  <img src="images/fig2f.png" width="480">
-</p>
-
-To reproduce our results in the following examples, the provided Python scripts must be run in order as numbered. 
-
-### I. Reducing the number of cameras needed for full 3D pose estimation
-
-<p align="center">
-  <img src="images/fig2hi.png" width="480">
-</p>
-
-The relevant code is under the folder ```/examples/fly_tether``` and ```/examples/monkey```.
-
-### II. Predicting 3D pose in freely behaving animals with occluded keypoints
-
-<p align="center">
-  <img src="images/fig2ad.png" width="960">
-</p>
-
-The relevant code is under the folder ```/examples/fly_prism``` and ```/examples/mouse_prism```.
-
-You can ignore 1-2 and use our data directly.
-
-1. ```1_crop_raw_images``` - this script makes cropped images centred around the moving fly. Images where the fly is starionary are excluded. The location of each crop is saved.
-2. ```2_DLC_lateral.ipynb``` and ```2_DLC_ventral.ipynb``` - jupyter notebooks used to create DeepLabCut annotations for the ventral and lateral camera views.
-3. ```3_select_good_predictions.ipynb``` - this jupyter notebook selects high quality predictions for training and testing. Check out the options inside the notebook.
-4. ```4_DLC_make_video.ipynb``` - makes video of the DeepLabCut predictions
-
-The rest of the scripts follow the same protocol as in the above example.
-1
-### III. Using domain adaptation to lift new experimental data where triangulation is impossible
-<p align="center">
-  <img src="images/fig3ad.png" width="960">
-</p>
-The relevant code is under the folder ```/examples/fly_ventral_highres``` and ```/examples/fly_ventral_lowres```.
-
-1. ```1_DLC_to_LiftPose3D.ipynb``` - converts DeepLabCut predictions into LiftPose3D format and aligns the flies as in examples **II**. Importantly, it performs a rescaling to match the scales between the prism-mirror and the ventral camera datasets. This step is crucial and may need to be adjusted manually to get a good alignment of the datasets.
-2. ```2_LiftPose3D_preprocess.py``` - this preprocessing is slightly different from before because it uses the statistics of the prism-mirror setup to normalize the data.
-3. Train a network using the prism-mirror dataset. When training for the low resolution dataset, use the option ```--noise 4```, to add a Gaussian noise with standard deviation 4 during training. Adding this option is essential to coarse-grain our network to work with data that has lower resolution than the training dataset. As a rule of thumb, std should be equal to the ratio between the high and low resolution datasets. For example, our training data is at 112 px/mm and out test data is at 28 px/mm to std should be at least 4.
-\
-*Example*: in ```/examples/fly_prism``` run ```python 6_LiftFly3D_main.py --data_dir /data/LiftPose3D/fly_prism/ --out /data/LiftPose3D/fly_ventral_lowres/ --noise 4 --epochs 500```
-
-4. Predict the 3D points using the trained network.
-\
-*Example*: in ```/examples/fly_prism``` run ```python 6_LiftFly3D_main.py --data_dir /data/LiftPose3D/fly_ventral_lowres/ --out /data/LiftPose3D/fly_ventral_lowres/ --predict --load /data/LiftPose3D/fly_ventral_lowres/ckpt_best.pth.tar```
+## TODO More complicated use cases
+1. Augmentations
+2. Training arguments, opts
+  You can adjust all the necessary parameters of the training .
+3. good_keypts
