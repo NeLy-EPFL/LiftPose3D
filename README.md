@@ -139,11 +139,10 @@ We define two short configuration files. First one is always named as param.yaml
 
   names = par_data["vis"]["names"]
   violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=l)
-  plt.ylim([0,15])
   ```
   
   <p align="center">
-  <img align="center" width="250" height="250" src="https://user-images.githubusercontent.com/20509861/110426701-d61bba80-80a6-11eb-885c-b73012c17fd3.png">
+  <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110426701-d61bba80-80a6-11eb-885c-b73012c17fd3.png">
   </p>
 
 
