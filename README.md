@@ -14,8 +14,8 @@ A tool for transforming a single 2D pose to 3D coordinates on labaratory animals
 4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
 ## Training
-LiftPose3D accepts data in two different formats. 
-1. A single numpy array in the shape of [N J 3], where N is number of poses and J is number of joints. 
+You can train LiftPose3D to estimate a missing third dimensions from a 2d landmarks found in the image. LiftPose3D accepts data in two different formats. 
+1. A single numpy array in the shape of [N J 2] for the input and [N J 3] for the output, where N is number of poses and J is number of joints. 
 2. A single dictionary, where the keys are strings and values are numpy arrays 
 
 Under the hood, liftpose.main.train_np transforms it's input into a dictionary file and passes it to liftpose.main.train.
