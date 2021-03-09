@@ -129,6 +129,24 @@ We define two short configuration files. First one is always named as param.yaml
   ```python
   np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
   ```
+  
+  you can also use the violin plot code provided with liftpose3d to plot the error distribution: 
+  
+  
+ ```python
+  from liftpose.plot import violin_plot
+  plt.figure(figsize=(5,5), dpi=100)
+
+  names = par_data["vis"]["names"]
+  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=l)
+  plt.ylim([0,15])
+  ```
+  
+  <p align="center">
+  <img align="center" width="250" height="250" src="https://user-images.githubusercontent.com/20509861/110426701-d61bba80-80a6-11eb-885c-b73012c17fd3.png">
+  </p>
+
+
 ## Visualizing the 3D pose
 Once you read the network predictions on the test data, you can visualize the target and prediction test data using the provided 3d visualization function, which uses the bone and color information you provided in the configuration file to draw the animal:
  ```python
