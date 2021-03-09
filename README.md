@@ -160,8 +160,13 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
             limb_id=par_data["vis"]["limb_id"], 
             colors=par_data["vis"]["colors"])
  ```
- This should output something similar to :
+ This should output something similar to:
+ TODO: replace with a better pictuere
  
+   <p align="center">
+  <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110427610-5131a080-80a8-11eb-81bc-b11867ee0e9f.png">
+  </p>
+
 ## More complicated use cases
 1. Augmentations
 2. Training arguments, opts
