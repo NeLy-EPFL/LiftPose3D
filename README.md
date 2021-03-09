@@ -24,10 +24,10 @@ The following python scripts are valid uses of liftpose3d.
 
   ```python
   import liftpose.main.train_np as liftpose3d_train
-  import numpy as np
+  import numpy.random.rand
   n_points, n_joints = 100, 5
-  train_2d, test_2d = np.random.rand((n_points, n_joints, 2)), np.random.rand((n_points, n_joints, 2))
-  train_3d, test_3d = np.random.rand((n_points, n_joints, 3)), np.random.rand((n_points, n_joints, 3))
+  train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
+  train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
   
   liftpose3d_train(train_2d, test_2d, train_3d, test_3d)
   ```
@@ -36,10 +36,10 @@ The following python scripts are valid uses of liftpose3d.
   
   ```python
   import liftpose.main.train as liftpose3d_train
-  import numpy as np
+  import numpy.random.rand
   n_points, n_joints = 100, 5
-  train_2d, test_2d = np.random.rand((n_points, n_joints, 2)), np.random.rand((n_points, n_joints, 2))
-  train_3d, test_3d = np.random.rand((n_points, n_joints, 3)), np.random.rand((n_points, n_joints, 3))
+  train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
+  train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
   
   train_2d = {"some_string": train_2d}
   train_3d = {"some_string": train_3d}
