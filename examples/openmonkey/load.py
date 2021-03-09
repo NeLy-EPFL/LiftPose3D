@@ -1,6 +1,5 @@
 # taken from https://github.com/OpenMonkeyStudio/OMS_Data
 # the code is taken from https://github.com/OpenMonkeyStudio/OMS_Data
-# TODO remove hard-coded paths
 import numpy as np
 import cv2
 import sys, os, getopt
@@ -9,11 +8,10 @@ from scipy.io import loadmat
 from collections import defaultdict
 from matplotlib import pyplot as plt
 
-
 # read camera matrices
-def get_cameras(btch):
+def get_cameras(btch, data_dir):
     with open(
-        "/data/LiftFly3D/openmonkey/OMS_Dataset/Batch{}/intrinsic.txt".format(btch)
+        os.path.join(data_dir, f"Batch{btch}", "intrinsic.txt")
     ) as f:
         lines = f.readlines()
         cameras = {}
@@ -35,7 +33,7 @@ def get_cameras(btch):
 
     # Extrinsics
     with open(
-        "/data/LiftFly3D/openmonkey/OMS_Dataset/Batch{}/camera.txt".format(btch)
+        os.path.join(data_dir, f"Batch{btch}", "camera.txt")
     ) as f:
         lines = f.readlines()
         for i in range(3, len(lines), 5):
@@ -77,7 +75,7 @@ edges = [
     (7, 12),
 ]
 
-# tempalte body lengths
+# template body lengths
 bone_length = np.array(
     [
         0.20820029,
@@ -183,13 +181,13 @@ def rotate_point(cameras, cam, coords_3d):
     return u
 
 
-def get_btch(btch):
-    cameras = get_cameras(btch)
+def get_btch(btch, data_dir):
+    cameras = get_cameras(btch, data_dir)
 
     Data = defaultdict(dict)
-    annot_path = f"/data/LiftFly3D/openmonkey/OMS_Dataset/Batch{btch}/coords_3D.mat"
+    annot_path = os.path.join(data_dir, f"Batch{btch}", "coords_3D.mat")
     annotations = loadmat(annot_path)
-    param_path = f"/data/LiftFly3D/openmonkey/OMS_Dataset/Batch{btch}/crop_para.mat"
+    param_path = os.path.join(data_dir, f"Batch{btch}", "crop_para.mat")
     parameters = loadmat(param_path)
     # list of img-id, cam_id, h_crop, w_crop, h, w
     image_id_list = parameters["crop"].transpose()[0]
@@ -275,7 +273,7 @@ def get_btch(btch):
 
     # set points2d
     # taken from img_label_visualizer.py from https://github.com/OpenMonkeyStudio/OMS_Data
-    data = loadmat(f"/data/LiftFly3D/openmonkey/OMS_Dataset/Data.mat")
+    data = loadmat(os.path.join(data_dir, "Data.mat"))
     name = data["T"][0][0]["name"]
     label = data["T"][0][0]["data"]
 
@@ -313,8 +311,3 @@ def get_pts2d(i, label):
         jt_loc[j] = [label[i][5 + 2 * j], label[i][4 + 2 * j]]
 
     return jt_loc
-
-
-if __name__ == "__main__":
-    get_btch("10")
-
