@@ -168,6 +168,8 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
  This should output something similar to :
  
 ## More complicated use cases
+1. Augmentations
+2. Training arguments, opts
   You can adjust all the necessary parameters of the training .
 
 from liftpose.plot import plot_pose_3d
