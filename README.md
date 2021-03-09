@@ -135,6 +135,22 @@ We define two short configuration files. First one is always named as param.yaml
   liftpose3d_test(par['out_dir'], test_2d, test_3d)
   ```
   where you provide the ```test_2d``` and ```test_3d``` numpy arrays. This will overwrite the previous ```test_results.pkl``` file, if there is any.
+  
+  We also provide a simple interface for loading the test results from the ```test_results.pkl``` file. 
+  
+  ```python
+  from liftpose.postprocess import load_test_results
+  data = torch.load(os.path.join(par['out_dir'], "test_results.pth.tar"))
+  stat_2d, stat_3d = (
+    torch.load(os.path.join(par['out_dir'], "stat_2d.pth.tar")),
+    torch.load(os.path.join(par['out_dir'], "stat_3d.pth.tar")),
+  )
+  test_3d_gt, test_3d_pred, _ = load_test_results(data, stat_2d, stat_3d)
+  ```
+  This will return two numpy arrays, ```test_3d_gt``` and ```test_3d_pred```. test_3d_gt is the same array as test_3d, whereas ```test_3d_pred``` has the predictions from the LiftPose3D. You can test the error in your predictions simply by doing 
+  ```
+  np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
+  ```
 ## Visualizing the 3D pose
 
 ## More complicated use cases
