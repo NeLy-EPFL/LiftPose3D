@@ -77,8 +77,7 @@ We define two short configuration files. First one is always named as param.yaml
                'train_subjects' : [1],
                'test_subjects'  : [6],
                'actions'        : ['all'],
-               'cam_id'         : [0,1,2,4,5,6]
-               }
+               'cam_id'         : [0,1,2,4,5,6]}
   ```
   
 
