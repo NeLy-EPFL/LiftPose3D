@@ -1,4 +1,4 @@
-name: liftpose3
+name: liftpose
 channels:
   - pytorch
   - anaconda
