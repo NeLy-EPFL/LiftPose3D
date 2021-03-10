@@ -359,10 +359,10 @@ def flatten_dict(d):
     return d
 
 
-def concat_dict(d):
+def concat_dict(d,axis=0):
     """concatenates dictionary vertically in the first dimension"""
 
-    d_concat = np.concatenate([v for k, v in d.items()], 0)
+    d_concat = np.concatenate([v for k, v in d.items()], axis)
 
     return d_concat
 
