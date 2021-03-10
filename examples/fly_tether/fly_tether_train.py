@@ -11,7 +11,7 @@ from tqdm import tqdm
 tqdm.get_lock().locks = []
 
 
-for cam in [[2]]:
+for cam in [[1], [5]]:
     # decleare data parameters
     par_train = {  'data_dir'       : '/data/LiftPose3D_2602/fly_tether/data_DF3D/', # change the path
                    'out_dir'        : 'out_drop',
