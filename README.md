@@ -158,7 +158,9 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
   </p>
 
 ## TODO More complicated use cases
-1. Augmentations
-2. Training arguments, opts
+### Augmentations
+### Training arguments, opts
   You can adjust all the necessary parameters of the training .
-3. good_keypts
+
+### Training with subset of points
+In case you want to remove remove some 2d/3d points from used in the training, you can pass ```train_keypts``` argument into the ```train``` function, which has the same shape as ```train_3d```. Alternatively, in case you have missing keypoints, you can convert them to ```np.NaN```. 
