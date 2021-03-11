@@ -1,15 +1,13 @@
 from matplotlib.legend_handler import HandlerTuple
 import networkx as nx
 import numpy as np
-
 import seaborn as sns
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import matplotlib.animation
 
-from typing import Optional, List, Callable
+from typing import List, Callable
 
 
 def plot_video_3d(fig, ax, n: int, fps: int, draw_function: Callable, name: str):

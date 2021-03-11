@@ -9,8 +9,6 @@ import logging
 
 from liftpose.lifter.test import test
 from liftpose.lifter.train import train
-
-# from liftpose.lifter.opt import Options
 import liftpose.lifter.log as log
 from liftpose.lifter.log import save_ckpt
 from liftpose.lifter.model import LinearModel, weight_init

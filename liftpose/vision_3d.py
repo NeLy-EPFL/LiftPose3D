@@ -165,14 +165,15 @@ def world_to_camera(
 
 
 def camera_to_world(
-    poses_cam: np.ndarray, R: np.ndarray, tvec: np.ndarray
+    poses_cam: np.ndarray, R: np.ndarray, tvec: np.ndarray = None
 ) -> np.ndarray:
     """
     Rotate/translate 3d poses from camera to world
 
     Args
         poses_cam: poses in camera coordinates, [N, J, 3]
-        cam_par: dictionary with camera parameters
+        R: camera rotation matrix
+        tvec: camera translation vector
 
     Returns
         poses_world: poses in world coordinates
@@ -180,7 +181,8 @@ def camera_to_world(
     s = poses_cam.shape
 
     poses_world = np.reshape(poses_cam, [-1, 3]).copy()
-    poses_world -= tvec
+    if tvec is not None:
+        poses_world -= tvec
     poses_world = np.matmul(np.linalg.inv(R), poses_world.T).T
     poses_world = np.reshape(poses_world, s)
 

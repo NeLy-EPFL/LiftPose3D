@@ -1,12 +1,9 @@
-import glob
 import logging
 import os
 import sys
 from pprint import pformat
 import copy
-
 import numpy as np
-import numpy.linalg as linalg
 import torch
 import random
 
@@ -18,11 +15,8 @@ from liftpose.preprocess import (
     init_keypts,
     init_data,
     flatten_dict,
-    anchor_to_root,
+    concat_dict
 )
-from liftpose.vision_3d import project_to_random_eangle, process_dict
-
-import pickle
 
 from typing import Dict, Union, List, Callable, Tuple
 
@@ -229,14 +223,7 @@ def train(
     # preprocess 3d
     train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
 
-    (
-        train_set_3d,
-        test_set_3d,
-        mean_3d,
-        std_3d,
-        targets_3d,
-        offset_3d,
-    ) = preprocess_3d(
+    train_set_3d, test_set_3d, mean_3d, std_3d,targets_3d,offset_3d = preprocess_3d(
         train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
     )
 
@@ -319,23 +306,20 @@ def set_test_data(
     test_3d: np.ndarray = None,
     test_keypts: np.ndarray = None,
 ) -> None:
+    
     if test_2d is None and test_3d is None and test_keypts is None:
-        return
+        return None
+    
     test_keypts = test_keypts if test_keypts is not None else init_keypts(test_3d)
+    
     # create dummy train data
     train_3d = test_3d.copy()
     train_2d = test_2d.copy()
+    
     # backup the raw data
-    test_3d_raw = test_3d.copy()
-    test_2d_raw = test_2d.copy()
-    # wrap numpy input into a dictionary
-
-    k = ""
-    train_2d = {k: train_2d}
-    train_3d = {k: train_3d}
-    test_2d = {k: test_2d}
-    test_3d = {k: test_3d}
-    test_keypts = {k: test_keypts}
+    # test_3d_raw = test_3d.copy()
+    # test_2d_raw = test_2d.copy()
+    
     # read statistics
     stat_2d = torch.load(os.path.join(out_dir, "stat_2d.pth.tar"))
     mean_2d = stat_2d["mean"]
@@ -349,13 +333,13 @@ def set_test_data(
     out_dim = stat_3d["out_dim"]
 
     # preprocess the new 2d data
-    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
+    _, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
     _, test_set_2d, _, _, _, offset_2d = preprocess_2d(
         train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
     )
 
     # preprocess the new 3d data
-    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
+    _, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
     (_, test_set_3d, _, _, targets_3d, offset_3d,) = preprocess_3d(
         train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
     )
@@ -366,28 +350,30 @@ def set_test_data(
 
     # save new 2d and 3d test data
     torch.save(
-        [test_set_3d, test_keypts, test_3d_raw],
+        [test_set_3d, test_keypts, None],
         os.path.join(out_dir, "test_3d.pth.tar"),
     )
-    torch.save([test_set_2d, test_2d_raw], os.path.join(out_dir, "test_2d.pth.tar"))
+    torch.save([test_set_2d, None], os.path.join(out_dir, "test_2d.pth.tar"))
 
     # overwrites the offsets
     stat_2d["offset"] = offset_2d
     stat_3d["offset"] = offset_3d
-    stat_3d["LR_test"] = test_keypts
-    torch.save(
-        stat_2d, os.path.join(out_dir, "stat_2d.pth.tar"),
-    )
-    torch.save(
-        stat_3d, os.path.join(out_dir, "stat_3d.pth.tar"),
-    )
+    # stat_3d["LR_test"] = test_keypts
+    # torch.save(
+    #     stat_2d, os.path.join(out_dir, "stat_2d.pth.tar"),
+    # )
+    # torch.save(
+    #     stat_3d, os.path.join(out_dir, "stat_3d.pth.tar"),
+    # )
+    
+    return test_2d, test_3d, test_keypts, stat_2d, stat_3d
 
 
 def test(
     out_dir: str,
     test_2d: np.ndarray = None,
     test_3d: np.ndarray = None,
-    test_kypts: np.ndarray = None,
+    test_keypts: np.ndarray = None,
 ) -> None:
     """Test LiftPose3D.
         Runs pre-trained liftpose3d model (saved as ckpt_best.pth.tar, using the liftpose.main.train function.)
@@ -404,9 +390,7 @@ def test(
 
     assert os.path.isdir(
         out_dir
-    ), f"{out_dir} does not exists. please call liftpose.main.train function first with the same path."
-
-    set_test_data(out_dir, test_2d, test_3d, test_kypts)
+    ), f"{out_dir} does not exists. Call liftpose.main.train function first with the same path."
 
     logger.info("starting testing in path: {}".format(out_dir))
     option = Options().parse()

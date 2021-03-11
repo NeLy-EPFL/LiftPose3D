@@ -133,9 +133,13 @@ def filter_data(poses, window=5, order=2):
         poses: dictionary with filtered poses
     """
 
+    s = poses.shape
+    poses = np.reshape(poses, [s[0] , s[1]*s[2]])
     poses_smooth = np.zeros_like(poses)
     for j in range(poses_smooth.shape[1]):
         poses_smooth[:, j] = scs.savgol_filter(poses[:, j], window, order)
+        
+    poses_smooth = np.reshape(poses_smooth, s)
 
     return poses_smooth
 
