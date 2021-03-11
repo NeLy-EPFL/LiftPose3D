@@ -344,16 +344,14 @@ def read_log_train(out_dir: str):
     return epoch, lr, loss_train, loss_test, err_test
 
 
-def get_violin_ylabel(body_length, units):
-    if body_length is not None:
-        return "Percentage of body length"
+def get_violin_ylabel(units):
     if units is not None:
         return f"Error ({units})"
     return "Error (unitless)"
 
 
 def pred_and_gt_to_pandas(
-    test_3d_gt, test_3d_pred, test_keypoints, joints_name, body_length
+    test_3d_gt, test_3d_pred, test_keypoints, joints_name
 ):
     err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
 
