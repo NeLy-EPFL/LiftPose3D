@@ -25,7 +25,6 @@ def load_test_results(
             torch.load(os.path.join(out_dir, "stat_3d.pth.tar")),
         )
     
-    
     inp_mean = stat_2d["mean"]
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]
