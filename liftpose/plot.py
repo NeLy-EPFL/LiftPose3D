@@ -42,6 +42,7 @@ def plot_pose_3d(
     show_pred_always=False,
     show_gt_always=False,
     legend=False,
+    axes=False
 ):
     """
     Plot 3D pose
@@ -128,6 +129,11 @@ def plot_pose_3d(
         )
         p1.remove()
         p3.remove()
+    
+    if not axes:
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_zticklabels([])
 
 
 def plot_pose_2d(
