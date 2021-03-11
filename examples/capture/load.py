@@ -1,6 +1,6 @@
 import scipy.io
 import numpy as np
-from liftpose.vision_3d import normalize_bone_length, world_to_camera, project_to_camera
+from liftpose.vision_3d import world_to_camera, project_to_camera
 
 # naming scheme used in the capture dataset for different cameras
 cam_list = ['R', 'L', 'E', 'U', 'S', 'U2']
@@ -25,15 +25,13 @@ def load_data(par_train, return_frame_info=False):
     cams = {'R': [], 'tvec': [], 'intr': []}
     for session_id in session_id_list:
         mat = [read_data(par_train['data_dir'], session_id, cid) for (cid,_) in enumerate(cam_list)]
-        for cam_id in par_train["test_cam_id"]:
+        for cam_id in range(len(cam_list)):
             c = read_cam(par_train['data_dir'],session_id, cam_id)
 
             pts2d_sh = mat[cam_id]['data_2d'].reshape(-1, 20, 2)
             pts3d = mat[cam_id]['data_3d'].reshape(-1, 20, 3)
             pts3d = world_to_camera(pts3d, c['r'].T, c['t'])
             pts2d = project_to_camera(pts3d, c['K'].T)
-            # bone length normalization
-            #pts3d = normalize_bone_length(pts3d.copy(), root=par["roots"][0], child=par_data["vis"]["child"], bone_length=bone_length, thr=10)
         
             frame_id = mat[cam_id]['data_sampleID']
 
@@ -43,7 +41,7 @@ def load_data(par_train, return_frame_info=False):
                 train_fid.append(frame_id)
                 train_2d_sh.append(pts2d_sh)
 
-            if session_id in par_train["test_session_id"]:
+            if session_id in par_train["test_session_id"] and cam_id in par_train["test_cam_id"]:
                 test_2d.append(pts2d)
                 test_3d.append(pts3d)                
                 test_fid.append(frame_id)
@@ -76,12 +74,6 @@ def load_data(par_train, return_frame_info=False):
     test_fid = test_fid[ind_test]
     train_keypoints = train_keypoints[ind_train]
     test_keypoints = test_keypoints[ind_test]
-    
-    # impute nan's with zeros. zero 3d points will not be counted towards loss.
-    #train_2d[np.isnan(train_2d)] = 0
-    #train_3d[np.isnan(train_3d)] = 0
-    #test_2d[np.isnan(test_2d)] = 0
-    #test_3d[np.isnan(test_3d)] = 0
     
     print('OK')
     

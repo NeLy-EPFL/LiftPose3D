@@ -6,7 +6,7 @@ from liftpose.preprocess import unNormalize, add_roots, concat_dict
 
 
 def load_test_results(
-    out_dir: str, stat_2d: dict, stat_3d: dict, prism=False, cam_par=None
+    out_dir: str, stat_2d: dict=None, stat_3d: dict=None, prism=False, cam_par=None
 ) -> (np.array, np.array):
     """Transforms vectorized and raw liftpose3d results into [T J 3] format.
         In case out_dim=
@@ -19,6 +19,13 @@ def load_test_results(
 
 
     """
+    if stat_2d is None or stat_3d is None:
+        stat_2d, stat_3d = (
+            torch.load(os.path.join(out_dir, "stat_2d.pth.tar")),
+            torch.load(os.path.join(out_dir, "stat_3d.pth.tar")),
+        )
+    
+    
     inp_mean = stat_2d["mean"]
     inp_std = stat_2d["std"]
     tar_mean = stat_3d["mean"]

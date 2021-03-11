@@ -369,11 +369,7 @@ def pred_and_gt_to_pandas(
         for j in range(err_norm_sp.shape[1]):
             if not np.isnan(err_norm_sp[i, j]):
                 if test_keypoints[i, j, 0]:
-                    e_list.append(
-                        err_norm_sp[i, j]
-                        if body_length is None
-                        else err_norm_sp[i, j] / body_length * 100
-                    )
+                    e_list.append(err_norm_sp[i, j])
                     n_list.append(joints_name[j])
 
     # remove outliers
@@ -406,7 +402,7 @@ def violin_plot(
 
     pandas_list = [
         pred_and_gt_to_pandas(
-            test_3d_gt, test_3d_pred[i], test_keypoints, joints_name, body_length
+            test_3d_gt, test_3d_pred[i], test_keypoints, joints_name
         )
         for i in range(len(test_3d_pred))
     ]
@@ -425,6 +421,9 @@ def violin_plot(
     # set the labels
     s.set_xticklabels(s.get_xticklabels(), rotation=30)
     ax.set_xlabel("")
-    ax.set_ylabel(get_violin_ylabel(body_length, units))
+    ax.set_ylabel(get_violin_ylabel(units))
     ax.set_ylim(ylim) if ylim is not None else None
-
+    
+    if body_length is not None:
+        y = ax.secondary_yaxis('right', functions=(lambda x: x*100/body_length, lambda x: x*100/body_length))
+        y.set_ylabel(r'Percentage of body length (%)')
