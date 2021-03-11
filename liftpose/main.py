@@ -305,6 +305,7 @@ def set_test_data(
     test_2d: np.ndarray = None,
     test_3d: np.ndarray = None,
     test_keypts: np.ndarray = None,
+    norm_2d=False
 ) -> None:
     
     if test_2d is None and test_3d is None and test_keypts is None:
@@ -315,10 +316,6 @@ def set_test_data(
     # create dummy train data
     train_3d = test_3d.copy()
     train_2d = test_2d.copy()
-    
-    # backup the raw data
-    # test_3d_raw = test_3d.copy()
-    # test_2d_raw = test_2d.copy()
     
     # read statistics
     stat_2d = torch.load(os.path.join(out_dir, "stat_2d.pth.tar"))
@@ -335,7 +332,7 @@ def set_test_data(
     # preprocess the new 2d data
     _, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
     _, test_set_2d, _, _, _, offset_2d = preprocess_2d(
-        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d
+        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d, norm_2d=norm_2d
     )
 
     # preprocess the new 3d data
@@ -366,7 +363,7 @@ def set_test_data(
     #     stat_3d, os.path.join(out_dir, "stat_3d.pth.tar"),
     # )
     
-    return test_2d, test_3d, test_keypts, stat_2d, stat_3d
+    return test_2d, test_3d, stat_2d, stat_3d
 
 
 def test(
