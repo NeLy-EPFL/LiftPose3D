@@ -17,9 +17,9 @@ LiftPose3D is a tool for transforming a 2D poses to 3D coordinates on labaratory
 To train LiftPose3D, most ideally you need (A) a 3D pose library, (B) corresponding 2D poses from the camera that you will use for lifting and (C) camera matrices (extrinsic and intrinsic). 
 
 If you do not have access to 
-(A), you can use one of the provided datasets for your animal system,
-(B), you can obtain 2D images via projection using your camera matrices (you will need to calibrate to obtain these)
-(C), you can place your camera further away to assume weak perspective.
+  (A) then use one of the provided datasets for your animal system,
+  (B) then obtain 2D images via projection using your camera matrices (you will need to calibrate to obtain these)
+  (C) then place your camera further away to assume weak perspective.
 
 ## Training
 LiftPose3D accepts data in two different formats. An [N J 2] numpy array as input and [N J 3] numpy array as output, where N is number of poses and J is number of joints. If you have multiple experiments, you can provide dictionaries where the keys are strings and values are numpy arrays. You will also need at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joitns.
