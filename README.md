@@ -17,14 +17,18 @@ LiftPose3D is a tool for transforming a 2D poses to 3D coordinates on labaratory
 To train LiftPose3D, most ideally you need (A) a 3D pose library, (B) corresponding 2D poses from the camera that you will use for lifting and (C) camera matrices (extrinsic and intrinsic). 
 
 If you do not have access to 
-  (A) then use one of the provided datasets for your animal system,
-  (B) then obtain 2D images via projection using your camera matrices (you will need to calibrate to obtain these)
-  (C) then place your camera further away to assume weak perspective.
+  * (A) then use one of the provided datasets for your animal system,
+  * (B) then obtain 2D images via projection using your camera matrices (you will need to calibrate to obtain these)
+  * (C) then place your camera further away to assume weak perspective.
+
+## Data format
+LiftPose3D accepts an [N J 2] numpy array as input and [N J 3] numpy array as output, where N is number of poses and J is number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joitns.
+
+Each example we provide has a unique ```load.py``` file to format data from various source into the required format.
 
 ## Training
-LiftPose3D accepts data in two different formats. An [N J 2] numpy array as input and [N J 3] numpy array as output, where N is number of poses and J is number of joints. If you have multiple experiments, you can provide dictionaries where the keys are strings and values are numpy arrays. You will also need at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joitns.
 
-You can train a network with the following generic syntax.
+You can train a network with the following generic syntax using experiment 1 for training and experiment 2 for testing.
 
   ```python
   import liftpose.main.train
@@ -45,20 +49,32 @@ You can train a network with the following generic syntax.
   train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
   ```
 
-The following outputs will be saved in a folder ```out``` relative to the path where liftpose3d is called.
+The outputs will be saved in a folder ```out``` relative to the path where LiftPose3D is called.
   
-  You can have a closer look at the ```train``` function, [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
+Take a look at the ```train``` function [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
   
-## Configuration (param.yaml)
-You can customize training by passing an extra argument ```training_kwargs``` in ```train()```.
+## Training configutation
+You can augment training by passing an extra argument ```training_kwargs``` in ```train()```.
 
   ```python
   training_kwargs={"epochs":15, #train for 15 epochs
                    "resume":True, #resume training where it was stopped
                    "load":par['out_dir'] + '/ckpt_last.pth.tar'}, #load last training checkpoint
   ```
+  
+Check out ```liftpose.lifter.opt``` for default settings, which can be changed in ```training_kwargs```.
 
-Several training augmentation options can also be specified in the argument ```augmentation```. Using the following option, the training will ignore the input ```train_2d``` and insted generate 2D poses by projecting the 3D poses to ordered Euler angles within the range ```'eangles'```. 
+## Training augmentation
+
+Augmenting training data is a great way to account for variability in the dataset, especially when training data is scarce. 
+
+Currently, there are available options in ```liftpose.lifter.augmentation```
+1. ```add_noise``` - adding Gaussian noise to training data to account for uncertainty in pose annotation
+2. ```random_project``` - random projections when the camera orientation is unknown (the training will ignore the input ```train_2d```)
+3. ```perturb_pose``` -  pose augmentation when there are large animal-to-animal variation
+4. ```project_to_cam``` - project to camera if camera matrix is known
+
+Training augmentation options can be specified in the argument ```augmentation``` and can be combined. Using the following option, the training will ignore the input ```train_2d``` and insted generate 2D poses by projecting the 3D poses to ordered Euler angles within the range ```'eangles'```. 
 
   ```python
   from liftpose.lifter.augmentation import random_project
@@ -72,11 +88,11 @@ Several training augmentation options can also be specified in the argument ```a
   aug = [random_project(**angle_aug)]
   ```
 
-Have a look at other options for augmentation in ```liftpose.lifter.augmentation``` and see one of the examples for various implementations.
+See examples (fly_tether, capture, fly_tether_angle_inv) for various implementations.
 
 ## Inspecting the training  
   
-  Once the training is done, you can visualize the loss curves by reading the training logs and calling the function. The training information is saved under the ```train_log.txt```, which can easily be read using a csv reader. Alternatively, we already provide functions to read and visualize the file.
+  The training information is saved under the ```train_log.txt```, which can be visualized as follows.
   
   ```python
   from liftpose.plot import read_log_train, plot_log_train
@@ -90,19 +106,20 @@ Have a look at other options for augmentation in ```liftpose.lifter.augmentation
 
   
 ## Testing the network
-  You can test the network.
+  To test the network on the provided during the ```liftpose3d_train``` call run
   ```python
   import liftpose.main.test as liftpose3d_test
   liftpose3d_test(par['out_dir'])
   ```
-  This will run the network with the test data provided during the ```liftpose3d_train``` call. It will save the results inside the ```test_results.pkl``` file. 
-  In case you want to test the network in new data, you can run
+  Results will be saved inside the ```test_results.pth.tar``` file. 
+  
+  To test the network in new data, you can run
   
   ```python
   import liftpose.main.test as liftpose3d_test
   liftpose3d_test(par['out_dir'], test_2d, test_3d)
   ```
-  where you provide the ```test_2d``` and ```test_3d``` numpy arrays. This will overwrite the previous ```test_results.pkl``` file, if there is any.
+  where you provide the ```test_2d``` and ```test_3d``` in the usual format. This will overwrite the previous ```test_results.pkl``` file, if there is any.
   
   We also provide a simple interface for loading the test results from the ```test_results.pkl``` file. 
   
@@ -110,13 +127,9 @@ Have a look at other options for augmentation in ```liftpose.lifter.augmentation
   from liftpose.postprocess import load_test_results
   test_3d_gt, test_3d_pred, _ = load_test_results(par['out_dir'])
   ```
-  This will return two numpy arrays, ```test_3d_gt``` and ```test_3d_pred```. test_3d_gt is the same array as test_3d, whereas ```test_3d_pred``` has the predictions from the LiftPose3D. You can test the error in your predictions simply by doing 
-  ```python
-  np.mean(np.linalg.norm(test_3d_gt - test_3d_pred ,2))
-  ```
+  This will return two numpy arrays: ```test_3d_gt```, which is the same as ```test_3d```, and ```test_3d_pred```, which has the predictions from the LiftPose3D.  
   
-  you can also use the violin plot code provided with liftpose3d to plot the error distribution: 
-  
+  To generate the error distribution run
   
  ```python
   from liftpose.plot import violin_plot
@@ -130,8 +143,9 @@ Have a look at other options for augmentation in ```liftpose.lifter.augmentation
 
 ## Visualizing the 3D pose
 
-Visualization is specified in the file param.yaml which is placed in the example folder. It holds the information of root and target joints, together with information used in visualizing the animal. Notice that bone information, or the connected joints, are only used for visualization and not during training, you can have a closer look at ```plot_pose_3d``` function to see how the bone and color parameters are used. You can safely remove vis subheading and still train and test with liftpose3d. 
-  ```yaml
+To visualize the outputs it is useful to first specify an animal skeleton in the file ```params.yaml``` placed in the example folder. Notd that bone information, or the connected joints, are only used for visualization and not during training, you can have a closer look at ```plot_pose_3d``` function to see how the bone and color parameters are used. 
+
+  ```params.yaml
   data:
       roots: [0]
       target_sets: [[1, 2, 3, 4]]
@@ -142,18 +156,8 @@ Visualization is specified in the file param.yaml which is placed in the example
       limb_id: [0, 0, 0, 0, 0]
   ```
   
-  Second, we define the root folder for the data and the output folder are defined in a different python dictionary, inside the training script/notebook. This dictionary further defines the and used by load.py script which loads the necessary data for the. 
-  
-  ```python
-  par_train = {'data_dir'       : '/data/LiftPose3D/fly_tether/data_DF3D/',
-               'out_dir'        : './out/',
-               'train_subjects' : [1],
-               'test_subjects'  : [6],
-               'actions'        : ['all'],
-               'cam_id'         : [0,1,2,4,5,6]}
-  ```
-  
-Once you read the network predictions on the test data, you can visualize the target and prediction test data using the provided 3d visualization function, which uses the bone and color information you provided in the configuration file to draw the animal:
+We provide the following function to visualize the 3D data
+
  ```python
 fig = plt.figure(figsize=plt.figaspect(1), dpi=100)
 ax = fig.add_subplot(111, projection='3d')
@@ -167,16 +171,31 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
             colors=par_data["vis"]["colors"])
  ```
  This should output something similar to:
- TODO: replace with a better pictuere
  
    <p align="center">
   <img align="center" width="300" height="300" src="https://user-images.githubusercontent.com/20509861/110427610-5131a080-80a8-11eb-81bc-b11867ee0e9f.png">
   </p>
+  
+You can also easily create movies 
 
-## TODO More complicated use cases
-### Augmentations
-### Training arguments, opts
-  You can adjust all the necessary parameters of the training .
+```python
+from liftpose.plot import plot_video_3d
+
+fig = plt.figure(figsize=plt.figaspect(1), dpi=300)
+ax = fig.add_subplot(111, projection='3d')
+
+def f(ax, idx):
+    ax.cla()
+    plot_pose_3d(ax=ax, tar=test_3d_gt[idx],,
+        pred= test_3d_pred[idx],
+        bones=par_data["vis"]["bones"], 
+        limb_id=par_data["vis"]["limb_id"], 
+        colors=par_data["vis"]["colors"], 
+        normalize=True,
+        legend=True)
+    
+plot_video_3d(fig, ax, n=10, fps=20, draw_function=f, name='LiftPose3D_prediction.mp4')
+```
 
 ### Training with subset of points
 In case you want to remove remove some 2d/3d points from used in the training, you can pass ```train_keypts``` argument into the ```train``` function, which has the same shape as ```train_3d```. Alternatively, in case you have missing keypoints, you can convert them to ```np.NaN```. 
