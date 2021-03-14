@@ -168,7 +168,8 @@ plot_pose_3d(ax=ax, tar=test_3d_gt[t],
             pred=test_3d_pred[t], 
             bones=par_data["vis"]["bones"], 
             limb_id=par_data["vis"]["limb_id"], 
-            colors=par_data["vis"]["colors"])
+            colors=par_data["vis"]["colors"],
+            legend=True)
  ```
  This should output something similar to:
  
@@ -187,11 +188,10 @@ ax = fig.add_subplot(111, projection='3d')
 def f(ax, idx):
     ax.cla()
     plot_pose_3d(ax=ax, tar=test_3d_gt[idx],,
-        pred= test_3d_pred[idx],
+        pred=test_3d_pred[idx],
         bones=par_data["vis"]["bones"], 
         limb_id=par_data["vis"]["limb_id"], 
-        colors=par_data["vis"]["colors"], 
-        normalize=True,
+        colors=par_data["vis"]["colors"],
         legend=True)
     
 plot_video_3d(fig, ax, n=10, fps=20, draw_function=f, name='LiftPose3D_prediction.mp4')
