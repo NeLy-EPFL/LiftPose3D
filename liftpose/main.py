@@ -10,13 +10,11 @@ import random
 from liftpose.lifter.lift import network_main
 from liftpose.lifter.opt import Options
 from liftpose.preprocess import (
-    preprocess_2d,
-    preprocess_3d,
+    preprocess,
     init_keypts,
     init_data,
-    flatten_dict,
-    concat_dict
-)
+    flatten_dict
+    )
 
 from typing import Dict, Union, List, Callable, Tuple
 
@@ -214,21 +212,25 @@ def train(
     test_2d_raw, test_3d_raw = copy.deepcopy(test_2d), copy.deepcopy(test_3d)
 
     # preprocess 2d
-    train_2d, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-
-    train_set_2d, test_set_2d, mean_2d, std_2d, targets_2d, offset_2d = preprocess_2d(
-        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d, norm_2d=norm_2d
+    train_set_2d, mean_2d, std_2d, _, _ = preprocess(
+        train_2d, in_dim, roots, target_sets, mean=mean_2d, std=std_2d, norm_2d=norm_2d
+    )
+    
+    test_set_2d, _, _, targets_2d, offset_2d = preprocess(
+        test_2d, in_dim, roots, target_sets, mean=mean_2d, std=std_2d, norm_2d=norm_2d
     )
 
     # preprocess 3d
-    train_3d, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
-
-    train_set_3d, test_set_3d, mean_3d, std_3d,targets_3d,offset_3d = preprocess_3d(
-        train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
+    train_set_3d, mean_3d, std_3d, _, _ = preprocess(
+        train_3d, out_dim, roots, target_sets, mean=mean_3d, std=std_3d
+    )
+    
+    test_set_3d, _, _, targets_3d, offset_3d = preprocess(
+        test_3d, out_dim, roots, target_sets, mean=mean_3d, std=std_3d
     )
 
     # flatten train_keypts
-    # TODO move preprocessing of train_keypts inside preprocess_3d function
+    # TODO move preprocessing of train_keypts inside preprocess function
     train_keypts = flatten_dict(train_keypts)
     test_keypts = flatten_dict(test_keypts)
 
@@ -313,10 +315,6 @@ def set_test_data(
     
     test_keypts = test_keypts if test_keypts is not None else init_keypts(test_3d)
     
-    # create dummy train data
-    train_3d = test_3d.copy()
-    train_2d = test_2d.copy()
-    
     # read statistics
     stat_2d = torch.load(os.path.join(out_dir, "stat_2d.pth.tar"))
     mean_2d = stat_2d["mean"]
@@ -330,15 +328,13 @@ def set_test_data(
     out_dim = stat_3d["out_dim"]
 
     # preprocess the new 2d data
-    _, test_2d = flatten_dict(train_2d), flatten_dict(test_2d)
-    _, test_set_2d, _, _, _, offset_2d = preprocess_2d(
-        train_2d, test_2d, roots, target_sets, in_dim, mean=mean_2d, std=std_2d, norm_2d=norm_2d
+    test_set_2d, _, _, _, offset_2d = preprocess(
+        test_2d, in_dim, roots, target_sets, mean=mean_2d, std=std_2d, norm_2d=norm_2d
     )
 
     # preprocess the new 3d data
-    _, test_3d = flatten_dict(train_3d), flatten_dict(test_3d)
-    (_, test_set_3d, _, _, targets_3d, offset_3d,) = preprocess_3d(
-        train_3d, test_3d, roots, target_sets, out_dim, mean=mean_3d, std=std_3d
+    test_set_3d, _, _, targets_3d, offset_3d = preprocess(
+        test_3d, out_dim, roots, target_sets, mean=mean_3d, std=std_3d
     )
 
     # init default keypts in case it is None
@@ -363,7 +359,7 @@ def set_test_data(
     #     stat_3d, os.path.join(out_dir, "stat_3d.pth.tar"),
     # )
     
-    return test_2d, test_3d, stat_2d, stat_3d
+    return test_set_2d, test_set_3d, stat_2d, stat_3d
 
 
 def test(

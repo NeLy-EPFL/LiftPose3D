@@ -13,28 +13,25 @@ logging.basicConfig(
 )
 
 
-def preprocess_2d(
-    train: dict,
-    test: dict,
+def preprocess(
+    d: dict,
+    dim: int,
     roots: list,
     target_sets: list,
-    in_dim: int,
     mean=None,
     std=None,
     norm_2d=False
 ):
-    """ Preprocess 2D data
+    """ Preprocess data
         1. Center points in target_sets sets around roots
         2. Normalizes data into zero mean and unit variance
         3. Remove root joints
 
         Args:
-            train: Dict[Tuple:np.array[float]]
+            d: Dict[Tuple:np.array[float]]
                 A dictionary where keys correspond to experiment names and
                 values are numpy arrays in the shape of [T J], where T
                 corresponds to time and J is number of joints times in_dim.
-            test: Dict[Tuple:np.array[float]]
-                test data
             roots: List[int]
                 Single depth list consisting of root joints. Corresponding
                 target set will predicted with respect to the root joint.
@@ -56,74 +53,26 @@ def preprocess_2d(
             targets_3d: TODO
             offset: the root position for corresponding target_sets for each joint
     """
+        
+    d = flatten_dict(d)
 
     # anchor points to body-coxa (to predict leg joints w.r.t. body-boxas)
-    train, _ = anchor_to_root(train, roots, target_sets, in_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, in_dim)
+    d, offset = anchor_to_root(d, roots, target_sets, dim)
     
     #normalize pose
     if norm_2d:
-        train = pose_norm(train)
-        test = pose_norm(test)
+        d = pose_norm(d)
 
     # Standardize each dimension independently
     if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
+        mean, std = normalization_stats(d)
 
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
+    d = normalize(d, mean, std)
 
     # select coordinates to be predicted and return them as 'targets'
-    train, _ = remove_roots(train, target_sets, in_dim)
-    test, targets = remove_roots(test, target_sets, in_dim)
+    d, targets = remove_roots(d, target_sets, dim)
 
-    return train, test, mean, std, targets, offset
-
-
-def preprocess_3d(train, test, roots, target_sets, out_dim, mean=None, std=None):
-    """ Preprocess 3D data
-        1. Center points in target_sets sets around roots
-        2. Normalizes data into zero mean and unit variance
-        3. Remove root joints
-
-        Args:
-            train: Zero-mean and unit variance training data
-            test: Zero-mean and unit variance test data
-            roots: Single depth list consisting of root joints. Corresponding
-                target set will predicted with respect to the root joint.
-                Cannot be empty.
-            target_sets: List[List[Int]
-                Joints to be predicted with respect to roots.
-                if roots = [0, 1] and target_sets = [[2,3], [4,5]], then the
-                network will predict the relative location Joint 2 and 3 with respect to Joint 0.
-                Likewise Joint location 4 and 5 will be predicted with respect to Joint 1.
-                Cannot be empty.
-
-        Return:
-            train: Zero-mean and unit variance training data
-            test: Zero-mean and unit variance test data
-            mean: mean parameter for each dimension of train dadta
-            std: std parameter for eaach dimension of test data
-            targets_3d: TODO
-            offset: the root position for corresponding target_sets for each joint
-    """
-
-    # anchor points to body-coxa (to predict legjoints wrt body-coxas)
-    train, _ = anchor_to_root(train, roots, target_sets, out_dim)
-    test, offset = anchor_to_root(test, roots, target_sets, out_dim)
-
-    # Standardize each dimension independently
-    if (mean is None) or (std is None):
-        mean, std = normalization_stats(train)
-
-    train = normalize(train, mean, std)
-    test = normalize(test, mean, std)
-
-    # select coordinates to be predicted and return them as 'targets_3d'
-    train, _ = remove_roots(train, target_sets, out_dim)
-    test, targets_3d = remove_roots(test, target_sets, out_dim)
-
-    return train, test, mean, std, targets_3d, offset
+    return d, mean, std, targets, offset
 
 
 def normalization_stats(d, replace_zeros=True):
@@ -236,6 +185,10 @@ def anchor_to_root(poses, roots, target_sets, dim):
         poses: dictionary of anchored poses
         offset: offset of each root from origin
     """
+    
+    if type(poses) is not dict:
+        poses = {'': poses}
+    
     assert len(target_sets) == len(roots), "We need the same # of roots as target sets!"
     assert all([p.ndim == 2 for p in list(poses.values())])
     
@@ -250,7 +203,7 @@ def anchor_to_root(poses, roots, target_sets, dim):
     
     for k in poses.keys():
         poses[k] -= offset[k]
-        
+      
     return poses, offset
 
 
@@ -351,10 +304,22 @@ def init_data(d_template, dim):
 
 def flatten_dict(d):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
+    if type(d) is not dict:
+        d = {'': d}
+        
     assert isinstance(d, dict)
     assert all([v.ndim == 3 for v in d.values()])
     for (k, v) in d.items():
         d[k] = v.reshape(v.shape[0], v.shape[1] * v.shape[2])
+
+    return d
+
+
+def unflatten_dict(d,dim):
+    """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
+    assert isinstance(d, dict)
+    for (k, v) in d.items():
+        d[k] = v.reshape(v.shape[0], v.shape[1]//3, 3)
 
     return d
 

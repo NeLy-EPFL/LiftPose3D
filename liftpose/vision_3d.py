@@ -350,8 +350,10 @@ def XY_coord_dict(poses: dict):
     Returns
         poses_xy: poses projected to xy plane
     """
+    if type(poses) is not dict:
+        poses = {'':poses}
+        
     poses_xy = {}
-
     for key in poses.keys():
         poses_xy[key] = poses[key][:, :, :2]
 
@@ -404,7 +406,7 @@ def intrinsic_matrix(fx, fy, cx, cy):
 
 
 
-def find_neighbours(k, pts, target_pts, nn):
+def find_neighbours(k, pts, target_pts, nn, good_keypts=None):
     """
     Procrustes align a source pose to all poses in pts and find nearest neighbours
 
@@ -425,9 +427,14 @@ def find_neighbours(k, pts, target_pts, nn):
         lift of nearest neighbours in ascending order of distances.
 
     """
-    target_pose = target_pts[k, :, :]
+    target_pose = target_pts[k, :, :].copy()
+    
     disparity = np.zeros(pts.shape[0])
     for i in range(pts.shape[0]):
+        if good_keypts is not None:
+            kp = good_keypts[k,:,:]
+            pts[i,~kp] = 0
+            target_pose[~kp] = 0
         disparity[i], _, _ = procrustes(
             target_pose, pts[i, :, :], scaling=True, reflection="best"
         )
@@ -463,6 +470,9 @@ def best_linear_map(source_poses, target_poses, nns, nn):
         DESCRIPTION.
 
     """
+    
+    assert target_poses.shape[0] == len(nns)
+    
     B = []  # target poses
     X = []  # poses to be mapped
     # M = [] #missing points
