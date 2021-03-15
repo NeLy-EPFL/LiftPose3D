@@ -133,7 +133,11 @@ See examples (fly_tether, capture, fly_tether_angle_inv) for various implementat
   
  ```python
   from liftpose.plot import violin_plot
-  violin_plot(plt.gca(), test_3d_gt, test_3d_pred, test_keypoints=np.ones_like(test_3d_pred_ord), joints_name=par_data["vis"]["names"])
+  
+  names = ['Head', 'Nose', 'Shoulder',  'Hip',  'Knee', 'Foot', 'Hand']
+  
+  violin_plot(plt.gca(), test_3d_gt=test_3d_gt, test_3d_pred=test_3d_pred, test_keypoints=np.ones_like(test_3d_gt),
+              joints_name=names, units='m', body_length=2.21)
   ```
   
   <p align="center">
