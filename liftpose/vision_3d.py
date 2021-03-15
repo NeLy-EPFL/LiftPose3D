@@ -427,16 +427,20 @@ def find_neighbours(k, pts, target_pts, nn, good_keypts=None):
         lift of nearest neighbours in ascending order of distances.
 
     """
-    target_pose = target_pts[k, :, :].copy()
+    if good_keypts is not None:
+        kp = good_keypts.max(2).copy()
     
     disparity = np.zeros(pts.shape[0])
     for i in range(pts.shape[0]):
         if good_keypts is not None:
-            kp = good_keypts[k,:,:]
-            pts[i,~kp] = 0
-            target_pose[~kp] = 0
+            pts_tmp = pts[i,kp[k],:]
+            target_tmp = target_pts[k,kp[k],:]
+        else:
+            pts_tmp = pts[i,:,:]
+            target_tmp = target_pts[k,:,:]
+
         disparity[i], _, _ = procrustes(
-            target_pose, pts[i, :, :], scaling=True, reflection="best"
+            target_tmp, pts_tmp, scaling=True, reflection="best"
         )
 
     # find nn
