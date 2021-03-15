@@ -105,17 +105,16 @@ See examples (fly_tether, capture, fly_tether_angle_inv) for various implementat
 
   
 ## Testing the network
-  To test the network on the provided during the ```liftpose3d_train``` call run
+  To test the network on the data provided during the ```liftpose3d_train``` call run
   ```python
   import liftpose.main.test as liftpose3d_test
   liftpose3d_test(par['out_dir'])
   ```
   Results will be saved inside the ```test_results.pth.tar``` file. 
   
-  To test the network in new data, you can run
+  To test the network in new data, run
   
   ```python
-  import liftpose.main.test as liftpose3d_test
   liftpose3d_test(par['out_dir'], test_2d, test_3d)
   ```
   where you provide the ```test_2d``` and ```test_3d``` in the usual format. This will overwrite the previous ```test_results.pkl``` file, if there is any.
