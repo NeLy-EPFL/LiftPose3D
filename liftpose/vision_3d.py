@@ -406,47 +406,62 @@ def intrinsic_matrix(fx, fy, cx, cy):
 
 
 
-def find_neighbours(k, pts, target_pts, nn, good_keypts=None):
-    """
-    Procrustes align a source pose to all poses in pts and find nearest neighbours
-
-    Parameters
-    ----------
-    k : int
-        Index of pose in target_pts to search nearest neighbours for.
-    pts3d : 3-dim numpy array
-        P.
-    target_pts : 3-dim numpy array
-        Poses in the .
-    nn : int
-        Number of nearest neighbours to return.
-
-    Returns
-    -------
-    nn_ind: list
-        lift of nearest neighbours in ascending order of distances.
-
-    """
-    if good_keypts is not None:
-        kp = good_keypts.max(2).copy()
-    
+def find_neighbours(target, pts, target_pts, nn):
+    '''
+    Procrustes align each pose in pts3d to target pose and find nearest neighbours
+    '''
+    target_pose = target_pts[target,:,:]
     disparity = np.zeros(pts.shape[0])
     for i in range(pts.shape[0]):
-        if good_keypts is not None:
-            pts_tmp = pts[i,kp[k],:]
-            target_tmp = target_pts[k,kp[k],:]
-        else:
-            pts_tmp = pts[i,:,:]
-            target_tmp = target_pts[k,:,:]
+        disparity[i], _, _ = procrustes(target_pose, pts[i,:,:], scaling=True, reflection='best')   
+    
+    #find nn
+    nn_ind = np.argsort(disparity)[:nn]
+    
+    return list(nn_ind)
 
-        disparity[i], _, _ = procrustes(
-            target_tmp, pts_tmp, scaling=True, reflection="best"
-        )
 
-    # find nn
-    nn_ind = list(np.argsort(disparity)[:nn])
+# def find_neighbours(k, pts, target_pts, nn, good_keypts=None):
+#     """
+#     Procrustes align a source pose to all poses in pts and find nearest neighbours
 
-    return nn_ind
+#     Parameters
+#     ----------
+#     k : int
+#         Index of pose in target_pts to search nearest neighbours for.
+#     pts3d : 3-dim numpy array
+#         P.
+#     target_pts : 3-dim numpy array
+#         Poses in the .
+#     nn : int
+#         Number of nearest neighbours to return.
+
+#     Returns
+#     -------
+#     nn_ind: list
+#         lift of nearest neighbours in ascending order of distances.
+
+#     """
+#     if good_keypts is not None:
+#         kp = good_keypts.max(2).copy()
+    
+#     disparity = np.zeros(pts.shape[0])
+#     for i in range(pts.shape[0]):
+#         if good_keypts is not None:
+#             pts_tmp = pts[i,kp[k],:]
+#             target_tmp = target_pts[k,kp[k],:]
+#         else:
+#             pts_tmp = pts[i,:,:]
+#             target_tmp = target_pts[k,:,:]
+
+#         disparity[i], _, _ = procrustes(
+#             target_tmp, pts_tmp, scaling=True, reflection="best"
+#         )
+
+#     # find nn
+#     nn_ind = list(np.argsort(disparity)[:nn])
+
+#     return nn_ind
 
 
 def best_linear_map(source_poses, target_poses, nns, nn):

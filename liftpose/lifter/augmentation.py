@@ -5,7 +5,7 @@ from liftpose.lifter.utils import get_coords_in_dim
 import torch
 
 
-def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
+def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=True):
     def random_project_dispatch(
         inputs, outputs, outputs_raw, keys, stats, roots, target_sets,
     ):
@@ -23,8 +23,8 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
                 _intr = intr
         else:
             eangle = eangles[0]
-            _tvec = tvec
-            _intr = intr
+            _tvec = tvec[0]
+            _intr = intr[0]
 
         # do random projection
         inputs, _ = project_to_random_eangle(
@@ -46,7 +46,8 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None):
         outputs, _ = anchor_to_root({"outputs": outputs}, roots, target_sets, 3)
         
         #normalize pose
-        inputs = pose_norm(inputs)
+        if norm_2d:
+            inputs = pose_norm(inputs)
 
         inputs = inputs["inputs"]
         outputs = outputs["outputs"]

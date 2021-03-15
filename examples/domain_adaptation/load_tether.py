@@ -4,7 +4,7 @@ import glob
 import pickle
 
 
-def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
+def load_3D(path, par=None, subjects="all", actions="all"):
     """
     Load 3D ground truth
 
@@ -22,7 +22,7 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
     path = os.path.join(path, "*.pkl")
     fnames = glob.glob(path)
 
-    data, cam_par, good_keypts = {}, {}, {}
+    data = {}
     for s in subjects:
         for a in actions:
             fname = fnames.copy()
@@ -44,18 +44,13 @@ def load_3D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]  
                 poses3d = poses["points3d"][:899, dimensions, :]
 
-                for c in cam_id:
-                    k = (s, a, f, c)
-                    ind = np.arange(15) if c < 3 else np.arange(15,30)
-                    data[k] = np.copy(poses3d)
-                    cam_par[k] = poses[c]
-                    good_keypts[k] = np.zeros_like(data[k], dtype=bool)
-                    good_keypts[k][:,ind] = True
+                k = (s, a, f)
+                data[k] = np.copy(poses3d)
 
-    return data, good_keypts, cam_par
+    return data
 
 
-def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
+def load_2D(path, par=None, subjects="all", actions="all"):
     """
     Load 2D data
 
@@ -88,8 +83,7 @@ def load_2D(path, par=None, cam_id=None, subjects="all", actions="all"):
                 poses2d = poses["points2d"]
                 dimensions = [i for i in range(38) if i not in [15,16,17,18,34,35,36,37]]   
 
-                for c in cam_id:
                     # ind = np.arange(0,15) if c < 3 else np.arange(19,19+15)
-                    data[(subject, action, f, c)] = poses2d[c][:899,dimensions,:]
+                data[(subject, action, f)] = poses2d[0][:899,dimensions,:]
 
     return data

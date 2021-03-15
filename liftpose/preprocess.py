@@ -319,7 +319,7 @@ def unflatten_dict(d,dim):
     """reshapes each (N,T,C) value inside the dictionary into (N,T*C)"""
     assert isinstance(d, dict)
     for (k, v) in d.items():
-        d[k] = v.reshape(v.shape[0], v.shape[1]//3, 3)
+        d[k] = v.reshape(v.shape[0], v.shape[1]//dim, dim)
 
     return d
 
@@ -402,7 +402,8 @@ def obtain_projected_stats(
     target_sets,
     out_dir,
     load_existing=True,
-    th=0.05
+    th=0.05,
+    norm_2d=True
 ):
 
     error = np.inf
@@ -466,7 +467,8 @@ def obtain_projected_stats(
             pts_2d, _ = anchor_to_root(pts_2d, roots, target_sets, 2)
             pts_3d, _ = anchor_to_root(pts_3d, roots, target_sets, 3)
             
-            pts_2d = pose_norm(pts_2d)
+            if norm_2d:
+                pts_2d = pose_norm(pts_2d)
             
             pts_2d = np.concatenate([v for k, v in pts_2d.items()], 0)
             pts_3d = np.concatenate([v for k, v in pts_3d.items()], 0)
