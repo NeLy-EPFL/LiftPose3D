@@ -29,7 +29,7 @@ def load_3D(path, par=None, subjects="all", actions="all"):
 
             # select subjects
             if s != "all":
-                fname = [file for file in fname if str(s) in file]
+                fname = [file for file in fname if str(s) + '_' in file]
             if a != "all":
                 fname = [file for file in fname if a in file]
 

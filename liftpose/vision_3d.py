@@ -464,7 +464,7 @@ def find_neighbours(target, pts, target_pts, nn):
 #     return nn_ind
 
 
-def best_linear_map(source_poses, target_poses, nns, nn):
+def best_linear_map(source_poses, target_poses, nns, nn, vis_pts=None):
     """
     Find best linear transformation from poses in target domain to their nearest 
     neighbour poses in source domain
@@ -494,28 +494,62 @@ def best_linear_map(source_poses, target_poses, nns, nn):
     
     B = []  # target poses
     X = []  # poses to be mapped
-    # M = [] #missing points
+    M = []  # missing points
     for i, n in enumerate(nns):
         B_tmp = source_poses[n[:nn], :, :]
         B_tmp = B_tmp.reshape(B_tmp.shape[0], B_tmp.shape[1] * B_tmp.shape[2]).T
+        
         X_tmp = target_poses[i, :, :]
         X_tmp = X_tmp.reshape(X_tmp.shape[0] * X_tmp.shape[1], 1)
         X_tmp = np.tile(X_tmp, (1, nn))
-        # M_tmp = visible_points[[i],:].T
-        # M_tmp = np.tile(M_tmp, (1,len(n)))
+        
         B.append(B_tmp)
         X.append(X_tmp)
-        # M.append(M_tmp)
+        
+        if vis_pts is not None:
+            M_tmp = vis_pts[i,:,:]
+            M_tmp = M_tmp.reshape(M_tmp.shape[0]*M_tmp.shape[1],1)
+            M_tmp = np.tile(M_tmp, (1, nn))
+            M.append(M_tmp)
 
     X = np.hstack(X)
     B = np.hstack(B)
-    # M = np.hstack(M)
-    # M = np.tile(M,(3,1))
 
-    # A_est = censored_lstsq(X.T, B.T, np.ones_like(M).T)
-    A_est = np.linalg.pinv(X.T).dot(B.T).T
+    if vis_pts is not None:
+        M = np.hstack(M)
+        A_est = censored_lstsq(X.T, B.T, np.ones_like(M).T)
+    else:
+        A_est = np.linalg.pinv(X.T).dot(B.T).T
 
     return A_est
+
+
+def censored_lstsq(A, B, M):
+    """Solves least squares problem subject to missing data.
+
+    Note: uses a broadcasted solve for speed.
+
+    Args
+    ----
+    A (ndarray) : m x r matrix
+    B (ndarray) : m x n matrix
+    M (ndarray) : m x n binary matrix (zeros indicate missing values)
+
+    Returns
+    -------
+    X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
+    """
+
+    # Note: we should check A is full rank but we won't bother...
+
+    # if B is a vector, simply drop out corresponding rows in A
+    if B.ndim == 1 or B.shape[1] == 1:
+        return np.linalg.leastsq(A[M], B[M])[0]
+
+    # else solve via tensor representation
+    rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
+    T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
+    return np.squeeze(np.linalg.solve(T, rhs)).T # transpose to get r x n
 
 
 def apply_linear_map(A, X):
