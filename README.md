@@ -53,8 +53,7 @@ The outputs will be saved in a folder ```out``` relative to the path where LiftP
   
 Take a look at the ```train``` function [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
   
-## Training configutation
-You can augment training by passing an extra argument ```training_kwargs``` in ```train()```.
+You can further configure training by passing an extra argument ```training_kwargs``` in ```train()```.
 
   ```python
   training_kwargs={"epochs":15, #train for 15 epochs
