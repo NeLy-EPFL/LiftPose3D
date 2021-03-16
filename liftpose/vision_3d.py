@@ -517,7 +517,7 @@ def best_linear_map(source_poses, target_poses, nns, nn, vis_pts=None):
 
     if vis_pts is not None:
         M = np.hstack(M)
-        A_est = censored_lstsq(X.T, B.T, np.ones_like(M).T)
+        A_est = censored_lstsq(X.T, B.T, M.T).T
     else:
         A_est = np.linalg.pinv(X.T).dot(B.T).T
 
@@ -527,7 +527,8 @@ def best_linear_map(source_poses, target_poses, nns, nn, vis_pts=None):
 def censored_lstsq(A, B, M):
     """Solves least squares problem subject to missing data.
 
-    Note: uses a broadcasted solve for speed.
+    Note: uses a for loop over the columns of B, leading to a
+    slower but more numerically stable algorithm
 
     Args
     ----
@@ -540,16 +541,11 @@ def censored_lstsq(A, B, M):
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
 
-    # Note: we should check A is full rank but we won't bother...
-
-    # if B is a vector, simply drop out corresponding rows in A
-    if B.ndim == 1 or B.shape[1] == 1:
-        return np.linalg.leastsq(A[M], B[M])[0]
-
-    # else solve via tensor representation
-    rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
-    T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
-    return np.squeeze(np.linalg.solve(T, rhs)).T # transpose to get r x n
+    X = np.empty((A.shape[1], B.shape[1]))
+    for i in range(B.shape[1]):
+        m = M[:,i] # drop rows where mask is zero
+        X[:,i] = np.linalg.lstsq(A[m], B[m,i])[0]
+    return X
 
 
 def apply_linear_map(A, X):

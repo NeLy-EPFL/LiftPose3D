@@ -348,25 +348,28 @@ def get_violin_ylabel(units):
     return "Error (unitless)"
 
 
-def pred_and_gt_to_pandas(
-    test_3d_gt, test_3d_pred, test_keypoints, joints_name
-):
-    err_norm = np.mean(np.abs(test_3d_gt - test_3d_pred), axis=-1)
-
-    err_norm_sp = err_norm.copy()
-    for j in range(err_norm.shape[1]):
-        q = np.quantile(err_norm[:, j], 0.95)
-        err_norm_sp[err_norm_sp[:, j] > q, j] = q
+def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
+    
+    gt[~good_keypts] = np.nan
+    err = np.nanmean(np.abs(gt - pred), axis=-1)
+    if overall:
+        err = np.hstack([err, np.nanmean(err, axis=1, keepdims=True)])
+        good_keypts = np.hstack([good_keypts, np.nanmax(good_keypts, axis=1, keepdims=True)])
+        name += ['overall']
+    
+    err_sp = err.copy()
+    for j in range(err.shape[1]):
+        q = np.quantile(err[:, j], 0.95)
+        err_sp[err_sp[:, j] > q, j] = q
 
     # TODO vectorize the loop
-    e_list = list()
-    n_list = list()
-    for i in range(err_norm_sp.shape[0]):
-        for j in range(err_norm_sp.shape[1]):
-            if not np.isnan(err_norm_sp[i, j]):
-                if test_keypoints[i, j, 0]:
-                    e_list.append(err_norm_sp[i, j])
-                    n_list.append(joints_name[j])
+    e_list, n_list = [], []
+    for i in range(err_sp.shape[0]):
+        for j in range(err_sp.shape[1]):
+            # if not np.isnan(err_sp[i, j]):
+                # if good_keypts[i, j, 0]:
+                    e_list.append(err_sp[i, j])
+                    n_list.append(name[j])
 
     # remove outliers
     d = pd.DataFrame({"err": e_list, "joint": n_list})
@@ -378,29 +381,28 @@ def pred_and_gt_to_pandas(
 
 def violin_plot(
     ax,
-    test_3d_gt: np.ndarray,
-    test_3d_pred: np.ndarray,
-    test_keypoints: np.ndarray,
-    joints_name: List[str],
+    gt: np.ndarray,
+    pred: np.ndarray,
+    good_keypts: np.ndarray,
+    name: List[str],
     body_length: int = None,
     units: str = None,
     ylim: List[int] = None,
     order: List[str] = None,
-    hue_names: List[str] = None
+    hue_names: List[str] = None,
+    overall=True
 ):
     """ creates violin plot of error distribution for each joint """
-    if isinstance(test_3d_pred, np.ndarray):
-        test_3d_pred = [test_3d_pred]
+    if isinstance(pred, np.ndarray):
+        pred = [pred]
     # fmt: off
     #assert test_3d_pred[0].shape[1] == len(joints_name), f"given 3d data has {test_3d_pred[0].shape[1]} joints however joints_name only has {len(joints_name)} names"
     #assert (test_3d_pred[0].shape == test_3d_pred.shape), "ground-truth and prediction shapes do not match"
     # fmt: on
 
     pandas_list = [
-        pred_and_gt_to_pandas(
-            test_3d_gt, test_3d_pred[i], test_keypoints, joints_name
-        )
-        for i in range(len(test_3d_pred))
+        pred_and_gt_to_pandas(gt, pred[i], good_keypts, name,overall)
+        for i in range(len(pred))
     ]
 
     for i, p in enumerate(pandas_list):
@@ -422,4 +424,4 @@ def violin_plot(
     
     if body_length is not None:
         y = ax.secondary_yaxis('right', functions=(lambda x: x*100/body_length, lambda x: x*100/body_length))
-        y.set_ylabel(r'Percentage of body length (%)')
+        y.set_ylabel(r'Percentage of body length')

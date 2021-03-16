@@ -42,11 +42,6 @@ def load_test_results(
     tar = data["target"]
     out = data["output"]
     inp = data["input"]
-    
-    # print(tar)
-    # print(out)
-    # import sys
-    # sys.exit()
 
     # add back roots
     good_keypts = add_roots(data["good_keypts"], targets_3d, len(tar_mean), base="zeros")
