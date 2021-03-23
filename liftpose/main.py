@@ -310,34 +310,38 @@ def set_test_data(
     norm_2d=False
 ) -> None:
     
-    if test_2d is None and test_3d is None and test_keypts is None:
+    if test_2d is None:
         return None
-    
-    test_keypts = test_keypts if test_keypts is not None else init_keypts(test_3d)
-    
+
     # read statistics
     stat_2d = torch.load(os.path.join(out_dir, "stat_2d.pth.tar"))
-    mean_2d = stat_2d["mean"]
-    std_2d = stat_2d["std"]
-    target_sets = stat_2d["target_sets"]
-    roots = stat_2d["roots"]
-    in_dim = stat_2d["in_dim"]
     stat_3d = torch.load(os.path.join(out_dir, "stat_3d.pth.tar"))
-    mean_3d = stat_3d["mean"]
-    std_3d = stat_3d["std"]
-    out_dim = stat_3d["out_dim"]
-
-    # preprocess the new 2d data
-    test_set_2d, _, _, _, offset_2d = preprocess(
-        test_2d, in_dim, roots, target_sets, mean=mean_2d, std=std_2d, norm_2d=norm_2d
-    )
 
     # preprocess the new 3d data
-    test_set_3d, _, _, targets_3d, offset_3d = preprocess(
-        test_3d, out_dim, roots, target_sets, mean=mean_3d, std=std_3d
+    if test_3d is None:
+        if test_3d is None:
+            test_3d = init_data(test_2d,3)
+        offset = list(stat_3d["offset"].values())[0][0,:]
+        offset_3d = {}
+        for k in test_3d.keys():
+            offset_3d[k] = np.tile(offset,(test_3d[k].shape[0],1))
+        
+        test_set_3d, _, _, targets_3d, _ = preprocess(
+            test_3d.copy(), stat_3d["out_dim"], stat_2d["roots"], stat_2d["target_sets"], mean=stat_3d["mean"], std=stat_3d["std"]
+            )
+    else:
+        test_set_3d, _, _, targets_3d, offset_3d = preprocess(
+            test_3d, stat_3d["out_dim"], stat_2d["roots"], stat_2d["target_sets"], mean=stat_3d["mean"], std=stat_3d["std"]
+            )
+        
+    # preprocess the new 2d data
+    test_set_2d, _, _, _, offset_2d = preprocess(
+        test_2d, stat_2d["in_dim"], stat_2d["roots"], stat_2d["target_sets"], mean=stat_2d["mean"], std=stat_2d["std"], norm_2d=norm_2d
     )
 
-    # init default keypts in case it is None
+    # keypoints
+    if test_keypts is None:
+        test_keypts = init_keypts(test_3d)
     test_keypts = flatten_dict(test_keypts)
     test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
 

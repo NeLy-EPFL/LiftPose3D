@@ -265,7 +265,7 @@ def plot_2d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
 
     for i, j in enumerate(G.edges()):
         if good_keypts is not None:
-            if (good_keypts[j[0]] == 0) | (good_keypts[j[1]] == 0):
+            if (good_keypts[j[0]][0] == 0) | (good_keypts[j[1]][0] == 0):
                 continue
 
         u = np.array((pos[j[0], 0], pos[j[1], 0]))
@@ -373,7 +373,7 @@ def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
 
     # remove outliers
     d = pd.DataFrame({"err": e_list, "joint": n_list})
-    q = d.quantile(q=0.95)
+    q = d.quantile(q=0.9)
     d = d.loc[d["err"] < q["err"]]
 
     return d
