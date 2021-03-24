@@ -7,10 +7,19 @@ import matplotlib.pyplot as plt
 import glob
 import matplotlib.animation
 
-from typing import List, Callable
+from typing import List
 
 
-def plot_video_3d(fig, ax, n: int, fps: int, draw_function: Callable, name: str):
+def plot_video_3d(fig,
+                  ax,
+                  n: int, 
+                  par, 
+                  tar, 
+                  pred=None, 
+                  trailing=None,
+                  trailing_keypts=None,
+                  fps: int=10, 
+                  name: str='LP3D_prediction.mp4'):
     """
     draw_function should take matplotlib axis object and frame id 
     def f(ax3d, idx):
@@ -22,13 +31,86 @@ def plot_video_3d(fig, ax, n: int, fps: int, draw_function: Callable, name: str)
                  normalize=True)
     plot_video_3d(fig, ax3d, n=2, fps=1, draw_function=f, name='kek.mp4')
     """
+
     writer = matplotlib.animation.FFMpegWriter(fps=fps)
     with writer.saving(fig, name, dpi=100):
         for i in range(n):
-            draw_function(ax, i)
+            if pred is not None:
+                draw_function(ax, i, par, tar, pred, trailing, trailing_keypts)
+            else:
+                draw_function(ax, i, par, tar, None, trailing, trailing_keypts)
             writer.grab_frame()
-            ax.clear()
 
+
+def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=None):
+    
+    if pred is not None:
+        pred=pred[idx].copy()
+        
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    zlim = ax.get_zlim()
+    
+    ax.cla()
+
+    plot_pose_3d(ax=ax, tar=tar[idx], 
+            pred=pred,
+            normalize=False,
+            bones=par["vis"]["bones"], 
+            limb_id=par["vis"]["limb_id"], 
+            colors=par["vis"]["colors"],
+            legend=True)
+    
+    if trailing is not None:
+        plot_trailing_points(ax, idx, tar, trailing, trailing_keypts)
+    
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_zlim(zlim)
+    
+ 
+def plot_trailing_points(ax, idx, pos, thist, trailing_keypts=None):
+    """
+    Plot lagging, trailing points when moving legs
+
+    Parameters
+    ----------
+    pos : n x 3 x t numpy array
+        Positions of all n keypoints for t timesteps.
+    thist : integer
+        Number of points trailign behind.
+    ax : matplotlib axis object
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    if idx<2:
+        return
+    
+    if idx-thist<0:
+        thist=idx
+    
+    if trailing_keypts is not None:
+        pos = pos[idx-thist:idx,trailing_keypts,:].copy()
+        
+    alphas = np.linspace(0.1, 1, thist)
+    rgba_colors = np.zeros((thist, 4))
+    rgba_colors[:, [0, 1, 2]] = 0.8
+    rgba_colors[:, 3] = alphas
+    
+    for j in range(pos.shape[1]):
+        ax.scatter(pos[:, j, 0], pos[:, j, 1], pos[:, j, 2], "-o", color=rgba_colors)
+        for i in range(thist - 1):
+                ax.plot(
+                    pos[i : i + 2, j, 0],
+                    pos[i : i + 2, j, 1],
+                    pos[i : i + 2, j, 2],
+                    c=rgba_colors[i, :],
+                )   
+ 
 
 def plot_pose_3d(
     ax,
@@ -112,14 +194,14 @@ def plot_pose_3d(
 
     #### this bit is just to make special legend
     pts = np.nanmean(tar, axis=0)
-    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r-")
-    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "-")
+    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "--", dashes=(2, 2))
     if legend:
         ax.legend(
         [(p1), (p3)],
         ["Triangulated 3D pose", "LiftPose3D prediction"]
         if pred is not None
-        else ["Triangulated 3D pose"],
+        else ["LiftPose3D prediction"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc=(0.1, 0.9),
@@ -282,40 +364,6 @@ def plot_2d_graph(G, pos, ax, color_edge=None, style=None, good_keypts=None):
             style = "-"
 
         ax.plot(u, v, c=c, alpha=1.0, linewidth=2)
-
-
-def plot_trailing_points(pos, thist, ax):
-    """
-    Plot lagging, trailing points when moving legs
-
-    Parameters
-    ----------
-    pos : n x 3 x t numpy array
-        Positions of all n keypoints for t timesteps.
-    thist : integer
-        Number of points trailign behind.
-    ax : matplotlib axis object
-
-    Returns
-    -------
-    None.
-
-    """
-    alphas = np.linspace(0.1, 1, thist)
-    rgba_colors = np.zeros((thist, 4))
-    rgba_colors[:, [0, 1, 2]] = 0.8
-    rgba_colors[:, 3] = alphas
-    for j in range(pos.shape[0]):
-        ax.scatter(pos[j, 0, :], pos[j, 1, :], pos[j, 2, :], "-o", color=rgba_colors)
-        for i in range(thist - 1):
-            if i < thist:
-                ax.plot(
-                    pos[j, 0, i : i + 2],
-                    pos[j, 1, i : i + 2],
-                    pos[j, 2, i : i + 2],
-                    "-o",
-                    c=rgba_colors[i, :],
-                )
 
 
 def plot_log_train(ax, loss_train, loss_test, epochs):

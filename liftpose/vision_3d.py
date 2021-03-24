@@ -406,19 +406,36 @@ def intrinsic_matrix(fx, fy, cx, cy):
 
 
 
-def find_neighbours(target, pts, target_pts, nn):
+def procrustes_distance(X, Y, metric=2):
+    
+    X = X.ravel().copy()
+    Y = Y.ravel().copy()
+    
+    dist = np.linalg.norm(X-Y,ord=metric)
+        
+    return dist
+
+
+def find_neighbours(target, pts, target_pts, nn=None, metric=2):
     '''
     Procrustes align each pose in pts3d to target pose and find nearest neighbours
     '''
     target_pose = target_pts[target,:,:]
     disparity = np.zeros(pts.shape[0])
+    transformed = []
     for i in range(pts.shape[0]):
-        disparity[i], _, _ = procrustes(target_pose, pts[i,:,:], scaling=True, reflection='best')   
-    
+        d, Z, t = procrustes(target_pose, pts[i,:,:], scaling=True, reflection='best')
+        # transformed.append(Z)
+        disparity[i] = procrustes_distance(Z,target_pose,metric)
+        
     #find nn
-    nn_ind = np.argsort(disparity)[:nn]
+    nn_ind = np.argsort(disparity)
     
-    return list(nn_ind)
+    if nn is not None:
+        # transformed = [transformed[nn_ind[i]] for i in range(nn)]
+        nn_ind = nn_ind[:nn]
+    
+    return list(nn_ind)#, transformed
 
 
 # def find_neighbours(k, pts, target_pts, nn, good_keypts=None):
@@ -496,6 +513,7 @@ def best_linear_map(source_poses, target_poses, nns, nn, vis_pts=None):
     X = []  # poses to be mapped
     M = []  # missing points
     for i, n in enumerate(nns):
+
         B_tmp = source_poses[n[:nn], :, :]
         B_tmp = B_tmp.reshape(B_tmp.shape[0], B_tmp.shape[1] * B_tmp.shape[2]).T
         

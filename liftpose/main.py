@@ -320,7 +320,7 @@ def set_test_data(
     # preprocess the new 3d data
     if test_3d is None:
         if test_3d is None:
-            test_3d = init_data(test_2d,3)
+            test_3d = init_data(test_2d,stat_3d["out_dim"])
         offset = list(stat_3d["offset"].values())[0][0,:]
         offset_3d = {}
         for k in test_3d.keys():
@@ -355,13 +355,6 @@ def set_test_data(
     # overwrites the offsets
     stat_2d["offset"] = offset_2d
     stat_3d["offset"] = offset_3d
-    # stat_3d["LR_test"] = test_keypts
-    # torch.save(
-    #     stat_2d, os.path.join(out_dir, "stat_2d.pth.tar"),
-    # )
-    # torch.save(
-    #     stat_3d, os.path.join(out_dir, "stat_3d.pth.tar"),
-    # )
     
     return test_set_2d, test_set_3d, stat_2d, stat_3d
 

@@ -57,10 +57,11 @@ def load_test_results(
     # translate legs back to their original places
     # TODO make this more universal
     if prism:
+        n = offset.shape[1]
         if np.sum(good_keypts[0, :15]) > 10:
-            offset = np.hstack((offset[0, :15], offset[0, :15]))
+            offset = np.hstack((offset[0, :n//2], offset[0, :n//2]))
         else:
-            offset = np.hstack((offset[0, 15:], offset[0, 15:]))
+            offset = np.hstack((offset[0, n//2:], offset[0, n//2:]))
             
     tar += offset
     out += offset

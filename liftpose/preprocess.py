@@ -109,11 +109,14 @@ def normalization_stats(d, replace_zeros=True):
     return mean, std
 
 
-def center_poses(d):
+def center_poses(d, keypts=None):
     """move center of gravity to origin"""
 
     for k in d.keys():
-        d[k] -= np.mean(d[k], axis=1, keepdims=True)
+        if keypts is not None:
+            d[k] -= np.tile(np.mean(d[k][:,keypts,:], axis=1, keepdims=True),(1,d[k].shape[1],1))
+        else:
+            d[k] -= np.mean(d[k], axis=1, keepdims=True)
 
     return d
 
