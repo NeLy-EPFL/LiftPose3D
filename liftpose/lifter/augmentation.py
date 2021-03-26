@@ -9,7 +9,7 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=Tr
     def random_project_dispatch(
         inputs, outputs, outputs_raw, keys, stats, roots, target_sets,
     ):
-        outputs = outputs_raw.cpu().data.numpy()
+        outputs = outputs.cpu().data.numpy()
         
         # select a camera to project
         if len(eangles)>1:
@@ -23,8 +23,12 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=Tr
                 _intr = intr
         else:
             eangle = eangles[0]
-            _tvec = tvec[0]
-            _intr = intr[0]
+            if (tvec is not None) & (intr is not None):
+                _tvec = tvec[0]
+                _intr = intr[0]
+            else:
+                _tvec = tvec
+                _intr = intr
 
         # do random projection
         inputs, _ = project_to_random_eangle(
