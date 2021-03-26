@@ -33,59 +33,6 @@ np.random.seed(0)
 torch.manual_seed(0)
 
 
-def train_np(
-    train_2d: np.ndarray,
-    test_2d: np.ndarray,
-    train_3d: np.ndarray,
-    test_3d: np.ndarray,
-    out_dir: str = 'out',
-    root: int = 0,
-    target_sets: List[List[int]] = None,
-    train_keypts: Dict[str, np.ndarray] = None,
-    test_keypts: Dict[str, np.ndarray] = None,
-    training_kwargs: Dict[str, Union[str, int]] = {},
-    augmentation: List[Callable] = None,
-) -> None:
-
-    assert train_2d.shape[0] == train_3d.shape[0]
-    assert train_2d.shape[1] == train_3d.shape[1]
-    assert test_2d.shape[0] == test_3d.shape[0]
-    assert test_2d.shape[1] == test_3d.shape[1]
-
-    n_joints = train_2d.shape[1]
-    k = ""
-    # wrap numpy input into a dictionary
-    train_2d = {k: train_2d}
-    train_3d = {k: train_3d}
-    test_2d = {k: test_2d}
-    test_3d = {k: test_3d}
-    if train_keypts is not None:
-        train_keypts = {k: train_keypts}
-    if test_keypts is not None:
-        test_keypts = {k: test_keypts}
-
-    roots = [root]
-    if target_sets is None:
-        target_sets = list(
-            set(range(n_joints)) - set(roots)
-        )  # every point except the root is going to be predicted
-        target_sets = [target_sets]
-
-    train(
-        train_2d=train_2d,
-        test_2d=test_2d,
-        train_3d=train_3d,
-        test_3d=test_3d,
-        roots=roots,
-        target_sets=target_sets,
-        out_dir=out_dir,
-        train_keypts=train_keypts,
-        test_keypts=test_keypts,
-        training_kwargs=training_kwargs,
-        augmentation=augmentation,
-    )
-
-
 def train(
     train_2d: Dict[str, np.ndarray],
     test_2d: Dict[str, np.ndarray],
@@ -172,6 +119,7 @@ def train(
         stats[2] if stats is not None else None,
         stats[3] if stats is not None else None,
     )
+    
     # fmt: off
     assert all(t.ndim == 3 for t in list(train_2d.values()))
     assert all(t.ndim == 3 for t in list(test_2d.values()))

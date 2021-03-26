@@ -48,13 +48,14 @@ def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=N
     
     ax.cla()
 
-    plot_pose_3d(ax=ax, tar=tar[idx], 
-            pred=pred,
-            normalize=False,
-            bones=par["vis"]["bones"], 
-            limb_id=par["vis"]["limb_id"], 
-            colors=par["vis"]["colors"],
-            legend=True)
+    plot_pose_3d(ax=ax, 
+                 bones=par["vis"]["bones"], 
+                 pred=pred,
+                 tar=tar[idx],
+                 normalize=False,
+                 limb_id=par["vis"]["limb_id"], 
+                 colors=par["vis"]["colors"],
+                 legend=True)
     
     if trailing is not None:
         plot_trailing_points(ax, idx, tar, trailing, trailing_keypts)
@@ -66,7 +67,7 @@ def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=N
  
 def plot_trailing_points(ax, idx, pos, thist, trailing_keypts=None):
     """
-    Plot lagging, trailing points when moving legs
+    Plot lagging, trailing points when moving legs.
 
     Parameters
     ----------
@@ -159,7 +160,7 @@ def plot_pose_3d(
     assert tar.ndim == 2
 
     tar = tar.copy()
-    if normalize:  # move points toward origin for easier visualization
+    if normalize:  #move points to origin
         tar_m = np.nanmedian(tar, axis=0, keepdims=True)
         tar -= tar_m
         if pred is not None:
@@ -178,30 +179,30 @@ def plot_pose_3d(
 
     plot_3d_graph(
         G,
-        tar,
+        pred,
         ax,
         color_edge=edge_colors,
-        good_keypts=good_keypts if not show_gt_always else None,
+        style="--",
+        good_keypts=good_keypts if not show_pred_always else None,
     )
-    if pred is not None:
+    if tar is not None:
         plot_3d_graph(
             G,
-            pred,
+            tar,
             ax,
             color_edge=edge_colors,
-            style="--",
-            good_keypts=good_keypts if not show_pred_always else None,
+            good_keypts=good_keypts if not show_gt_always else None,
         )
 
     #### this bit is just to make special legend
     pts = np.nanmean(tar, axis=0)
-    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "-")
-    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "--", dashes=(2, 2))
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "--", dashes=(2, 2))
+    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "-")
     if legend:
         ax.legend(
         [(p1), (p3)],
-        ["Triangulated 3D pose", "LiftPose3D prediction"]
-        if pred is not None
+        ["LiftPose3D prediction", "Triangulated 3D pose"]
+        if tar is not None
         else ["LiftPose3D prediction"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
@@ -398,7 +399,7 @@ def get_violin_ylabel(units):
 
 def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
     
-    gt[~good_keypts] = np.nan
+    gt[~good_keypts.astype(bool)] = np.nan
     err = np.nanmean(np.abs(gt - pred), axis=-1)
     if overall:
         err = np.hstack([err, np.nanmean(err, axis=1, keepdims=True)])
@@ -421,7 +422,7 @@ def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
 
     # remove outliers
     d = pd.DataFrame({"err": e_list, "joint": n_list})
-    q = d.quantile(q=0.9)
+    q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
 
     return d
