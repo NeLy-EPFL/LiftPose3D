@@ -7,9 +7,40 @@ import torch
 
 def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=True):
     def random_project_dispatch(
-        inputs, outputs, outputs_raw, keys, stats, roots, target_sets,
+        inputs, outputs, outputs_raw, keys, stats, roots, target_sets
     ):
-        outputs = outputs.cpu().data.numpy()
+        """
+        Take raw (unprocessed) 3D poses, then project them randomly within the 
+        Euler angle ranges specified in eangles. Then normalize data with
+        precomputed mean and variances.
+
+        Parameters
+        ----------
+        inputs : torch tensor
+            Preprocessed input data.
+        outputs : torch tensor
+            Preprocessed 3D data.
+        outputs_raw : numpy array
+            Raw 3D data.
+        keys : 
+            Dictionary keys.
+        stats : TYPE
+            Precomputed mean and variance for inputs and outputs .
+        roots : list[int]
+            Root joints.
+        target_sets: List[List[Int]]
+            Joints to be predicted with respect to roots. 
+            If roots = [0, 1] and target_sets = [[2,3], [4,5]], then the
+            network will predict the relative location Joint 2 and 3 
+            with respect to Joint 0.
+
+        Returns
+        -------
+        inputs : torch tensor
+        outputs : torch tensor
+        outputs_raw : numpy array
+
+        """
         
         # select a camera to project
         if len(eangles)>1:
@@ -32,7 +63,7 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=Tr
 
         # do random projection
         inputs, _ = project_to_random_eangle(
-            outputs[None, :].copy(), eangle, axsorder, project=True, tvec=_tvec, intr=_intr
+            outputs_raw[None, :].copy(), eangle, axsorder, project=True, tvec=_tvec, intr=_intr
         )
         
         if len(eangles)>1:
@@ -74,7 +105,7 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=Tr
         inputs = torch.from_numpy(inputs[0, :]).float()
         outputs = torch.from_numpy(outputs[0, :]).float()
 
-        return inputs, outputs
+        return inputs, outputs, outputs_raw
 
     return random_project_dispatch
 
@@ -120,7 +151,7 @@ def project_to_cam():
         inputs = torch.from_numpy(inputs[0, :]).float()
         outputs = torch.from_numpy(outputs[0, :]).float()
         
-        return inputs, outputs
+        return inputs, outputs, outputs_raw
     
     return project_to_cam_dispatch
 
@@ -145,8 +176,6 @@ def perturb_pose(perturb, child, bones, avg_bone_len, std_bone_len):
         inputs, outputs, outputs_raw, keys, stats, roots, target_sets
         ):
         """Perturb pose around mean pose."""
-
-        outputs = outputs_raw.cpu().data.numpy()
         
         #sample ranadom bone lenght around mean
         mean = torch.from_numpy(avg_bone_len).float()
@@ -157,17 +186,16 @@ def perturb_pose(perturb, child, bones, avg_bone_len, std_bone_len):
         # bone_length *= max(normal.Normal(1,perturb).sample().numpy(),0)
         bone_length = {tuple(bone): bone_length[i] for i,bone in enumerate(bones)}
         
-        outputs = normalize_bone_length(outputs[None, :].copy(), 
+        outputs_raw = normalize_bone_length(outputs_raw[None, :].copy(), 
                                         root=roots[0], 
                                         child=child, 
                                         bone_length=bone_length, 
                                         thr=10)
         
-        outputs = outputs.reshape((1, outputs.size))
+        # outputs_raw = outputs_raw.reshape((1, outputs.size))
+
+        outputs_raw = outputs_raw[0, :]
         
-        # get torch tensors
-        outputs = torch.from_numpy(outputs[0, :]).float()
-        
-        return inputs, outputs
+        return inputs, outputs, outputs_raw
 
     return perturb_pose_dispatch

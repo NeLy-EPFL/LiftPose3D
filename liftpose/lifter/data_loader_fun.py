@@ -68,7 +68,7 @@ class data_loader(Dataset):
     def __getitem__(self, index):
         if self.is_train:
             outputs = torch.from_numpy(self.train_out[index]).float()
-            outputs_raw = torch.from_numpy(self.train_out_raw[index]).float()
+            outputs_raw = self.train_out_raw[index]
             inputs = torch.from_numpy(self.train_inp[index]).float()
             
             good_keypts = torch.from_numpy(self.train_keypts[index])
@@ -76,7 +76,7 @@ class data_loader(Dataset):
 
             if self.augmentation is not None:
                 for aug in self.augmentation:
-                    inputs, outputs = aug(
+                    inputs, outputs, outputs_raw = aug(
                         inputs, outputs, outputs_raw, keys, **self.get_aug_args()
                     )
         else:
