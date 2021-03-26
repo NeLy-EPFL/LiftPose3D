@@ -10,16 +10,7 @@ import matplotlib.animation
 from typing import List
 
 
-def plot_video_3d(fig,
-                  ax,
-                  n: int, 
-                  par, 
-                  tar, 
-                  pred=None, 
-                  trailing=None,
-                  trailing_keypts=None,
-                  fps: int=10, 
-                  name: str='LP3D_prediction.mp4'):
+def plot_video_3d(fig, ax, n, par, tar, pred=None, trailing=None, trailing_keypts=None, fps=10, name=None):
     """
     draw_function should take matplotlib axis object and frame id 
     def f(ax3d, idx):
@@ -33,7 +24,11 @@ def plot_video_3d(fig,
     """
 
     writer = matplotlib.animation.FFMpegWriter(fps=fps)
-    with writer.saving(fig, name, dpi=100):
+    
+    if name is None: 
+        name = 'LP3D_prediction.mp4'
+        
+    with writer.saving(fig, name, dpi=300):
         for i in range(n):
             if pred is not None:
                 draw_function(ax, i, par, tar, pred, trailing, trailing_keypts)
@@ -114,47 +109,53 @@ def plot_trailing_points(ax, idx, pos, thist, trailing_keypts=None):
 
 def plot_pose_3d(
     ax,
-    tar,
     bones,
-    normalize=True,
-    pred=None,
+    pred,
+    tar=None,
     limb_id=None,
     colors=None,
     good_keypts=None,
     show_pred_always=False,
     show_gt_always=False,
+    normalize=False,
     legend=False,
     axes=False
 ):
     """
     Plot 3D pose
 
-
     Parameters
     ----------
     ax : matplotlib axes object
-    tar : n x 3 numpy array
-        Positions for n joints.
     bones : list of lists of integers
         Bones in skeleton.
-    normalize : True/False, optional
-        Center pose by mean. The defauls is False.
     pred : n x 3 numpy array
-        Positions for n joints. Useful when comparing target to prediction. The default is None.
+        Positions for n joints.
+    tar : n x 3 numpy array, optional
+        Useful when comparing target to prediction. The default is None.
     limb_id : list of integers, optional
         Numbers represent which leg the joint belongs to. The default is None.
     colors : list of triples, optional
         Color assigned to bones for each leg. The default is None.
-    good_keypts_tar : n x 3 boolean array, optional
-        Selectively plot keypoints where good_keypoints_tar is 1. The default is None.
-    good_keypts_pred : n x 3 boolean array, optional
-        Selectively plot keypoints where good_keypoints_pred is 1. The default is None.
+    good_keypts : n x 3 boolean array, optional
+        Selectively plot keypoints where good_keypoints is 1. The default is None.
+    show_pred_always : boolean, optional
+        Ignore good_keypts for predictions. The default is False.
+    show_gt_always : boolean, optional
+        Ignore good_keypts for ground truth. The default is False.
+    normalize : boolean, optional
+        Center pose by mean. The defauls is False.
+    legend : boolean, optional
+        Show legend. The default is False.
+    axes : boolean, optional
+        Show axes. The default is False.
 
     Returns
     -------
     None.
 
     """
+
     assert tar.ndim == 2
 
     tar = tar.copy()
@@ -378,16 +379,15 @@ def read_log_train(out_dir: str):
     file = glob.glob(out_dir + "/log_train.txt")[0]
     f = open(file, "r")
     contents = f.readlines()
-    epoch, lr, loss_train, loss_test, err_test = [], [], [], [], []
+    epoch, lr, loss_train, loss_test = [], [], [], []
     for i in range(1, len(contents)):
         line = contents[i][:-1].split("\t")
         epoch.append(float(line[0]))
         lr.append(float(line[1]))
         loss_train.append(float(line[2]))
         loss_test.append(float(line[3]))
-        err_test.append(float(line[4]))
 
-    return epoch, lr, loss_train, loss_test, err_test
+    return epoch, lr, loss_train, loss_test
 
 
 def get_violin_ylabel(units):

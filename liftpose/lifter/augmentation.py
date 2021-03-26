@@ -80,7 +80,7 @@ def project_to_cam():
         inputs, outputs, outputs_raw, keys, stats, roots, target_sets
         ):
         
-        outputs = outputs_raw.cpu().data.numpy()
+        outputs = outputs.cpu().data.numpy()
         
         inputs = project_to_camera(outputs[None, :], intr=None)
         
@@ -167,4 +167,3 @@ def perturb_pose(perturb, child, bones, avg_bone_len, std_bone_len):
         return inputs, outputs
 
     return perturb_pose_dispatch
-

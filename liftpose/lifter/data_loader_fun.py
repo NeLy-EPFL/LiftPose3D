@@ -1,67 +1,69 @@
 import os
 import torch
 from torch.utils.data import Dataset
-import numpy as np
 
 
 class data_loader(Dataset):
-    def __init__(self, data_path, is_train=True, predict=False, augmentation=None):
+    def __init__(self, data_path, is_train=True, augmentation=None):
         """
-        data_path: path to dataset
-        is_train: load train/test dataset
-        noise: std. of additive zero-mean Gaussian noise used in training
-        predict: only predict but do not test
+        Data loader class for the pytorch optimiser.
+
+        Parameters
+        ----------
+        data_path : str
+            Path to preprocessed training and test datasets.
+        is_train : bool, optional
+            Train (True) or test (False). The default is True.
+        augmentation : list of functions, optional
+            Augmentation functions (see augmentation.py). The default is None.
+
+        Returns
+        -------
+        None.
+
         """
 
         self.is_train = is_train
-        self.predict = predict
         self.augmentation = augmentation
 
         self.train_inp, self.test_inp, = [], []
-        self.train_out, self.test_out, self.train_out_raw, self.test_out_raw = (
-            [],
-            [],
-            [],
-            [],
-        )
+        self.train_out, self.test_out, self.train_out_raw, self.test_out_raw = [], [], [], []
         self.train_keypts, self.test_keypts = [], []
         self.test_keys, self.train_keys = [], []
 
         if is_train:  # load training data
             self.train_stat_2d = torch.load(os.path.join(data_path, "stat_2d.pth.tar"))
             self.train_stat_3d = torch.load(os.path.join(data_path, "stat_3d.pth.tar"))
-            self.train_3d, self.train_bool, self.train_3d_raw = torch.load(
+            train_3d, train_bool, self.train_3d_raw = torch.load(
                 os.path.join(data_path, "train_3d.pth.tar")
             )
-            self.train_2d, self.train_2d_raw = torch.load(
+            train_2d, self.train_2d_raw = torch.load(
                 os.path.join(data_path, "train_2d.pth.tar")
             )
 
-            for key in self.train_3d.keys():
-                num_f = self.train_3d[key].shape[0]
+            for key in train_3d.keys():
+                num_f = train_3d[key].shape[0]
                 for i in range(num_f):
-                    self.train_inp.append(self.train_2d[key][i])
-                    self.train_out.append(self.train_3d[key][i])
+                    self.train_inp.append(train_2d[key][i])
+                    self.train_out.append(train_3d[key][i])
                     self.train_out_raw.append(self.train_3d_raw[key][i])
-                    self.train_keypts.append(self.train_bool[key][i])
+                    self.train_keypts.append(train_bool[key][i])
                     self.train_keys.append(key)
 
         else:  # load test data
-            if not predict:
-                self.test_3d, self.test_bool, self.test_3d_raw = torch.load(
-                    os.path.join(data_path, "test_3d.pth.tar")
-                )
-            self.test_2d, self.test_2d_raw = torch.load(
+            test_3d, test_bool, self.test_3d_raw = torch.load(
+                os.path.join(data_path, "test_3d.pth.tar")
+            )
+            test_2d, test_2d_raw = torch.load(
                 os.path.join(data_path, "test_2d.pth.tar")
             )
-            for key in self.test_2d.keys():
-                num_f = self.test_2d[key].shape[0]
+            for key in test_2d.keys():
+                num_f = test_2d[key].shape[0]
                 for i in range(num_f):
-                    self.test_inp.append(self.test_2d[key][i])
-                    if not predict:
-                        self.test_out.append(self.test_3d[key][i])
-                        self.test_keypts.append(self.test_bool[key][i])
-                        self.test_keys.append(key)
+                    self.test_inp.append(test_2d[key][i])
+                    self.test_out.append(test_3d[key][i])
+                    self.test_keypts.append(test_bool[key][i])
+                    self.test_keys.append(key)
 
     def __getitem__(self, index):
         if self.is_train:
@@ -77,17 +79,11 @@ class data_loader(Dataset):
                     inputs, outputs = aug(
                         inputs, outputs, outputs_raw, keys, **self.get_aug_args()
                     )
-
         else:
             inputs = torch.from_numpy(self.test_inp[index]).float()
-            if self.predict:
-                outputs = torch.from_numpy(np.zeros((36)))
-                good_keypts = torch.from_numpy(np.zeros((36)).astype(bool))
-                keys = torch.from_numpy(np.array(0))
-            else:
-                outputs = torch.from_numpy(self.test_out[index]).float()
-                good_keypts = torch.from_numpy(self.test_keypts[index])
-                keys = self.test_keys[index]
+            outputs = torch.from_numpy(self.test_out[index]).float()
+            good_keypts = torch.from_numpy(self.test_keypts[index])
+            keys = self.test_keys[index]
 
         return inputs, outputs, good_keypts, keys
 
@@ -115,4 +111,3 @@ class data_loader(Dataset):
             return len(self.train_inp)
         else:
             return len(self.test_inp)
-

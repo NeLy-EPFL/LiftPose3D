@@ -32,6 +32,46 @@ def train(
     gamma=None,
     max_norm=True,
 ):
+    """
+    Perform training iteration.
+
+    Parameters
+    ----------
+    train_loader : pytorch class
+        DataLoader iterable class.
+    model : torch neural network
+        Neural network to be trained.
+    criterion : pytorch class
+        Loss function (L1 loss by default).
+    optimizer : pytorch class
+        ADAMS optimiser.
+    epoch : float
+        Epoch number.
+    loss_test : float
+        Test loss.
+    lr_init : float, optional
+        Initial learning rate. The default is None.
+    lr_now : float, optional
+        Current learning rate. The default is None.
+    glob_step : float, optional
+        Step size. The default is None.
+    lr_decay : float, optional
+        Decay rate for learning rate. The default is None.
+    gamma : float, optional
+        Multiplicative factor of learning rate decay. The default is None.
+    max_norm : bool, optional
+        Normalize gradient. The default is True.
+
+    Returns
+    -------
+    glob_step : float
+        Step size.
+    lr_now : float
+        Current learning rate.
+    losses.avg : float
+        Average training loss.
+
+    """
 
     losses = utils.AverageMeter()
     model.train()

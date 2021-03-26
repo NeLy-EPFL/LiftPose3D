@@ -18,6 +18,21 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def network_main(opt, augmentation=None):
+    """
+    Main network training function.
+
+    Parameters
+    ----------
+    opt : class
+        Training options (see opt.py for default values).
+    augmentation : list of functions, optional
+        List of augmentation functions (see augmentation.py). The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         stream=sys.stdout,
@@ -29,7 +44,7 @@ def network_main(opt, augmentation=None):
     logging.info(f"Training on the device: {device}")
 
     start_epoch = 0
-    err_best = 9999999999
+    loss_best = 9999999999
     glob_step = 0
     lr_now = opt.lr
 
@@ -50,7 +65,7 @@ def network_main(opt, augmentation=None):
     )
     model = model.to(device)
     model.apply(weight_init)
-    criterion = nn.MSELoss(reduction="mean").to(device)
+    criterion = nn.L1Loss(reduction="mean").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr)
 
     logger.info(
@@ -64,12 +79,12 @@ def network_main(opt, augmentation=None):
         logger.info("loading ckpt from '{}'".format(opt.load))
         ckpt = torch.load(opt.load)
         start_epoch = ckpt["epoch"]
-        err_best = ckpt["err"]
+        loss_best = ckpt["err"]
         glob_step = ckpt["step"]
         lr_now = ckpt["lr"]
         model.load_state_dict(ckpt["state_dict"])
         optimizer.load_state_dict(ckpt["optimizer"])
-        logger.info("ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
+        logger.info("ckpt loaded (epoch: {} | err: {})".format(start_epoch, loss_best))
 
     log_file = "log_test.txt" if opt.test else "log_train.txt"
 
@@ -77,12 +92,12 @@ def network_main(opt, augmentation=None):
         io = log.Logger(os.path.join(opt.out_dir, log_file), resume=True)
     else:
         io = log.Logger(os.path.join(opt.out_dir, log_file))
-        io.set_names(["epoch", "lr", "loss_train", "loss_test", "err_test"])
+        io.set_names(["epoch", "lr", "loss_train", "loss_test"])
 
-    # loader for testing and prediction
+    # loader for testing
     test_loader = DataLoader(
         dataset=data_loader(
-            data_path=opt.data_dir, is_train=False, predict=opt.predict,
+            data_path=opt.data_dir, is_train=False
         ),
         batch_size=opt.batch_size,
         shuffle=False,
@@ -91,17 +106,14 @@ def network_main(opt, augmentation=None):
     )
 
     # test
-    if opt.test | opt.predict:
+    if opt.test:
         (
             loss_test,
-            err_test,
-            joint_err,
-            all_err,
             outputs,
             targets,
             inputs,
             good_keypts,
-        ) = test(test_loader, model, criterion, stat_3d, predict=opt.predict)
+        ) = test(test_loader, model, criterion)
 
         logger.info(
             "Saving results: {}".format(
@@ -111,9 +123,6 @@ def network_main(opt, augmentation=None):
         torch.save(
             {
                 "loss": loss_test,
-                "all_err": all_err,
-                "test_err": err_test,
-                "joint_err": joint_err,
                 "output": outputs,
                 "target": targets,
                 "input": inputs,
@@ -155,25 +164,23 @@ def network_main(opt, augmentation=None):
             )
 
             # test
-            loss_test, err_test, _, _, _, _, _, _ = test(
-                test_loader, model, criterion, stat_3d
-            )
+            loss_test, _, _, _, _ = test(test_loader, model, criterion)
 
             # update log file
             io.append(
-                [epoch + 1, lr_now, loss_train, loss_test, err_test],
-                ["int", "float", "float", "float", "float"],
+                [epoch + 1, lr_now, loss_train, loss_test],
+                ["int", "float", "float", "float"],
             )
 
             # save ckpt
-            is_best = err_test < err_best
-            err_best = min(err_test, err_best)
+            is_best = loss_test < loss_best
+            loss_best = min(loss_test, loss_best)
             save_ckpt(
                 {
                     "epoch": epoch + 1,
                     "lr": lr_now,
                     "step": glob_step,
-                    "err": err_best,
+                    "err": loss_best,
                     "state_dict": model.state_dict(),
                     "optimizer": optimizer.state_dict(),
                 },

@@ -207,6 +207,7 @@ def train(
     in_dim = list(train_2d.values())[0].shape[-1]
     out_dim = list(train_3d.values())[0].shape[-1]
     assert (out_dim == 1 or out_dim == 3), f"out_dim can only be 1 or 3, wheres set as {out_dim}"
+    
     # fmt: on
     train_2d_raw, train_3d_raw = copy.deepcopy(train_2d), copy.deepcopy(train_3d)
     test_2d_raw, test_3d_raw = copy.deepcopy(test_2d), copy.deepcopy(test_3d)
@@ -389,5 +390,4 @@ def test(
     option.out_dir = os.path.abspath(out_dir)
     option.test = True
     option.load = os.path.join(out_dir, "ckpt_best.pth.tar")
-    option.predict = False
     network_main(option)
