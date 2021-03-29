@@ -1,0 +1,19 @@
+name: liftpose
+channels:
+  - pytorch
+  - anaconda
+  - defaults
+dependencies:
+  - scipy>=1.4.0
+  - numpy>=1.17
+  - networkx
+  - matplotlib 
+  - torchvision==0.7.0
+  - pytorch==1.6.0
+  - tqdm
+  - jupyterlab
+  - pyyaml
+  - opencv
+  - seaborn
+  - ffmpeg
+  - pandas

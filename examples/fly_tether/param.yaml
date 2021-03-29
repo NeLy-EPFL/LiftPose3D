@@ -1,0 +1,25 @@
+data:
+  # ndims: 30 # number of 2D/3D points for each time instance. number of joints tracked.
+  in_dim: 2 
+  out_dim: 1 # 1 or 3.
+  roots: [0, 5, 10, 15, 20, 25] # given targets will be predicted w.r.t roots. therefore len[roots] should be equal to len[targets].
+  target_sets:
+      [
+        [1, 2, 3, 4],
+        [6, 7, 8, 9],
+        [11, 12, 13, 14],
+        [16, 17, 18, 19],
+        [21, 22, 23, 24],
+        [26, 27, 28, 29],
+      ]
+
+vis: 
+    colors: [[186,30,49], [201,86,79], [213,133,121], #RF, RM, RH
+          [15,115, 153], [26,141, 175], [117,190,203] #LF, LM, LH
+          ]
+    bones: [[0,1],[1,2],[2,3], [3,4],[5,6],[6,7],[7,8],[8,9],
+          [10,11],[11,12],[12,13],[13,14],
+          [15,16],[16,17],[17,18],[18,19],
+          [20,21],[21,22],[22,23],[23,24],
+          [25,26],[26,27],[27,28],[28,29]] # only used for visualization.
+    limb_id: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
