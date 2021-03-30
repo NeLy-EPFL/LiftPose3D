@@ -73,21 +73,21 @@ Currently, available options in ```liftpose.lifter.augmentation``` are:
 3. ```perturb_pose```   : pose augmentation when there are large animal-to-animal variation
 4. ```project_to_cam``` : project to camera if camera matrix is known
 
-Training augmentation options can be specified in the argument ```augmentation``` and can be combined. Using the following option, the training will ignore the input ```train_2d``` and insted generate 2D poses by projecting the 3D poses to ordered Euler angles within the range ```'eangles'```. 
+Training augmentation options can be specified in the argument `augmentation` and can be combined. Using the following option, the training will ignore the input ```train_2d``` and insted generate 2D poses by projecting the 3D poses to ordered Euler angles within the range ```eangles```. 
 
   ```python
   from liftpose.lifter.augmentation import random_project
   
   angle_aug = {'eangles' : {0: [[-10,10], [-10, 10], [-10,10]]}, #range of Euler angles (dictionary indexed by an integer which specifies the camera identify)
-               'axsorder': 'zyx', # order of rotations
+               'axsorder': 'zyx', # order of rotations for euler angles
                'vis'     : None,  # used in case not all joints are visible from a given camera
-               'tvec'    : None,  # vecto from camera centered to world coordinate frames
+               'tvec'    : None,  # camera translation vector
                'intr'    : None}  # camera intrinsic matrix
   
   aug = [random_project(**angle_aug)]
   ```
 
-See examples (fly_tether, capture, fly_tether_angle_inv) for various implementations.
+See [examples](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples) for various implementations.
 
 ## Inspecting the training  
   
@@ -132,7 +132,6 @@ See examples (fly_tether, capture, fly_tether_angle_inv) for various implementat
   from liftpose.plot import violin_plot
   
   names = ['Head', 'Nose', 'Shoulder',  'Hip',  'Knee', 'Foot', 'Hand']
-  
   violin_plot(plt.gca(), test_3d_gt=test_3d_gt, test_3d_pred=test_3d_pred, test_keypoints=np.ones_like(test_3d_gt),
               joints_name=names, units='m', body_length=2.21)
   ```
