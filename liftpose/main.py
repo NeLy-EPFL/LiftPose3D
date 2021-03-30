@@ -32,6 +32,48 @@ random.seed(0)
 np.random.seed(0)
 torch.manual_seed(0)
 
+import yaml
+from liftpose.plot import plot_pose_3d
+from liftpose.postprocess import load_test_results
+class LiftPose3D:
+    def __init__(self, param: str = None, **args):
+        # TODO check must have keys
+        # TODO check erronous keys
+        assert os.path.isfile(param) or param is None
+        par_yaml = yaml.full_load(open(param, "rb"))
+
+        self.__dict__.update(args)
+        for v in par_yaml.values():
+            self.__dict__.update(v)
+
+        self.test_3d_gt = None
+        self.test_3d_pred = None
+        self.test_keypts = None
+
+    def train(self, **args):
+        r =  train(**args, roots=self.roots, target_sets=self.target_sets, out_dir=self.out_dir)
+        self.test()
+        return r
+
+    def test(self, **args):
+        test(self.out_dir)
+        return self.load_test_results()
+
+    def load_test_results(self, **args):
+        self.test_3d_gt, self.test_3d_pred, self.test_keypts = load_test_results(self.out_dir, **args)
+        return (self.test_3d_gt, self.test_3d_pred, self.test_keypts)
+
+    def plot_pose_3d(self, ax3d, idx, **args):
+        if any([k is None for k in [self.test_3d_gt, self.test_3d_pred, self.test_keypts]]):
+            self.load_test_results()
+
+        plot_pose_3d(ax=ax3d, 
+                bones=self.bones, 
+                pred=self.test_3d_pred[idx],
+                tar=self.test_3d_gt[idx],
+                limb_id=self.limb_id, 
+                colors=self.colors, 
+                **args)
 
 def train(
     train_2d: Dict[str, np.ndarray],
