@@ -21,7 +21,7 @@ If you do not have access to
 4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
 ## Data format
-During training, LiftPose3D accepts two numpy arrays in shape of `[N J 2]` and `[N J 3]` serving as input and output of the network. Here, N is the number of poses and J is the number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need the set at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joints.
+During training, LiftPose3D accepts two numpy arrays in shape of `[N J 2]` and `[N J 3]` serving as input and output. Here, N is the number of poses and J is the number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need the set at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joints.
 
 For each [example](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples), we provide a unique `load.py` file to transform data into the required `[N J 3]` LifPose3D format.
 
