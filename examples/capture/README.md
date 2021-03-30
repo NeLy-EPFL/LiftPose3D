@@ -7,13 +7,15 @@
 
 citation for the CAPTURE dataset
 
+```
 @article{Marshall,
-author = {Marshall, Jesse D and Aldarondo, Diego E and Dunn, Timothy W and Wang, William L and Berman, Gordon J and \"{O}lveczky, Bence P},
-title = {Continuous Whole-Body 3{D} Kinematic Recordings across the Rodent Behavioral Repertoire},
-journal = {Neuron},
-year = {2021},
-volume = {109},
-number = {3},
-pages = {420--437.e8},
-month = feb
+  author = {Marshall, Jesse D and Aldarondo, Diego E and Dunn, Timothy W and Wang, William L and Berman, Gordon J and \"{O}lveczky, Bence P},
+  title = {Continuous Whole-Body 3{D} Kinematic Recordings across the Rodent Behavioral Repertoire},
+  journal = {Neuron},
+  year = {2021},
+  volume = {109},
+  number = {3},
+  pages = {420--437.e8},
+  month = feb
 }
+```
