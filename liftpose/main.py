@@ -233,7 +233,7 @@ def train(
         os.path.join(out_dir, "stat_3d.pth.tar"),
     )
 
-    # Starting to train Martinez et. al model
+    # Starting to train model
     logger.info("Starting training model.")
 
     option = Options().parse()
