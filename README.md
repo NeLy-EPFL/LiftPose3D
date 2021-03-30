@@ -13,7 +13,7 @@ LiftPose3D is a tool for transforming a 2D poses to 3D coordinates on labaratory
 3. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
 4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
-## Requirements
+## Use Cases
 To train LiftPose3D, ideally you would need (A) a 3D pose library, (B) corresponding 2D poses from the camera that you will use for lifting and (C) camera matrices (extrinsic and intrinsic). 
 
 If you do not have access to 
