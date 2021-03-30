@@ -190,7 +190,7 @@ ax = fig.add_subplot(111, projection='3d')
 
 def f(ax, idx):
     ax.cla()
-    plot_pose_3d(ax=ax, tar=test_3d_gt[idx],,
+    plot_pose_3d(ax=ax, tar=test_3d_gt[idx],
         pred=test_3d_pred[idx],
         bones=par_data["vis"]["bones"], 
         limb_id=par_data["vis"]["limb_id"], 
