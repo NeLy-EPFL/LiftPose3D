@@ -7,13 +7,6 @@
 
 LiftPose3D is a tool for transforming a 2D poses to 3D coordinates on labaratory animals. Classical approaches based on triangulation require synchronised acquisition from multiple cameras and elaborate calibration protocols. By contrast, LiftPose3D can reconstruct 3D poses from 2D poses from a single camera, in some instances without having to know the camera position or the type of lens used. For the theoretical background and details, have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
 
-## Starting-Up
-1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
-2. [LiftPose3D Paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
-3. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
-4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
-
-## Use Cases
 To train LiftPose3D, ideally you would need (A) a 3D pose library, (B) corresponding 2D poses from the camera that you will use for lifting and (C) camera matrices (extrinsic and intrinsic). 
 
 If you do not have access to 
@@ -21,10 +14,16 @@ If you do not have access to
   * (B) then obtain 2D images via projection using your camera matrices (you will need to calibrate to obtain these)
   * (C) then place your camera further away to assume weak perspective.
 
-## Data format
-LiftPose3D accepts an [N J 2] numpy array as input and [N J 3] numpy array as output, where N is number of poses and J is number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joints.
+## Starting-Up
+1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
+2. [LiftPose3D Paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
+3. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
+4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
 
-For each example, we provide a unique ```load.py``` file to trasnform data into the required format.
+## Data format
+During training, LiftPose3D accepts two numpy arrays in shape of `[N J 2]` and `[N J 3]` serving as input and output of the network. Here, N is the number of poses and J is the number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need the set at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joints.
+
+For each [example](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples), we provide a unique `load.py` file to transform data into the required `[N J 3]` LifPose3D format.
 
 ## Training
 
@@ -49,33 +48,35 @@ You can train a network with the following generic syntax using experiment 1 for
   train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
   ```
 
-The outputs will be saved in a folder ```out``` relative to the path where LiftPose3D is called.
+By default, the outputs will be saved in a folder `out` relative to the path where LiftPose3D is called. You can change this behavior using the `ouput_folder` parameter of the `train` function. You can take a look at the ```train``` function for other [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/e36d6598115c3eb7cf34f2ece90334df4200eee4/liftpose/main.py#L36).
   
-Take a look at the ```train``` function [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/7548b391e80bebb10e5ae6dce8624022a4019f53/liftpose/main.py#L97).
-  
-You can further configure training by passing an extra argument ```training_kwargs``` in ```train``` function.
+For example, you can further configure training by passing an extra argument ```training_kwargs``` in ```train``` function.
 
   ```python
+  import liftpose.main.train
   training_kwargs={ "epochs": 15,                   # train for 15 epochs
                     "resume": True,                 # resume training where it was stopped
-                    "load"  : 'ckpt_last.pth.tar'}, # load last training checkpoint
+                    "load"  : 'ckpt_last.pth.tar'}, # use last training checkpoint to resume
+                    
+  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, training_kwargs=training_kwargs)
   ```
   
-Check out ```liftpose.lifter.opt``` for default settings, which can be changed in ```training_kwargs```.
+You can overwrite all the parameter inside ```liftpose.lifter.opt``` using ```training_kwargs```.
 
 ## Training augmentation
 
 Augmenting training data is a great way to account for variability in the dataset, especially when training data is scarce. 
 
 Currently, available options in ```liftpose.lifter.augmentation``` are:
-1. ```add_noise```      : adding Gaussian noise to training data to account for uncertainty in pose annotation
-2. ```random_project``` : random projections when the camera orientation is unknown (the training will ignore the input ```train_2d```)
-3. ```perturb_pose```   : pose augmentation when there are large animal-to-animal variation
-4. ```project_to_cam``` : project to camera if camera matrix is known
+1. `add_noise`      : adding Gaussian noise on 2D training pose to account for uncertainty in test time
+2. `random_project` : random projections of 3D pose in case camera orientation is unknown during test time (the training will ignore the input ```train_2d```)
+3. `perturb_pose`   : pose augmentation by changing segment lengths when there are large animal-to-animal variation
+4. `project_to_cam` : deterministic projections of 3D pose in case camera matrix is different and known in test time 
 
-Training augmentation options can be specified in the argument `augmentation` and can be combined. Using the following option, the training will ignore the input ```train_2d``` and insted generate 2D poses by projecting the 3D poses to ordered Euler angles within the range ```eangles```. 
+Training augmentation options can be specified in the argument `augmentation` and can be combined. 
 
   ```python
+  import liftpose.main.train
   from liftpose.lifter.augmentation import random_project
   
   angle_aug = {'eangles' : {0: [[-10,10], [-10, 10], [-10,10]]}, #range of Euler angles (dictionary indexed by an integer which specifies the camera identify)
@@ -85,9 +86,10 @@ Training augmentation options can be specified in the argument `augmentation` an
                'intr'    : None}  # camera intrinsic matrix
   
   aug = [random_project(**angle_aug)]
+  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, aug=aug)
   ```
 
-See [examples](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples) for various implementations.
+See the case of [angle invariant Drosophila lifting](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples/fly_tether_angle_inv) for an example implementation of augmentation.
 
 ## Inspecting the training  
   
@@ -159,6 +161,7 @@ To visualize the output 3D pose, first specify an animal skeleton in the file ``
 We provide the following function to visualize the 3D data
 
  ```python
+from liftpose.plot import plot_pose_3d
 fig = plt.figure(figsize=plt.figaspect(1), dpi=100)
 ax = fig.add_subplot(111, projection='3d')
 ax.view_init(elev=-75, azim=-90)
