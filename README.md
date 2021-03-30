@@ -1,4 +1,4 @@
-# LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments
+# LiftPose3D
 
 <!--- ![video_5](https://user-images.githubusercontent.com/20509861/110424090-876c2180-80a2-11eb-87cc-38309236bf83.gif) --->
 <p align="center">
