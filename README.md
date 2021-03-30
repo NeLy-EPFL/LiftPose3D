@@ -5,6 +5,17 @@
   <img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/110424218-bc787400-80a2-11eb-8164-61a5bf1085fe.gif">
 </p>
 
+
+<p align="center">
+  <img align="center" width="500" height="500" src="https://user-images.githubusercontent.com/20509861/112979465-e6c8c900-9158-11eb-9834-9a77bc36019f.mp4">
+</p>
+
+
+
+
+
+
+
 LiftPose3D is a tool for transforming a 2D poses to 3D coordinates on labaratory animals. Classical approaches based on triangulation require synchronised acquisition from multiple cameras and elaborate calibration protocols. By contrast, LiftPose3D can reconstruct 3D poses from 2D poses from a single camera, in some instances without having to know the camera position or the type of lens used. For the theoretical background and details, have a look at our [paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1).
 
 To train LiftPose3D, ideally you would need (A) a 3D pose library, (B) corresponding 2D poses from the camera that you will use for lifting and (C) camera matrices (extrinsic and intrinsic). 
