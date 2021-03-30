@@ -151,13 +151,13 @@ To visualize the output 3D pose, first specify an animal skeleton in the file ``
 
   ```params.yaml
   data:
-      roots      : [0]
-      target_sets: [[1, 2, 3, 4]]
+      roots       : [0]
+      target_sets : [[1, 2, 3, 4]]
 
   vis:
-      colors     : [[186, 30, 49]]
-      bones      : [[0, 1], [1, 2], [2, 3], [3, 4]]
-      limb_id    : [0, 0, 0, 0, 0]
+      colors      : [[186, 30, 49]]
+      bones       : [[0, 1], [1, 2], [2, 3], [3, 4]]
+      limb_id     : [0, 0, 0, 0, 0]
   ```
   
 We provide the following function to visualize the 3D data
