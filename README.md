@@ -17,10 +17,10 @@ If you do not have access to
   * (C) then place your camera further away to assume weak perspective.
 
 ## Starting-Up
-1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/install.md)
+1. [Installation](https://github.com/NeLy-EPFL/LiftPose3D/blob/master/docs/install.md)
 2. [LiftPose3D Paper](https://www.biorxiv.org/content/10.1101/2020.09.18.292680v1)
 3. [Downloading the Datasets](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/dataset.md)
-4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/package_sem/docs/cite.md)
+4. [Citing LiftPose3D](https://github.com/NeLy-EPFL/LiftPose3D/blob/master/docs/cite.md)
 
 ## Data format
 During training, LiftPose3D accepts two numpy arrays in shape of `[N J 2]` and `[N J 3]` serving as input and output. Here, N is the number of poses and J is the number of joints. If you have multiple experiments, you can provide your data as dictionaries where the keys are strings and values are numpy arrays. You will also need the set at least one root joint and a set of target sets for each root joint. The network will predict the joints in the target sets relative to the root joints.
