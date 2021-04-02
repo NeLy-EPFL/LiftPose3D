@@ -157,19 +157,19 @@ def plot_pose_3d(
 
     """
 
-    assert tar.ndim == 2
+    assert pred.ndim == 2
 
-    tar = tar.copy()
+    pred = pred.copy()
     if normalize:  #move points to origin
-        tar_m = np.nanmedian(tar, axis=0, keepdims=True)
-        tar -= tar_m
-        if pred is not None:
-            pred = pred.copy()
-            pred -= tar_m
+        pred_m = np.nanmedian(pred, axis=0, keepdims=True)
+        pred -= pred_m
+        if tar is not None:
+            tar = tar.copy()
+            tar -= pred_m
 
     G = nx.Graph()
     G.add_edges_from(bones)
-    G.add_nodes_from(np.arange(tar.shape[0]))
+    G.add_nodes_from(np.arange(pred.shape[0]))
 
     # if limb_id or colors are not provided, then paint everything in blue
     if limb_id is None or colors is None:
@@ -195,7 +195,7 @@ def plot_pose_3d(
         )
 
     #### this bit is just to make special legend
-    pts = np.nanmean(tar, axis=0)
+    pts = np.nanmean(pred, axis=0)
     (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "--", dashes=(2, 2))
     (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "-")
     if legend:
@@ -424,6 +424,8 @@ def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
     d = pd.DataFrame({"err": e_list, "joint": n_list})
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
+    
+    d.to_csv('out.csv')
 
     return d
 

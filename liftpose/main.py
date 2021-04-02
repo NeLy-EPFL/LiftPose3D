@@ -280,7 +280,7 @@ def set_test_data(
             )
     else:
         test_set_3d, _, _, targets_3d, offset_3d = preprocess(
-            test_3d, stat_3d["out_dim"], stat_2d["roots"], stat_2d["target_sets"], mean=stat_3d["mean"], std=stat_3d["std"]
+            test_3d.copy(), stat_3d["out_dim"], stat_2d["roots"], stat_2d["target_sets"], mean=stat_3d["mean"], std=stat_3d["std"]
             )
         
     # preprocess the new 2d data
@@ -291,6 +291,7 @@ def set_test_data(
     # keypoints
     if test_keypts is None:
         test_keypts = init_keypts(test_3d)
+        
     test_keypts = flatten_dict(test_keypts)
     test_keypts = {k: v[:, targets_3d] for (k, v) in test_keypts.items()}
 
