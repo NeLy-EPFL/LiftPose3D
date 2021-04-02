@@ -425,7 +425,7 @@ def pred_and_gt_to_pandas(gt, pred, good_keypts, name, overall=True):
     q = d.quantile(q=0.95)
     d = d.loc[d["err"] < q["err"]]
     
-    d.to_csv('out.csv')
+    # d.to_csv('out.csv')
 
     return d
 
