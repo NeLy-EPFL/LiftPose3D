@@ -39,8 +39,8 @@ def plot_video_3d(fig, ax, n, par, tar, pred=None, trailing=None, trailing_keypt
 
 def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=None):
     
-    if pred is not None:
-        pred=pred[idx].copy()
+    if tar is not None:
+        tar=tar.copy()
         
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -50,14 +50,13 @@ def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=N
 
     plot_pose_3d(ax=ax, 
                  bones=par["vis"]["bones"], 
-                 pred=pred,
+                 pred=pred[idx],
                  tar=tar[idx],
                  normalize=False,
                  limb_id=par["vis"]["limb_id"], 
                  colors=par["vis"]["colors"],
                  legend=True)
     
-    print(pred.shape)
     if trailing is not None:
         plot_trailing_points(ax, idx, pred, trailing, trailing_keypts)
     
