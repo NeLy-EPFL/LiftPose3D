@@ -14,8 +14,8 @@ def plot_video_3d(fig,
                   ax, 
                   n, 
                   par, 
-                  tar, 
-                  pred=None,
+                  pred, 
+                  tar=None,
                   good_keypts=None,
                   trailing=None, 
                   trailing_keypts=None, 
@@ -41,13 +41,13 @@ def plot_video_3d(fig,
     with writer.saving(fig, name, dpi=300):
         for i in range(n):
             if pred is not None:
-                draw_function(ax, i, par, tar, pred, good_keypts, trailing, trailing_keypts)
+                draw_function(ax, i, par, pred, tar, good_keypts, trailing, trailing_keypts)
             else:
-                draw_function(ax, i, par, tar, None, good_keypts, trailing, trailing_keypts)
+                draw_function(ax, i, par, pred, None, good_keypts, trailing, trailing_keypts)
             writer.grab_frame()
 
 
-def draw_function(ax, idx, par, tar, pred=None, good_keypts=None, trailing=None, trailing_keypts=None):
+def draw_function(ax, idx, par, pred, tar=None, good_keypts=None, trailing=None, trailing_keypts=None):
         
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -58,9 +58,9 @@ def draw_function(ax, idx, par, tar, pred=None, good_keypts=None, trailing=None,
     plot_pose_3d(ax=ax, 
                  bones=par["vis"]["bones"], 
                  pred=pred[idx],
-                 tar=tar[idx],
+                 tar=tar[idx] if tar is not None else None,
                  normalize=False,
-                 good_keypts=good_keypts[idx],
+                 good_keypts=good_keypts[idx] if good_keypts is not None else None,
                  show_pred_always=True,
                  limb_id=par["vis"]["limb_id"], 
                  colors=par["vis"]["colors"],
@@ -193,7 +193,7 @@ def plot_pose_3d(
         pred,
         ax,
         color_edge=edge_colors,
-        style="--",
+        style="--" if tar is not None else "-",
         good_keypts=good_keypts if not show_pred_always else None,
     )
     if tar is not None:
@@ -207,11 +207,16 @@ def plot_pose_3d(
 
     #### this bit is just to make special legend
     pts = np.nanmean(pred, axis=0)
-    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "--", dashes=(2, 2))
-    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "-")
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "k-")
+    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
+    p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
+    p2, = ax.plot(pts, pts, pts, 'k-')
+
+        
     if legend:
         ax.legend(
         [(p1), (p3)],
+        # [(p1,p2), (p3,p4)],
         ["LiftPose3D prediction", "Triangulated 3D pose"]
         if tar is not None
         else ["LiftPose3D prediction"],
@@ -222,6 +227,8 @@ def plot_pose_3d(
         )
         p1.remove()
         p3.remove()
+        p2.remove()
+        p4.remove()
     
     if not axes:
         ax.set_xticklabels([])
