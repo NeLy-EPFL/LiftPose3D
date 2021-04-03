@@ -10,7 +10,17 @@ import matplotlib.animation
 from typing import List
 
 
-def plot_video_3d(fig, ax, n, par, tar, pred=None, trailing=None, trailing_keypts=None, fps=10, name=None):
+def plot_video_3d(fig, 
+                  ax, 
+                  n, 
+                  par, 
+                  tar, 
+                  pred=None,
+                  good_keypts=None,
+                  trailing=None, 
+                  trailing_keypts=None, 
+                  fps=10, 
+                  name=None):
     """
     draw_function should take matplotlib axis object and frame id 
     def f(ax3d, idx):
@@ -31,16 +41,13 @@ def plot_video_3d(fig, ax, n, par, tar, pred=None, trailing=None, trailing_keypt
     with writer.saving(fig, name, dpi=300):
         for i in range(n):
             if pred is not None:
-                draw_function(ax, i, par, tar, pred, trailing, trailing_keypts)
+                draw_function(ax, i, par, tar, pred, good_keypts, trailing, trailing_keypts)
             else:
-                draw_function(ax, i, par, tar, None, trailing, trailing_keypts)
+                draw_function(ax, i, par, tar, None, good_keypts, trailing, trailing_keypts)
             writer.grab_frame()
 
 
-def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=None):
-    
-    if tar is not None:
-        tar=tar.copy()
+def draw_function(ax, idx, par, tar, pred=None, good_keypts=None, trailing=None, trailing_keypts=None):
         
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -53,6 +60,8 @@ def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=N
                  pred=pred[idx],
                  tar=tar[idx],
                  normalize=False,
+                 good_keypts=good_keypts[idx],
+                 show_pred_always=True,
                  limb_id=par["vis"]["limb_id"], 
                  colors=par["vis"]["colors"],
                  legend=True)
