@@ -207,22 +207,22 @@ def plot_pose_3d(
 
     #### this bit is just to make special legend
     pts = np.nanmean(pred, axis=0)
-    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "k-")
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "b-")
     (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
-    p4, = ax.plot(pts, pts, pts, 'b--', dashes=(2, 2))
-    p2, = ax.plot(pts, pts, pts, 'k-')
+    p4, = ax.plot(pts, pts, pts, 'b--')
+    p2, = ax.plot(pts, pts, pts, 'r-', dashes=(2, 2))
 
         
     if legend:
         ax.legend(
-        [(p1), (p3)],
-        # [(p1,p2), (p3,p4)],
+        # [(p1), (p3)],
+        [(p1,p2), (p3,p4)],
         ["LiftPose3D prediction", "Triangulated 3D pose"]
         if tar is not None
         else ["LiftPose3D prediction"],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
-        loc=(0.1, 0.9),
+        loc=(0.1, 0.95),
         frameon=False,
         )
         p1.remove()
