@@ -57,8 +57,9 @@ def draw_function(ax, idx, par, tar, pred=None, trailing=None, trailing_keypts=N
                  colors=par["vis"]["colors"],
                  legend=True)
     
+    print(pred.shape)
     if trailing is not None:
-        plot_trailing_points(ax, idx, tar, trailing, trailing_keypts)
+        plot_trailing_points(ax, idx, pred, trailing, trailing_keypts)
     
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
@@ -91,6 +92,8 @@ def plot_trailing_points(ax, idx, pos, thist, trailing_keypts=None):
     
     if trailing_keypts is not None:
         pos = pos[idx-thist:idx,trailing_keypts,:].copy()
+    else:
+        pos = pos[idx-thist:idx,:,:].copy()
         
     alphas = np.linspace(0.1, 1, thist)
     rgba_colors = np.zeros((thist, 4))
