@@ -207,10 +207,11 @@ def plot_pose_3d(
 
     #### this bit is just to make special legend
     pts = np.nanmean(pred, axis=0)
-    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "b-")
-    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "r--", dashes=(2, 2))
-    p4, = ax.plot(pts, pts, pts, 'b--')
+    (p1,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "b-", dashes=(2, 2))
     p2, = ax.plot(pts, pts, pts, 'r-', dashes=(2, 2))
+    (p3,) = ax.plot(pts[[0]], pts[[1]], pts[[2]], "b-")
+    p4, = ax.plot(pts, pts, pts, 'r-')
+    
 
         
     if legend:
