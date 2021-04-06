@@ -32,22 +32,22 @@ For each [example](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples)
 You can train a network with the following generic syntax using experiment 1 for training and experiment 2 for testing.
 
   ```python
-  import liftpose.main.train
+  from liftpose.main import train as lp3d_train
   import numpy.random.rand
+  
   n_points, n_joints = 100, 5
   train_2d, test_2d = rand((n_points, n_joints, 2)), rand((n_points, n_joints, 2))
   train_3d, test_3d = rand((n_points, n_joints, 3)), rand((n_points, n_joints, 3))
   
   train_2d = {"experiment_1": train_2d}
   train_3d = {"experiment_1": train_3d}
-  
   test_2d = {"experiment_2": test_2d}
   test_3d = {"experiment_2": test_3d}
   
   roots = [0]
   target_sets = [1,2,3,4]
   
-  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
+  lp3d_train(train_2d, test_2d, train_3d, test_3d, roots, target_sets)
   ```
 
 By default, the outputs will be saved in a folder `out` relative to the path where LiftPose3D is called. You can change this behavior using the `ouput_folder` parameter of the `train` function. You can take a look at the ```train``` function for other [default values and much longer documentation here](https://github.com/NeLy-EPFL/LiftPose3D/blob/e36d6598115c3eb7cf34f2ece90334df4200eee4/liftpose/main.py#L36).
@@ -78,7 +78,7 @@ Currently, available options in ```liftpose.lifter.augmentation``` are:
 Training augmentation options can be specified in the argument `augmentation` and can be combined. 
 
   ```python
-  import liftpose.main.train
+  from liftpose.main import train as lp3d_train
   from liftpose.lifter.augmentation import random_project
   
   angle_aug = {'eangles' : {0: [[-10,10], [-10, 10], [-10,10]]}, #range of Euler angles (dictionary indexed by an integer which specifies the camera identify)
@@ -88,7 +88,7 @@ Training augmentation options can be specified in the argument `augmentation` an
                'intr'    : None}  # camera intrinsic matrix
   
   aug = [random_project(**angle_aug)]
-  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, aug=aug)
+  lp3d_train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, aug=aug)
   ```
 
 See the case of [angle invariant Drosophila lifting](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples/fly_tether_angle_inv) for an example implementation of augmentation.
