@@ -187,20 +187,17 @@ You can also easily create movies
 ```python
 from liftpose.plot import plot_video_3d
 
-fig = plt.figure(figsize=plt.figaspect(1), dpi=300)
+fig = plt.figure(figsize=plt.figaspect(1), dpi=100)
 ax = fig.add_subplot(111, projection='3d')
 
-def f(ax, idx):
-    ax.cla()
-    plot_pose_3d(ax=ax, tar=test_3d_gt[idx],
-        pred=test_3d_pred[idx],
-        bones=par_data["vis"]["bones"], 
-        limb_id=par_data["vis"]["limb_id"], 
-        colors=par_data["vis"]["colors"],
-        legend=True)
+ax.set_xlim([-4,2])
+ax.set_ylim([-3,2])
+ax.set_zlim([0,2])
     
-plot_video_3d(fig, ax, n=10, fps=20, draw_function=f, name='LiftPose3D_prediction.mp4')
+plot_video_3d(fig, ax, n=gt.shape[0], par=par_data, tar=gt, pred=pred, trailing=10, trailing_keypts=[4,9,14,19,24,29], fps=20)
 ```
+
+Use *trailing* to plot points *trailing_keypts* with a trailing effect with a desired length.
 
 ### Training with subset of points
 In case you want to prevent some 2D/3D points from used in the training, you can pass ```train_keypts``` argument into the ```train``` function, which has the same shape as ```train_3d``` but has boolean datatype. Alternatively, in case you have missing keypoints, you can convert them to ```np.NaN```. In both cases, the loss from these points is not going to be used during backpropagation.
