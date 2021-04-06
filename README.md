@@ -55,12 +55,12 @@ By default, the outputs will be saved in a folder `out` relative to the path whe
 For example, you can further configure training by passing an extra argument ```training_kwargs``` in ```train``` function.
 
   ```python
-  import liftpose.main.train
+  from liftpose.main import train as lp3d_train
   training_kwargs={ "epochs": 15,                   # train for 15 epochs
                     "resume": True,                 # resume training where it was stopped
                     "load"  : 'ckpt_last.pth.tar'}, # use last training checkpoint to resume
                     
-  train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, training_kwargs=training_kwargs)
+  lp3d_train(train_2d, test_2d, train_3d, test_3d, roots, target_sets, training_kwargs=training_kwargs)
   ```
   
 You can overwrite all the parameter inside ```liftpose.lifter.opt``` using ```training_kwargs```.
@@ -109,10 +109,10 @@ See the case of [angle invariant Drosophila lifting](https://github.com/NeLy-EPF
 
   
 ## Testing the network
-  To test the network on the data provided during the ```liftpose3d_train``` call, run
+  To test the network on the data provided during the ```lp3d_train``` call, run
   ```python
-  import liftpose.main.test as liftpose3d_test
-  liftpose3d_test(par['out_dir'])
+  from liftpose.main import test as lp3d_test
+lp3d_test(par['out_dir'])
   ```
   Results will be saved inside the ```test_results.pth.tar``` file. 
   
