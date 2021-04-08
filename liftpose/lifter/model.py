@@ -93,15 +93,6 @@ class LinearModel(nn.Module):
 
     # this function assembles the network
     def forward(self, x):
-        # pre-processing
-        if self.training:
-            # drop when A is True
-            A_array = torch.rand(x.size()).cuda() < self.drop_inp
-            no_drop = torch.rand(x.size(0)) < 0.5
-            A_array[no_drop] = False
-            x = x.masked_fill(A_array, 0)
-        # iu#x = self.drop_inp(x)  # HACK HACK HACK
-
         y = self.w1(x)
         y = self.batch_norm1(y)
         y = self.relu(y)
