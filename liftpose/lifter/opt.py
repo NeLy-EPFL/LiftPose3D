@@ -59,8 +59,8 @@ class Options:
         self.opt = self.parser.parse_args([])
         # do some pre-check
         out_dir = os.path.join(self.opt.out, self.opt.exp)
-        if not os.path.isdir(out_dir):
-            os.makedirs(out_dir)
+        #if not os.path.isdir(out_dir):
+        #    os.makedirs(out_dir)
         if self.opt.load:
             if not os.path.isfile(self.opt.load):
                 print ("{} is not found".format(self.opt.load))
