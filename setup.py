@@ -7,7 +7,7 @@ setuptools.setup(
     name="liftpose",
     version="0.22",
     author="Adam Gosztolai & Semih Gunel",
-    packages=["liftpose"],
+    packages=["liftpose", "liftpose.lifter"],
     description="Monocular 3D pose Estimation on Laboratory Animals",
     long_description=long_description,
     long_description_content_type="text/markdown",
