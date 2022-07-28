@@ -42,6 +42,9 @@ def random_project(eangles, axsorder, vis=None, tvec=None, intr=None, norm_2d=Tr
 
         """
         
+        inputs = inputs.numpy()
+        outputs = outputs_raw
+        
         # select a camera to project
         if len(eangles)>1:
             whichcam = keys[-1]
